@@ -13,13 +13,12 @@ generator client {
 
 // Define the User model
 model User {
-  id          String   @id @default(uuid())
-  name        String
-  email       String   @unique
-  password    String
-  role        UserRole
-  contactInfo String
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String
+  role      UserRole @default(PLAYER)
+  createdAt DateTime @default(now())
 
   groupsAsCoach  Group[]       @relation("CoachGroups")
   groupsAsMember Group[]       @relation("MemberGroups")

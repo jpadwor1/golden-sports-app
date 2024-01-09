@@ -30,20 +30,11 @@ export const appRouter = router({
           id: user.id,
           email: user.email,
           name: '',
-          address: '',
           phone: '',
         },
       });
 
-      await db.customer.create({
-        data: {
-          id: user.id,
-          email: user.email,
-          name: '',
-          address: '',
-          phone: '',
-        },
-      });
+      
     }
 
     return { success: true };
