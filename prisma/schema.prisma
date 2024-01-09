@@ -19,7 +19,8 @@ model User {
   phone     String
   role      UserRole @default(PLAYER)
   createdAt DateTime @default(now())
-
+  isProfileComplete Boolean @default(false)
+  
   groupsAsCoach  Group[]       @relation("CoachGroups")
   groupsAsMember Group[]       @relation("MemberGroups")
   payments       Payment[]

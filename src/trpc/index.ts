@@ -33,17 +33,15 @@ export const appRouter = router({
           phone: '',
         },
       });
-
-      
     }
 
     return { success: true };
   }),
 
   getCustomers: privateProcedure.query(async ({ ctx }) => {
-    const customers = await db.customer.findMany();
+    const users = await db.user.findMany();
 
-    return customers;
+    return users;
   }),
 
   addCustomer: privateProcedure
@@ -70,132 +68,22 @@ export const appRouter = router({
       });
 
       if (dbUser) {
-        const customer = await db.customer.update({
+        await db.user.update({
           where: {
             email: dbUser.email,
           },
           data: {
             id: dbUser.id,
             name: input.name,
-            address: input.address,
             email: dbUser.email,
             phone: input.phone,
-            nextServiceDate: input.nextServiceDate,
           },
         });
 
-        return customer;
+        return dbUser;
       }
 
-      const currentCustomer = await db.customer.findFirst({
-        where: {
-          email: input.email,
-          address: input.address,
-        },
-      });
-
-      if (currentCustomer) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Customer already exists',
-        });
-      }
-
-      const customer = await db.customer.create({
-        data: {
-          id: randomUUID(),
-          name: input.name,
-          address: input.address,
-          email: input.email,
-          phone: input.phone,
-          nextServiceDate: input.nextServiceDate,
-        },
-      });
-
-      return customer;
-    }),
-
-  updateCustomer: privateProcedure
-    .input(
-      z.object({
-        id: z.string().optional(),
-        name: z.string().optional(),
-        address: z.string().optional(),
-        email: z.string().optional(),
-        phone: z.string().optional(),
-        nextServiceDate: z.string().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { userId, user } = ctx;
-
-      if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
-      }
-
-      const dbCustomer = await db.customer.findFirst({
-        where: {
-          id: input.id,
-        },
-      });
-
-      const dbUser = await db.user.findFirst({
-        where: {
-          id: input.id,
-          address: input.address,
-        },
-      });
-
-      if (dbCustomer) {
-        const customer = await db.customer.update({
-          where: {
-            id: input.id,
-          },
-          data: {
-            name: input.name,
-            address: input.address,
-            email: input.email,
-            phone: input.phone,
-          },
-        });
-
-        if (dbUser) {
-          await db.user.update({
-            where: {
-              id: input.id,
-            },
-            data: {
-              name: input.name,
-              address: input.address,
-              email: input.email,
-              phone: input.phone,
-            },
-          });
-        }
-      }
-
-      return { success: true };
-    }),
-
-  deleteCustomer: privateProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { userId, user } = ctx;
-
-      if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
-      }
-
-      await db.customer.delete({
-        where: {
-          id: input.id,
-        },
-      });
-      return { success: true };
+      throw new TRPCError({ code: 'NOT_FOUND' });
     }),
 
   updateUserProfileSettings: privateProcedure
@@ -215,50 +103,28 @@ export const appRouter = router({
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
 
-      const dbCustomer = await db.customer.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
       const dbUser = await db.user.findFirst({
         where: {
           id: user.id,
         },
       });
 
-      if (dbCustomer) {
-        await db.customer.update({
+      if (dbUser) {
+        await db.user.update({
           where: {
             id: user.id,
           },
           data: {
             name: input.fullName,
-            address: input.address,
             email: input.email,
             phone: input.phone,
-            isProfileComplete: true,
           },
         });
-
-        if (dbUser) {
-          await db.user.update({
-            where: {
-              id: user.id,
-            },
-            data: {
-              name: input.fullName,
-              address: input.address,
-              email: input.email,
-              phone: input.phone,
-            },
-          });
-        }
       }
 
       return { success: true };
     }),
-    
+
   sendContactFormEmail: publicProcedure
     .input(
       z.object({
@@ -267,13 +133,12 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-     
       sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
 
       const sendEmail = async (to: string) => {
         const msg = {
           to: to,
-          from: 'john@johnpadworski.dev', 
+          from: 'john@johnpadworski.dev',
           subject: ' ',
           html: ' ',
           text: ' ',
@@ -297,7 +162,6 @@ export const appRouter = router({
       await sendEmail(input.email);
     }),
 
-  
   getFile: privateProcedure
     .input(z.object({ downloadURL: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -323,6 +187,8 @@ export const appRouter = router({
       z.object({
         downloadURL: z.string(),
         fileName: z.string(),
+        fileType: z.string(),
+        groupId: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -344,9 +210,11 @@ export const appRouter = router({
       const createdFile = await db.file.create({
         data: {
           key: input.downloadURL,
-          name: input.fileName,
+          fileName: input.fileName,
           url: input.downloadURL,
+          fileType: input.fileType,
           uploadStatus: 'PROCESSING',
+          groupId: input.groupId,
         },
       });
 
@@ -372,51 +240,6 @@ export const appRouter = router({
 
       return createdFile;
     }),
-
-  createStripeSession: privateProcedure.mutation(async ({ ctx }) => {
-    const { userId } = ctx;
-
-    const billingUrl = absoluteUrl('/profile/billing');
-
-    if (!userId) throw new TRPCError({ code: 'UNAUTHORIZED' });
-
-    const dbUser = await db.user.findFirst({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (!dbUser) throw new TRPCError({ code: 'UNAUTHORIZED' });
-
-    const subscriptionPlan = await getUserSubscriptionPlan();
-
-    if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
-      const stripeSession = await stripe.billingPortal.sessions.create({
-        customer: dbUser.stripeCustomerId,
-        return_url: billingUrl,
-      });
-      return { url: stripeSession.url };
-    }
-
-    const stripeSession = await stripe.checkout.sessions.create({
-      success_url: billingUrl,
-      cancel_url: billingUrl,
-      payment_method_types: ['card'],
-      mode: 'subscription',
-      billing_address_collection: 'auto',
-      line_items: [
-        // {
-        //   price: PLANS.find((plan) => plan.name === 'Pro')?.price.priceIds.test,
-        //   quantity: 1,
-        // },
-      ],
-
-      metadata: {
-        userId: userId,
-      },
-    });
-    return { url: stripeSession.url };
-  }),
 });
 
 export type AppRouter = typeof appRouter;
