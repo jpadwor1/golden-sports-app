@@ -1,0 +1,225 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Define the User model
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  password    String
+  role        UserRole
+  contactInfo String
+  createdAt   DateTime @default(now())
+
+  groupsAsCoach  Group[]       @relation("CoachGroups")
+  groupsAsMember Group[]       @relation("MemberGroups")
+  payments       Payment[]
+  messages       Message[]
+  children       User[]        @relation("ParentChild")
+  parent         User?         @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parentId       String?
+  Participant    Participant[]
+  Post           Post[]
+  Comment        Comment[]
+  PollVote       PollVote[]
+
+  @@index([parentId])
+}
+
+model Group {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  coachId     String
+  createdAt   DateTime @default(now())
+
+  coach    User      @relation("CoachGroups", fields: [coachId], references: [id])
+  events   Event[]
+  messages Message[]
+  files    File[]
+
+  members User[] @relation("MemberGroups")
+  Post    Post[]
+  Poll    Poll[]
+
+  @@index([coachId])
+}
+
+model Event {
+  id              String   @id @default(uuid())
+  groupId         String
+  name            String
+  description     String?
+  startDateTime   DateTime
+  endDateTime     DateTime
+  location        String?
+  maxParticipants Int?
+
+  group        Group         @relation(fields: [groupId], references: [id])
+  participants Participant[]
+  payments     Payment[]
+  eventType    EventType
+
+  @@index([groupId])
+}
+
+model Participant {
+  userId  String
+  eventId String
+  status  String // Consider using an enum for predefined statuses
+
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@id([userId, eventId])
+  @@index([userId])
+  @@index([eventId])
+}
+
+model Payment {
+  id            String    @id @default(uuid())
+  userId        String
+  eventId       String?
+  amount        Float
+  paymentStatus String
+  dueDate       DateTime?
+
+  user  User   @relation(fields: [userId], references: [id])
+  event Event? @relation(fields: [eventId], references: [id])
+
+  @@index([userId])
+  @@index([eventId])
+}
+
+model Message {
+  id           String   @id @default(uuid())
+  senderUserId String
+  groupId      String
+  content      String
+  timestamp    DateTime @default(now())
+
+  sender User  @relation(fields: [senderUserId], references: [id])
+  group  Group @relation(fields: [groupId], references: [id])
+
+  @@index([groupId])
+  @@index([senderUserId])
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  authorId  String
+  groupId   String
+  content   String
+  timestamp DateTime @default(now())
+
+  author   User      @relation(fields: [authorId], references: [id])
+  group    Group     @relation(fields: [groupId], references: [id])
+  comments Comment[]
+
+  @@index([groupId])
+  @@index([authorId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String
+  authorId  String
+  content   String
+  timestamp DateTime @default(now())
+
+  post      Post      @relation(fields: [postId], references: [id])
+  author    User      @relation(fields: [authorId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+  replyTo   Comment?  @relation("CommentReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replyToId String?
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([replyToId])
+}
+
+model Poll {
+  id        String    @id @default(uuid())
+  groupId   String
+  question  String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+
+  group   Group        @relation(fields: [groupId], references: [id])
+  options PollOption[]
+  votes   PollVote[]
+
+  @@index([groupId])
+}
+
+model PollOption {
+  id     String @id @default(uuid())
+  pollId String
+  text   String
+
+  poll  Poll       @relation(fields: [pollId], references: [id])
+  votes PollVote[]
+
+  @@index([pollId])
+}
+
+model PollVote {
+  userId   String
+  optionId String
+
+  user   User       @relation(fields: [userId], references: [id])
+  option PollOption @relation(fields: [optionId], references: [id])
+  Poll   Poll?      @relation(fields: [pollId], references: [id])
+  pollId String?
+
+  @@id([userId, optionId])
+  @@index([userId])
+  @@index([optionId])
+  @@index([pollId])
+}
+
+model File {
+  id           String       @id @default(uuid())
+  groupId      String
+  fileName     String
+  fileType     String
+  uploadDate   DateTime     @default(now())
+  uploadStatus UploadStatus @default(PENDING)
+
+  url   String
+  key   String
+  group Group  @relation(fields: [groupId], references: [id])
+
+  @@index([groupId])
+}
+
+enum UploadStatus {
+  PENDING
+  PROCESSING
+  FAILED
+  SUCCESS
+}
+
+enum UserRole {
+  ADMIN
+  COACH
+  PARENT
+  PLAYER
+}
+
+enum EventType {
+  PRACTICE
+  GAME
+  MEETING
+  OTHER
+}
