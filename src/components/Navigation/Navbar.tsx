@@ -18,14 +18,18 @@ const Navbar = async () => {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
 
- 
-
   return (
     <nav className='sticky h-20 inset-x-0 top-0 z-40 w-flow border-b border-gray-200 bg-white/60 backdrop-blur-lg transtion-all'>
       <MaxWidthWrapper>
         <div className='flex h-20 items-center justify-between border-b border-zinc-200'>
           <Link href='/' className='flex z-40 font-semibold'>
-            <Image className='w-12 h-auto' src='/GSlogo.png' width={300} height={222} alt='Always Clean' />
+            <Image
+              className='w-12 h-auto'
+              src='/GSlogo.png'
+              width={300}
+              height={222}
+              alt='Always Clean'
+            />
           </Link>
 
           <MobileNav />
@@ -47,13 +51,13 @@ const Navbar = async () => {
             ) : (
               <>
                 <Link
-                href='/client'
+                  href='/dashboard'
                   // href={dbCustomer?.role === 'ADMIN' ? '/dashboard' : '/client'}
                   className={buttonVariants({ variant: 'ghost', size: 'sm' })}
                 >
                   {/* {dbCustomer?.role === 'ADMIN' ? 'Dashboard' : 'Service History'}
                    */}
-                   Dashboard
+                  Dashboard
                 </Link>
 
                 <UserAccountNav

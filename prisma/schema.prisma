@@ -13,25 +13,25 @@ generator client {
 
 // Define the User model
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  phone     String
-  role      UserRole @default(PLAYER)
-  createdAt DateTime @default(now())
-  isProfileComplete Boolean @default(false)
-  
-  groupsAsCoach  Group[]       @relation("CoachGroups")
-  groupsAsMember Group[]       @relation("MemberGroups")
-  payments       Payment[]
-  messages       Message[]
-  children       User[]        @relation("ParentChild")
-  parent         User?         @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  parentId       String?
-  Participant    Participant[]
-  Post           Post[]
-  Comment        Comment[]
-  PollVote       PollVote[]
+  id                String        @id @default(uuid())
+  name              String
+  email             String        @unique
+  phone             String
+  role              UserRole      @default(PLAYER)
+  createdAt         DateTime      @default(now())
+  isProfileComplete Boolean       @default(false)
+  imageURL          String?
+  groupsAsCoach     Group[]       @relation("CoachGroups")
+  groupsAsMember    Group[]       @relation("MemberGroups")
+  payments          Payment[]
+  messages          Message[]
+  children          User[]        @relation("ParentChild")
+  parent            User?         @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parentId          String?
+  Participant       Participant[]
+  Post              Post[]
+  Comment           Comment[]
+  PollVote          PollVote[]
 
   @@index([parentId])
 }

@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/Layout/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import Navbar from '@/components/Navigation/Navbar';
 import { cn } from '@/lib/utils';
+import Providers from '@/components/Misc/Providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,23 +21,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en'>
-      <body
-        className={cn(
-          'min-h-screen font-sans antialiased grainy light',
-          inter.className
-        )}
-      >
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='system'
-          enableSystem
-          disableTransitionOnChange
+      <Providers>
+        <body
+          className={cn(
+            'min-h-screen font-sans antialiased grainy light',
+            inter.className
+          )}
         >
-          <Toaster />
-          <Navbar />
-          {children}
-        </ThemeProvider>
-      </body>
+          <ThemeProvider
+            attribute='class'
+            defaultTheme='system'
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Toaster />
+            <Navbar />
+            {children}
+          </ThemeProvider>
+        </body>
+      </Providers>
     </html>
   );
 }
