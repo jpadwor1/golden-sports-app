@@ -41,12 +41,10 @@ export default async function SettingsLayout({
   return (
     <div className='flex flex-row w-full'>
       <aside className='md:block hidden min-h-[calc(100vh-5rem)] lg:w-1/4 bg-white'>
-        <SidebarNav items={sidebarNavItems} user={user} />
+        {dbUser && <SidebarNav items={sidebarNavItems} user={dbUser} />}
       </aside>
 
-      <div>
-        {children}
-      </div>
+      <div className='md:w-3/4'>{children}</div>
     </div>
   );
 }

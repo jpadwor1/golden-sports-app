@@ -7,11 +7,8 @@ export default function Home() {
   return (
     <MaxWidthWrapper>
       <section
-        className='py-24 md:pt-36 bg-white overflow-hidden'
-        style={{
-          backgroundImage: 'url("/flex-ui-assets/elements/pattern-white.svg")',
-          backgroundPosition: 'center',
-        }}
+        className='py-24 md:pt-36 bg-white overflow-hidden header-section-bg'
+        
       >
         <div className='container px-4 mx-auto'>
           <div className='flex flex-wrap items-center -mx-4'>
@@ -106,11 +103,8 @@ export default function Home() {
         </div>
       </section>
       <section
-        className='py-24 bg-white'
-        style={{
-          backgroundImage: 'url("/flex-ui-assets/elements/pattern-white.svg")',
-          backgroundPosition: 'center',
-        }}
+        className='py-24 bg-white header-section-bg'
+        
       >
         <div className='container px-4 mx-auto'>
           <div className='flex flex-wrap items-center -mx-4 mb-16'>
@@ -237,11 +231,8 @@ export default function Home() {
         </div>
       </section>
       <section
-        className='py-24 bg-white'
-        style={{
-          backgroundImage: 'url("/flex-ui-assets/elements/pattern-white.svg")',
-          backgroundPosition: 'center',
-        }}
+        className='py-24 bg-white header-section-bg'
+        
       >
         <div className='container px-4 mx-auto'>
           <div className='text-center'>
@@ -318,11 +309,8 @@ export default function Home() {
         </div>
       </section>
       <section
-        className='bg-white overflow-hidden'
-        style={{
-          backgroundImage: 'url("/flex-ui-assets/elements/pattern-white.svg")',
-          backgroundPosition: 'center',
-        }}
+        className='bg-white overflow-hidden header-section-bg'
+        
       >
         <div className='container px-4 mx-auto'>
           <div className='flex flex-wrap lg:items-center pt-24 pb-12 -mx-4'>

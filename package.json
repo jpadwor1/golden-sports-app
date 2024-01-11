@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.3.4",
     "@kinde-oss/kinde-auth-nextjs": "^2.1.0",
     "@prisma/client": "^5.7.1",
     "@radix-ui/react-avatar": "^1.0.4",

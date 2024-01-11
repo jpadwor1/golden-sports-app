@@ -29,8 +29,14 @@ export const appRouter = router({
         data: {
           id: user.id,
           email: user.email,
-          name: '',
+          name:
+            user.given_name && user.family_name
+              ? `${user.given_name} ${user.family_name}`
+              : user.given_name
+              ? user.given_name
+              : '',
           phone: '',
+          imageURL: user.picture,
         },
       });
     }
