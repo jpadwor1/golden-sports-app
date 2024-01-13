@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray, useForm, Controller } from 'react-hook-form';
 import * as z from 'zod';
-
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,7 +36,14 @@ const profileFormSchema = z.object({
     })
     .email(),
   phone: z.string().min(10).max(15),
-  address: z.string().max(160).min(4),
+  children: z
+    .array(
+      z.object({
+        name: z.string().min(1, "Child's name is required"),
+        age: z.number().min(0, 'Age must be a positive number'),
+      })
+    )
+    .optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -45,93 +52,42 @@ interface ProfileFormProps {
   user: any;
 }
 
-declare global {
-  interface Window {
-    initGooglePlaces: (form: any) => void;
-  }
-}
-
-const initGooglePlaces = (form: any) => {
-  // Ensure that the Google Maps API script has loaded
-  if (!window.google || !window.google.maps || !window.google.maps.places) {
-    console.error('Google Maps API script not loaded');
-    return;
-  }
-
-  // Select the input element for the address field
-  const addressInput = document.getElementById('address') as HTMLInputElement;
-  if (!addressInput) {
-    console.error('Address input not found');
-    return;
-  }
-
-  // Create a new instance of the Google Places Autocomplete
-  const autocomplete = new google.maps.places.Autocomplete(addressInput, {
-    types: ['address'],
-  });
-
-  // Add a listener for the 'place_changed' event
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace();
-    const address = place.formatted_address;
-    if (address) {
-      form.setValue('address', address, { shouldValidate: true });
-    }
-  });
-};
-
-const loadGooglePlacesScript = (callback: () => void) => {
-  if (typeof window !== 'undefined') {
-    const isScriptLoaded = document.querySelector(
-      "script[src*='maps.googleapis.com/maps/api/js']"
-    );
-    if (!isScriptLoaded) {
-      window.initGooglePlaces = callback;
-
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&callback=initGooglePlaces`;
-      document.head.appendChild(script);
-    } else if (window.google && window.google.maps) {
-      callback();
-    }
-  }
-};
-
-const mergeRefs = (...refs: React.Ref<any>[]) => {
-  return (element: HTMLInputElement) => {
-    refs.forEach((ref) => {
-      if (typeof ref === 'function') {
-        ref(element);
-      } else if (ref != null) {
-        (ref as React.MutableRefObject<HTMLInputElement>).current = element;
-      }
-    });
-  };
-};
-
 export function ProfileForm({ user }: ProfileFormProps) {
+  const router = useRouter();
   const defaultValues: Partial<ProfileFormValues> = {
     fullName: user.name,
     email: user.email,
     phone: user.phone,
-    address: user.address,
+    children: [],
   };
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
     mode: 'onChange',
   });
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = form;
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'children',
+  });
 
   const mutation = trpc.updateUserProfileSettings.useMutation();
 
   function onSubmit(data: ProfileFormValues) {
+    
+    console.log(data);
     mutation.mutate(data, {
       onSuccess: () => {
         toast({
           title: 'Updated Successfully',
           description: <p>Your profile settings have been updated</p>,
         });
+      router.push('/settings');
       },
       onError: (error) => {
         toast({
@@ -147,21 +103,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
     });
   }
 
-  const addressInputRef = useRef<HTMLInputElement>(null);
-  const [autocomplete, setAutocomplete] =
-    useState<google.maps.places.Autocomplete | null>(null);
-  const onAddressInputMount = mergeRefs(
-    addressInputRef,
-    form.register('address').ref
-  );
-
-  useEffect(() => {
-    loadGooglePlacesScript(() => initGooglePlaces(form));
-  }, [form]);
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className='flex flex-col space-y-8'
+      >
         <FormField
           control={form.control}
           name='fullName'
@@ -201,29 +148,47 @@ export function ProfileForm({ user }: ProfileFormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name='address'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address</FormLabel>
-              <FormControl>
+
+        {fields.map((field, index) => (
+          <div key={field.id} className='flex items-center space-x-3'>
+            <Input
+              placeholder={`Child ${index + 1} Name`}
+              {...form.register(`children.${index}.name` as const)}
+            />
+            <Controller
+              name={`children.${index}.age` as const}
+              control={control}
+              render={({ field }) => (
                 <Input
-                  ref={onAddressInputMount}
-                  id='address'
-                  defaultValue={field.value}
-                  onChange={field.onChange} // Bind the onChange event
-                  onBlur={field.onBlur} // Bind the onBlur event
-                  placeholder={user.address}
+                  type='number'
+                  placeholder={`Child ${index + 1} Age`}
+                  {...field}
+                  value={field.value || ''}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value ? parseInt(e.target.value, 10) : null
+                    )
+                  }
                 />
-              </FormControl>
-              <FormDescription>
-                You should only enter the service address.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              )}
+            />
+            <button type='button' onClick={() => remove(index)}>
+              Remove
+            </button>
+            {errors.children && errors.children[index]?.age && (
+              <p className='text-red-500'>
+                {errors.children[index]?.age?.message}
+              </p>
+            )}
+          </div>
+        ))}
+        <Button
+          type='button'
+          onClick={() => append({ name: '', age: 0 })}
+          className='my-2 w-[40%] self-center bg-blue-600 hover:bg-blue-400'
+        >
+          Add Child
+        </Button>
 
         <Button type='submit'>Update profile</Button>
       </form>

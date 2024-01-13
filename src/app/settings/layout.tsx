@@ -1,13 +1,7 @@
-
 import { Separator } from '@/components/ui/separator';
 import { SidebarNav } from './sidebarNav';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { db } from '@/db';
-
-
-
-
-
 
 const sidebarNavItems = [
   {
@@ -22,13 +16,19 @@ const sidebarNavItems = [
     title: 'Billing',
     href: '/settings/billing',
   },
+  {
+    title: 'Team',
+    href: '/settings/team',
+  },
 ];
 
 interface SettingsLayoutProps {
   children: React.ReactNode;
 }
 
-export default async function SettingsLayout({ children }: SettingsLayoutProps) {
+export default async function SettingsLayout({
+  children,
+}: SettingsLayoutProps) {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
 
@@ -37,13 +37,9 @@ export default async function SettingsLayout({ children }: SettingsLayoutProps) 
       id: user?.id,
     },
   });
-  
-  
-  
 
   return (
     <>
-     
       <div className='space-y-6 p-10 pb-16 block '>
         <div className='space-y-0.5'>
           <h2 className='text-2xl font-bold tracking-tight'>Settings</h2>

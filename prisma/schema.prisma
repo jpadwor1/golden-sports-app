@@ -25,28 +25,39 @@ model User {
   groupsAsMember    Group[]       @relation("MemberGroups")
   payments          Payment[]
   messages          Message[]
-  children          User[]        @relation("ParentChild")
-  parent            User?         @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   parentId          String?
   Participant       Participant[]
   Post              Post[]
   Comment           Comment[]
   PollVote          PollVote[]
+  Children          Children[]
+
+  @@index([parentId])
+}
+
+model Children {
+  id        String   @id @default(uuid())
+  name      String
+  age       Int
+  parentId  String
+  createdAt DateTime @default(now())
+
+  parent User @relation(fields: [parentId], references: [id])
 
   @@index([parentId])
 }
 
 model Group {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
   description String?
   coachId     String
-  createdAt   DateTime @default(now())
-
-  coach    User      @relation("CoachGroups", fields: [coachId], references: [id])
-  events   Event[]
-  messages Message[]
-  files    File[]
+  createdAt   DateTime  @default(now())
+  logoURL     String?
+  coach       User      @relation("CoachGroups", fields: [coachId], references: [id])
+  events      Event[]
+  messages    Message[]
+  files       File[]
 
   members User[] @relation("MemberGroups")
   Post    Post[]

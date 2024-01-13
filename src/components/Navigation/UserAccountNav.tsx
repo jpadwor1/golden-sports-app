@@ -34,7 +34,7 @@ const UserAccountNav = async ({
               <div className='relative aspect-square h-full w-full'>
                 <Image
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
                   src={imageUrl}
                   alt='profile picture'
                   referrerPolicy='no-referrer'
@@ -64,12 +64,12 @@ const UserAccountNav = async ({
         <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild>
-          <Link href={role === 'USER' ? '/client' : '/profile'}>Profile</Link>
+          <Link href={role === 'USER' ? '/client' : '/settings'}>Profile</Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
           {email ? (
-            <Link href='/profile/billing'>Manage billing</Link>
+            <Link href='/settings/billing'>Manage billing</Link>
           ) : (
             <Link href='/pricing'>
               Upgrade <Gem className='ml-1 h-4 w-4 text-green-400' />

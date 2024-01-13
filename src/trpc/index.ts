@@ -92,14 +92,76 @@ export const appRouter = router({
       throw new TRPCError({ code: 'NOT_FOUND' });
     }),
 
+  createGroup: privateProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+        files: z.object({
+          id: z.string().optional(),
+          downloadURL: z.string(),
+          fileName: z.string(),
+          fileType: z.string(),
+        }),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const dbUser = await db.user.findFirst({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (dbUser) {
+        const group = await db.group.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            files: {
+              create: {
+                key: input.files.downloadURL,
+                fileName: input.files.fileName,
+                url: input.files.downloadURL,
+                fileType: input.files.fileType,
+                uploadStatus: 'SUCCESS',
+                uploadDate: new Date(),
+              },
+            },
+            logoURL: input.files.downloadURL,
+            coach: {
+              connect: {
+                id: user.id,
+              },
+            },
+          },
+        });
+
+        return group;
+      }
+
+      throw new TRPCError({ code: 'NOT_FOUND' });
+    }),
+
   updateUserProfileSettings: privateProcedure
     .input(
       z.object({
         fullName: z.string().optional(),
-        address: z.string().optional(),
         email: z.string().optional(),
         phone: z.string().optional(),
-        nextServiceDate: z.string().optional(),
+        children: z
+          .array(
+            z.object({
+              name: z.string(),
+              age: z.number(),
+            })
+          )
+          .optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
