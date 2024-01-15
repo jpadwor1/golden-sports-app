@@ -1,6 +1,5 @@
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import {app} from '@/config/firebase';
-import { useSearchParams } from 'next/navigation';
+import { app } from '@/config/firebase';
 
 export const startFileUpload = async ({ file }: { file: File | null }) => {
   if (!file) {
@@ -28,83 +27,106 @@ export const startFileUpload = async ({ file }: { file: File | null }) => {
 
 async function getAuthToken() {
   try {
-      const response = await fetch(`${process.env.KINDE_ISSUER_URL}/oauth2/token`, {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-              Accept: "application/json"
-          },
-          body: new URLSearchParams({
-              client_id: process.env.KINDE_CLIENT_ID || '',
-              client_secret: process.env.KINDE_CLIENT_SECRET || '',
-              grant_type: "client_credentials",
-              audience: `${process.env.KINDE_ISSUER_URL}/api`
-          })
-      });
-
-      if (!response.ok) {
-          throw new Error(`Failed to get auth token: ${response.statusText}`);
+    const response = await fetch(
+      `https://goldensports.kinde.com/oauth2/token`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
+        body: new URLSearchParams({
+          client_id: process.env.KINDE_CLIENT_ID || '',
+          client_secret: process.env.KINDE_CLIENT_SECRET || '',
+          grant_type: 'client_credentials',
+          audience: `${process.env.KINDE_ISSUER_URL}/api`,
+        }),
       }
+    );
 
-      const data = await response.json();
-      return data.access_token;
+    if (!response.ok) {
+      throw new Error(`Failed to get auth token: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.access_token;
   } catch (error) {
-      console.error("Error getting auth token:", error);
-      throw error;
+    console.error('Error getting auth token:', error);
+    throw error;
   }
 }
 
-
-export const addUser = async ({ name, email }: { name: string; email: string; }) => {
+export const addUser = async ({
+  name,
+  email,
+}: {
+  name: string;
+  email: string;
+}) => {
   let token;
-    try {
-        const token = await getAuthToken();
-        console.log('Token:', token);
-        // Use the token for your subsequent API calls or other logic
-    } catch (error) {
-        console.error('Failed to get token:', error);
-        throw error;
-    }
+  try {
+    token = await getAuthToken();
+    console.log('Token:', token);
+    // Use the token for your subsequent API calls or other logic
+  } catch (error) {
+    console.error('Failed to get token:', error);
+    throw error;
+  }
 
   const [firstName, lastName] = name.split(' ');
 
   const inputBody = JSON.stringify({
-    "profile": {
-      'given_name': firstName,
-      "family_name": lastName || '',  
+    profile: {
+      given_name: firstName,
+      family_name: lastName || '',
     },
-    "identities": [
+    identities: [
       {
-        "type": "email",
-        "details": {
-          "email": email
-        }
-      }
+        type: 'email',
+        details: {
+          email: email,
+        },
+      },
     ],
   });
 
   const headers = {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'Authorization': `Bearer ${token}`  // Use environment variable for access token
+    Accept: 'application/json',
+    Authorization: `Bearer ${token}`,
+    AccessControlAllowOrigin: '*',
   };
 
+  console.log(`${process.env.KINDE_ISSUER_URL}/api/v1/user`);
   try {
-    const response = await fetch('https://goldensports.kinde.com/api/v1/user', {
-      method: 'POST',
-      body: inputBody,
-      headers: headers
-    });
+    const response = await fetch(
+      `${process.env.KINDE_ISSUER_URL}/api/v1/user`,
+      {
+        method: 'POST',
+        body: inputBody,
+        headers: headers,
+      }
+    );
+
+    const body = await response.json(); // Parse the JSON body first
 
     if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
+      // Check if the response has the 'errors' field and handle accordingly
+      if (body.errors && body.errors.length > 0) {
+        const errorMessages = body.errors
+          .map((err: { message: any }) => err.message)
+          .join(', ');
+        throw new Error(errorMessages);
+      } else {
+        throw new Error(`Error: ${response.status}`);
+      }
     }
 
-    const body = await response.json();
     console.log(body);
-    return body;  // Return the response body for further processing
+    return body; // Return the response body for further processing
   } catch (error) {
-    console.error("Failed to add user:", error);
-    throw error;  // Re-throw the error for caller to handle
+    console.error('Failed to add user:', error);
+
+    throw error; // Optionally re-throw the error for caller to handle
   }
 };

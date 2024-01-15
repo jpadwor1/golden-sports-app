@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import { getUserSubscriptionPlan, stripe } from '@/lib/stripe';
 import { absoluteUrl } from '@/lib/utils';
 import sgMail from '@sendgrid/mail';
+import { addUser } from '@/lib/actions';
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -193,6 +194,76 @@ export const appRouter = router({
       return { success: true };
     }),
 
+  addTeamMember: privateProcedure
+    .input(
+      z.object({
+        teamId: z.string(),
+        member: z.array(
+          z.object({
+            name: z.string(),
+            email: z.string(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+      console.log('Input received:', input);
+
+      try {
+        // Use Promise.all to wait for all addUser calls to complete
+        await Promise.all(input.member.map((member) => addUser({ ...member })));
+
+        await Promise.all(
+          input.member.map(async (member) => {
+            const dbUser = await db.user.findFirst({
+              where: {
+                email: member.email,
+              },
+            });
+
+            if (dbUser) {
+              return new Error('User already exists');
+            }
+
+            const firstName = member.name.split(' ')[0];
+            const lastName = member.name.split(' ')[1];
+
+            const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+
+            await db.user.create({
+              data: {
+                id: randomUUID(),
+                name: fullName,
+                email: member.email,
+                phone: '',
+                imageURL: '',
+                groupsAsMember: {
+                  connect: {
+                    id: input.teamId,
+                  },
+                },
+              },
+            });
+          })
+        );
+      } catch (error: any) {
+        // Handle errors here
+        if (Array.isArray(error)) {
+          // If multiple errors are thrown, concatenate their messages
+          const errorMessages = error.map((e) => e.message).join(', ');
+          throw errorMessages;
+        } else {
+          console.log(error);
+          throw error;
+        }
+      }
+      return { success: true };
+    }),
   sendContactFormEmail: publicProcedure
     .input(
       z.object({

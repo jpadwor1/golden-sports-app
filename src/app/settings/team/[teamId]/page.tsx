@@ -44,7 +44,7 @@ const Page = async ({ params }: PageProps) => {
   });
 
   return (
-    <TeamDetails coach={coach} team={team} members={team?.members} />
+    <TeamDetails coach={coach} team={team} members={team?.members}/>
   );
 };
 

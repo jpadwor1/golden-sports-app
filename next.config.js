@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+// const { createProxyMiddleware } = require('http-proxy-middleware');
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -8,6 +9,14 @@ const nextConfig = {
       },
     ],
   },
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/:path*', // This is the local endpoint prefix to proxy
+  //       destination: 'https://goldensports.kinde.com/api/:path*', // The external API endpoint
+  //     },
+  //   ];
+  // },
 };
 
 module.exports = nextConfig;

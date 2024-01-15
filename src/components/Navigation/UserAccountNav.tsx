@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { User, Gem } from 'lucide-react';
-import { LogoutLink } from '@kinde-oss/kinde-auth-nextjs/server';
+import { LogoutLink } from '@kinde-oss/kinde-auth-nextjs/components';
 
 interface UserAccountNavProps {
   email: string | undefined;
