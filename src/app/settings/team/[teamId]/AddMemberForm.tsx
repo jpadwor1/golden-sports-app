@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { trpc } from '@/app/_trpc/client';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import { set } from 'date-fns';
 
 const addMemberSchema = z.object({
   member: z.array(
@@ -43,10 +44,10 @@ const AddMemberForm = ({ teamId }: AddMemberForm) => {
     resolver: zodResolver(addMemberSchema),
     mode: 'onChange',
     defaultValues: {
-      member: [{ name: '', email: '' }]
-    }
+      member: [{ name: '', email: '' }],
+    },
   });
-  
+
   const {
     handleSubmit,
     control,
@@ -58,7 +59,7 @@ const AddMemberForm = ({ teamId }: AddMemberForm) => {
   });
 
   const addMember = trpc.addTeamMember.useMutation();
-
+  const sendInvitationEmail = trpc.sendInvitationEmail.useMutation();
   const onSubmit = async (data: AddMemberFormValues) => {
     setIsLoading(true);
     const formData = {
@@ -72,7 +73,18 @@ const AddMemberForm = ({ teamId }: AddMemberForm) => {
           title: 'Member Added Successfully',
           description: `Member has been added to the team.`,
         });
-        router.push(`/settings/team/${teamId}`);
+        sendInvitationEmail.mutate(formData, {
+          onSuccess: () => {
+            router.push(`/settings/team`);
+            setIsLoading(false);
+          },
+          onError: (error: any) => {
+            toast({
+              title: 'Error',
+              description: error.message,
+            });
+          },
+        });
       },
       onError: (error: any) => {
         toast({
@@ -107,13 +119,16 @@ const AddMemberForm = ({ teamId }: AddMemberForm) => {
               control={control}
               render={({ field }) => (
                 <div className='flex flex-col items-start w-full my-4'>
-                  <Input
-                    placeholder={`Member ${index + 1} Email.`}
-                    {...field}
-                  />
-                  <Label className='text-gray-400 mt-2 font-normal'>
-                    Ensure this is the members primary email.
-                  </Label>
+                  <Input placeholder={`Member ${index + 1} Email`} {...field} />
+                  {errors.member && errors.member[index]?.email ? (
+                    <Label className='text-red-500 mt-2'>
+                      {errors.member[index]?.email?.message}
+                    </Label>
+                  ) : (
+                    <Label className='text-gray-400 mt-2 font-normal'>
+                      Ensure this is the members primary email.
+                    </Label>
+                  )}
                 </div>
               )}
             />
@@ -126,11 +141,6 @@ const AddMemberForm = ({ teamId }: AddMemberForm) => {
             >
               Remove
             </Button>
-            {errors.member && errors.member[index]?.email && (
-              <p className='text-red-500'>
-                {errors.member[index]?.email?.message}
-              </p>
-            )}
           </div>
         ))}
         <div className='flex flex-row justify-between mt-8'>

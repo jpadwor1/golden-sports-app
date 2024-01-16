@@ -5,15 +5,16 @@ import { redirect } from 'next/navigation';
 import { db } from '@/db';
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
+import { Trash } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 const Page = async () => {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
@@ -45,25 +46,28 @@ const Page = async () => {
   return (
     <div className='flex flex-col w-full bg-white shadow-md rounded-md h-full p-6'>
       {dbUser.groupsAsCoach.length === 0 && <CreateTeamForm />}
-      <h1 className='text-2xl tex-gray-900 font-semibold tracking-wide'>Your Teams</h1>
-      <h2 className='text-md text-gray-600'>Select a team to view team details.</h2>
-      <Separator className='mt-2 mb-6'/>
+      <h1 className='text-2xl tex-gray-900 font-semibold tracking-wide'>
+        Your Teams
+      </h1>
+      <h2 className='text-md text-gray-600'>
+        Select a team to view team details.
+      </h2>
+      <Separator className='mt-2 mb-6' />
       <div className='grid md:grid-cols-3 gird-cols-1 gap-4'>
         {teams.map((team) => (
-            <Link href={`/settings/team/${team.id}`} key={team.id}>
-          <Card className='hover:scale-105 hover:shadow-lg'>
-            <CardHeader>
-              <Image
-                src={team.logoURL || '/GSlogo.png'}
-                alt='Logo'
-                width={400}
-                height={400}
-              />
-              <CardTitle>{team.name}</CardTitle>
-              <CardDescription>{team.description}</CardDescription>
-            </CardHeader>
-        
-          </Card>
+          <Link href={`/settings/team/${team.id}`} key={team.id}>
+            <Card className='hover:scale-105 hover:shadow-lg'>
+              <CardHeader>
+                <Image
+                  src={team.logoURL || '/GSlogo.png'}
+                  alt='Logo'
+                  width={400}
+                  height={400}
+                />
+                <CardTitle className='text-lg'>{team.name}</CardTitle>
+                <CardDescription>{team.description}</CardDescription>
+              </CardHeader>
+            </Card>
           </Link>
         ))}
       </div>

@@ -54,7 +54,7 @@ model Group {
   coachId     String
   createdAt   DateTime  @default(now())
   logoURL     String?
-  coach       User      @relation("CoachGroups", fields: [coachId], references: [id])
+  coach       User      @relation("CoachGroups", fields: [coachId], references: [id], onDelete: Cascade)
   events      Event[]
   messages    Message[]
   files       File[]
@@ -209,7 +209,7 @@ model File {
 
   url   String
   key   String
-  group Group  @relation(fields: [groupId], references: [id])
+  group Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@index([groupId])
 }

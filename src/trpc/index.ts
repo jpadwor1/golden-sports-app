@@ -18,9 +18,9 @@ export const appRouter = router({
       throw new TRPCError({ code: 'UNAUTHORIZED' });
 
     // check if the user is in the database
-    const dbUser = await db.user.findFirst({
+    const dbUser = await db.user.findUnique({
       where: {
-        id: user.id,
+        email: user.email,
       },
     });
 
@@ -40,6 +40,36 @@ export const appRouter = router({
           imageURL: user.picture,
         },
       });
+    } else{
+
+      const invitedUser = await db.user.findFirst({
+        where: {
+          email: user.email,
+        }
+      })
+
+      if(invitedUser){
+      // update user in db
+      await db.user.update({
+        where: {
+          email: user.email,
+        },
+        data: {
+          id: user.id,
+          email: user.email,
+          name:
+            user.given_name && user.family_name
+              ? `${user.given_name} ${user.family_name}`
+              : user.given_name
+              ? user.given_name
+              : '',
+          imageURL: user.picture,
+          phone: '',
+        },
+      });
+    }
+
+
     }
 
     return { success: true };
@@ -149,6 +179,93 @@ export const appRouter = router({
       throw new TRPCError({ code: 'NOT_FOUND' });
     }),
 
+  deleteTeam: privateProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+      try {
+        // Use a transaction to ensure atomicity
+        await db.$transaction(async (prisma) => {
+          // Delete the group
+          await prisma.group.delete({
+            where: {
+              id: input,
+            },
+          });
+
+          // Fetch users who are members of the group
+          const memberUsers = await prisma.user.findMany({
+            where: {
+              groupsAsMember: {
+                some: {
+                  id: input,
+                },
+              },
+            },
+          });
+
+          // Disconnect the group from each member
+          for (const user of memberUsers) {
+            await prisma.user.update({
+              where: {
+                id: user.id,
+              },
+              data: {
+                groupsAsMember: {
+                  disconnect: {
+                    id: input,
+                  },
+                },
+              },
+            });
+          }
+
+          // Fetch users who are coaches of the group
+          const coachUsers = await prisma.user.findMany({
+            where: {
+              groupsAsCoach: {
+                some: {
+                  id: input,
+                },
+              },
+            },
+          });
+
+          // Disconnect the group from each coach
+          for (const user of coachUsers) {
+            await prisma.user.update({
+              where: {
+                id: user.id,
+              },
+              data: {
+                groupsAsCoach: {
+                  disconnect: {
+                    id: input,
+                  },
+                },
+              },
+            });
+          }
+        });
+
+        return { success: true };
+      } catch (error: any) {
+        // Handle specific error for NOT_FOUND or general errors
+        if (error.message === 'NOT_FOUND') {
+          throw new TRPCError({ code: 'NOT_FOUND' });
+        }
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message,
+        });
+      }
+    }),
+
   updateUserProfileSettings: privateProcedure
     .input(
       z.object({
@@ -253,7 +370,6 @@ export const appRouter = router({
       console.log('Input received:', input);
 
       try {
-        // Use Promise.all to wait for all addUser calls to complete
         await Promise.all(input.member.map((member) => addUser({ ...member })));
 
         await Promise.all(
@@ -337,6 +453,53 @@ export const appRouter = router({
       };
 
       await sendEmail(input.email);
+    }),
+  sendInvitationEmail: privateProcedure
+    .input(
+      z.object({
+        teamId: z.string(),
+        member: z.array(
+          z.object({
+            name: z.string(),
+            email: z.string(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+
+      try {
+        await Promise.all(
+          input.member.map(async (member) => {
+            const msg = {
+              to: member.email,
+              from: 'john@johnpadworski.dev',
+              subject: ' ',
+              html: ' ',
+              text: ' ',
+              template_id: 'd-35cb2c277bd44a599bcda5c1ee29ca0f',
+              dynamic_template_data: {
+                name: member.name,
+                login_link: 'http://localhost:3000/api/auth/login?',
+              },
+            };
+
+            await sgMail.send(msg);
+            console.log('Email sent to: ', member.email);
+          })
+        );
+      } catch (error) {
+        console.error('Error sending email:', error);
+
+        throw new Error('Failed to send email');
+      }
     }),
 
   getFile: privateProcedure

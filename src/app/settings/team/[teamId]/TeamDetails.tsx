@@ -32,8 +32,19 @@ import {
   Trash,
   User as UserIcon,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import AddMemberByFile from './AddMemberByFile';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { trpc } from '@/app/_trpc/client';
+import { toast } from '@/components/ui/use-toast';
+import { useRouter } from 'next/navigation';
 
 interface TeamDetailsProps {
   coach: User | null;
@@ -42,7 +53,31 @@ interface TeamDetailsProps {
 }
 
 const TeamDetails = ({ team, coach, members }: TeamDetailsProps) => {
+  const router = useRouter();
   const [showAddMemberForm, setShowAddMemberForm] = React.useState(false);
+  const [deleteAlert, setDeleteAlert] = React.useState(false);
+  const deleteTeam = trpc.deleteTeam.useMutation();
+
+  const handleDeleteTeam = (teamId: string) => {
+    deleteTeam.mutate(teamId, {
+      onSuccess: () => {
+        toast({
+          title: 'Team deleted',
+          description: 'Your team has been deleted',
+        });
+        router.push('/settings/team');
+        router.refresh();
+      },
+      onError: (error) => {
+        toast({
+          title: 'Error',
+          description: error.message,
+        });
+        router.push('/settings/team');
+      },
+    });
+  };
+
   return (
     <div className='flex flex-col w-full bg-white shadow-md rounded-md h-full p-6'>
       <div className='flex flex-row justify-between'>
@@ -70,7 +105,7 @@ const TeamDetails = ({ team, coach, members }: TeamDetailsProps) => {
               <DropdownMenuItem onClick={() => setShowAddMemberForm(true)}>
                 <Plus className='h-4 w-4 text-gray-600 mr-2' /> Team Member
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setDeleteAlert(true)}>
                 <Trash className='h-4 w-4 text-red-600 mr-2' />
                 Delete Team
               </DropdownMenuItem>
@@ -78,7 +113,30 @@ const TeamDetails = ({ team, coach, members }: TeamDetailsProps) => {
           </DropdownMenu>
         </div>
       </div>
+      {deleteAlert && (
+        <Dialog open={deleteAlert}>
+          <DialogContent className='w-[300px]'>
+            
+              
+            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogDescription className='text-gray-600'>
+                This will permanently delete the team and all associated data.
+              </DialogDescription>
+            <div className='flex flex-row justify-between mt-10'>
+                <Button variant='ghost' onClick={() => setDeleteAlert(false)}>
+                  Cancel
+                </Button>
 
+                <Button
+                  variant='destructive'
+                  onClick={() => handleDeleteTeam(team?.id ? team?.id : '')}
+                >
+                  Delete
+                </Button>
+              </div>
+          </DialogContent>
+        </Dialog>
+      )}
       <Separator className='mt-2 mb-6' />
       {showAddMemberForm ? (
         <>
@@ -163,7 +221,9 @@ const TeamDetails = ({ team, coach, members }: TeamDetailsProps) => {
                           {member.email}
                         </p>
                       </TableCell>
-                      <TableCell>{member.phone ? member.phone : "N/A"}</TableCell>
+                      <TableCell>
+                        {member.phone ? member.phone : 'N/A'}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
