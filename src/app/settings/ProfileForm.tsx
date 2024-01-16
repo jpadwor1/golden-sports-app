@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { trpc } from '../_trpc/client';
+import { User } from './page';
 
 const profileFormSchema = z.object({
   fullName: z
@@ -49,16 +50,16 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 interface ProfileFormProps {
-  user: any;
+  user: User;
 }
 
 export function ProfileForm({ user }: ProfileFormProps) {
   const router = useRouter();
   const defaultValues: Partial<ProfileFormValues> = {
-    fullName: user.name,
-    email: user.email,
-    phone: user.phone,
-    children: [],
+    fullName: user?.name,
+    email: user?.email,
+    phone: user?.phone,
+    children: user?.Children,
   };
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -79,7 +80,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const mutation = trpc.updateUserProfileSettings.useMutation();
 
   function onSubmit(data: ProfileFormValues) {
-    
     console.log(data);
     mutation.mutate(data, {
       onSuccess: () => {
@@ -87,7 +87,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           title: 'Updated Successfully',
           description: <p>Your profile settings have been updated</p>,
         });
-      router.push('/settings');
+        router.refresh();
       },
       onError: (error) => {
         toast({
@@ -116,7 +116,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder={user.name} {...field} />
+                <Input placeholder={user?.name} {...field} />
               </FormControl>
               <FormDescription>This should be your full name.</FormDescription>
               <FormMessage />
@@ -130,7 +130,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <Input placeholder={user.phone} {...field} />
+                <Input placeholder={user?.phone} {...field} />
               </FormControl>
             </FormItem>
           )}
@@ -142,7 +142,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder={user.email} {...field} />
+                <Input placeholder={user?.email} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

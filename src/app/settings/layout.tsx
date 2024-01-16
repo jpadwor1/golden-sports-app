@@ -32,11 +32,7 @@ export default async function SettingsLayout({
   const { getUser } = getKindeServerSession();
   const user = await getUser();
 
-  const dbUser = await db.user.findFirst({
-    where: {
-      id: user?.id,
-    },
-  });
+ 
 
   return (
     <>

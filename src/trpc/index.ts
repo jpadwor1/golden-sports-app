@@ -176,9 +176,41 @@ export const appRouter = router({
         where: {
           id: user.id,
         },
+        include: {
+          Children: true,
+        },
       });
 
       if (dbUser) {
+        const currentChildren = dbUser.Children || [];
+
+        const inputChildrenNames = new Set(
+          input.children?.map((child) => child.name)
+        );
+
+        const childrenToUpdate = currentChildren
+          .filter((cc) => inputChildrenNames.has(cc.name))
+          .map((cc) => {
+            const inputData = input.children?.find((ic) => ic.name === cc.name);
+            return {
+              where: {
+                id: cc.id,
+              },
+              data: {
+                name: inputData?.name,
+                age: inputData?.age,
+              },
+            };
+          });
+
+        const childrenToDelete = currentChildren
+          .filter((cc) => !inputChildrenNames.has(cc.name))
+          .map((cc) => ({ id: cc.id }));
+
+        const childrenToCreate = input.children?.filter(
+          (ic) => !currentChildren.some((cc) => cc.name === ic.name)
+        );
+
         await db.user.update({
           where: {
             id: user.id,
@@ -187,6 +219,12 @@ export const appRouter = router({
             name: input.fullName,
             email: input.email,
             phone: input.phone,
+            isProfileComplete: true,
+            Children: {
+              create: childrenToCreate,
+              updateMany: childrenToUpdate,
+              deleteMany: childrenToDelete,
+            },
           },
         });
       }

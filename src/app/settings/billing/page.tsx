@@ -1,5 +1,5 @@
 import { getUserSubscriptionPlan } from '@/lib/stripe';
-import BillingForm from '@/components/BillingForm';
+// import BillingForm from '@/components/BillingForm';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 
 const Page = async () => {
@@ -8,7 +8,7 @@ const Page = async () => {
   const user = await getUser();
   const userId = user?.id;
 
-  return <BillingForm subscriptionPlan={subscriptionPlan} userId={!!userId} />;
+  // return <BillingForm subscriptionPlan={subscriptionPlan} userId={!!userId} />;
 };
 
 export default Page;
