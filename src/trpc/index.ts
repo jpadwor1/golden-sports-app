@@ -580,6 +580,69 @@ export const appRouter = router({
 
       return createdFile;
     }),
+  createPost: privateProcedure.input(z.object({
+    postBody: z.string(),
+    fileName: z.string(),
+    fileType: z.string(),
+    groupId: z.string(),
+    files: z.array(z.object({
+      id: z.string().optional(),
+      downloadURL: z.string(),
+      fileName: z.string(),
+      fileType: z.string(),
+    }))
+  })).mutation(async ({ ctx, input }) => {
+    const { userId, user } = ctx;
+
+    if (!userId || !user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED' });
+    }
+
+    const dbUser = await db.user.findFirst({
+      where: {
+        id: user.id,
+      },
+    });
+
+    if (dbUser) {
+      const post = await db.post.create({
+        data: {
+          content: input.postBody,
+          Files: {
+            create: input.files.map((file) => ({
+              authorId: user.id,
+              key: file.downloadURL,
+              fileName: file.fileName,
+              url: file.downloadURL,
+              fileType: file.fileType,
+              uploadDate: new Date(),
+              groupId: input.groupId,
+              group: {
+                connect: {
+                  id: input.groupId,
+                },
+              }
+            })),
+          },
+          author: {
+            connect: {
+              id: user.id,
+            },
+          },
+          group: {
+            connect: {
+              id: input.groupId,
+            },
+          },
+        },
+      });
+
+      return post;
+    }
+
+    throw new TRPCError({ code: 'NOT_FOUND' });
+  })
+
 });
 
 export type AppRouter = typeof appRouter;

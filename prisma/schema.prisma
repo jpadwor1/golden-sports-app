@@ -136,6 +136,7 @@ model Post {
   author   User      @relation(fields: [authorId], references: [id])
   group    Group     @relation(fields: [groupId], references: [id])
   comments Comment[]
+  Files     File[]
 
   @@index([groupId])
   @@index([authorId])
@@ -207,11 +208,14 @@ model File {
   uploadDate   DateTime     @default(now())
   uploadStatus UploadStatus @default(PENDING)
 
-  url   String
-  key   String
-  group Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  url    String
+  key    String
+  group  Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  Post   Post?   @relation(fields: [postId], references: [id])
+  postId String?
 
   @@index([groupId])
+  @@index([postId])
 }
 
 enum UploadStatus {
