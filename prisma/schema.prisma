@@ -31,6 +31,7 @@ model User {
   Comment           Comment[]
   PollVote          PollVote[]
   Children          Children[]
+  Like              Like[]
 
   @@index([parentId])
 }
@@ -130,13 +131,14 @@ model Post {
   id        String   @id @default(uuid())
   authorId  String
   groupId   String
-  content   String
+  content   String   @db.VarChar(300)
   timestamp DateTime @default(now())
 
   author   User      @relation(fields: [authorId], references: [id])
   group    Group     @relation(fields: [groupId], references: [id])
   comments Comment[]
-  Files     File[]
+  Files    File[]
+  likes    Like[]
 
   @@index([groupId])
   @@index([authorId])
@@ -154,10 +156,27 @@ model Comment {
   replies   Comment[] @relation("CommentReplies")
   replyTo   Comment?  @relation("CommentReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replyToId String?
+  likes     Like[]
 
   @@index([postId])
   @@index([authorId])
   @@index([replyToId])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  postId    String
+  authorId  String
+  timestamp DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+  Comment   Comment? @relation(fields: [commentId], references: [id])
+  commentId String?
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([commentId])
 }
 
 model Poll {

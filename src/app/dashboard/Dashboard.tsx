@@ -4,66 +4,37 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import SocialCard from '@/components/Dashboard/Feed/SocialCard';
-import { Post } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import MiniEventCard from '@/components/Dashboard/Events/MiniEventCard';
 import MiniNewsCard from '@/components/Dashboard/MiniNewsCard';
-import { User } from '@prisma/client';
+import { Comment, File, Like, User } from '@prisma/client';
 import CreatePostForm from '@/components/Dashboard/Feed/CreatePostForm';
+import { Post } from '@/lib/utils';
 
 interface DashboardProps {
-  user: User;
+  user: {
+    groupsAsCoach: {
+      id: string;
+      name: string;
+      description: string | null;
+      coachId: string;
+      createdAt: Date;
+      logoURL: string | null;
+    }[];
+    groupsAsMember: {
+      id: string;
+      name: string;
+      description: string | null;
+      coachId: string;
+      createdAt: Date;
+      logoURL: string | null;
+    }[];
+  } & User;
+  posts: Post[];
 }
 
-const Dashboard = ({ user }: DashboardProps) => {
+const Dashboard = ({ user, posts }: DashboardProps) => {
   const [postFormOpen, setPostFormOpen] = React.useState(false);
-  const fakeData: Post = {
-    poster: {
-      name: 'John Doe',
-      imageURL: user?.imageURL ? user.imageURL : '',
-    },
-    postBody:
-      'Joe O’Donnell was a great individual and human being who helped numerous people and made a difference in the many lives he touched. I never met him but had close friends who knew him and considJoe O’Donnell was a great individual and human being who helped numerous people and made a difference in the many lives he touched. I never met him but had close friends who knew him and consid',
-    image: 'https://source.unsplash.com/random',
-    date: '2024-01-10',
-    usersLiked: ['Alice', 'Bob', 'Charlie'],
-    comments: [
-      {
-        user: 'Alice',
-        comment: 'He was truly an inspiration.',
-        date: '2024-01-10',
-        likes: ['Eve', 'Frank'],
-        replies: [
-          {
-            user: 'Eve',
-            comment: 'I agree. His kindness knew no bounds.',
-            date: '2024-01-11',
-            likes: ['Alice'],
-          },
-        ],
-      },
-      {
-        user: 'Bob',
-        comment: 'His legacy will live on.',
-        date: '2024-01-10',
-        likes: ['Alice', 'Bob', 'Charlie'],
-        replies: [
-          {
-            user: 'Eve',
-            comment: 'I agree. His kindness knew no bounds.',
-            date: '2024-01-11',
-            likes: ['Alice'],
-          },
-          {
-            user: 'Eve',
-            comment: 'I agree. His kindness knew no bounds.',
-            date: '2024-01-11',
-            likes: ['Alice'],
-          },
-        ],
-      },
-    ],
-  };
 
   return (
     <div className='flex flex-col space-y-8 md:flex-row md:items-start md:space-x-2 lg:space-y-0 px-8'>
@@ -82,7 +53,9 @@ const Dashboard = ({ user }: DashboardProps) => {
         </div>
         <div className='flex flex-col min-h-[calc(100vh-20rem)] w-full'>
           {!postFormOpen && <CreatePostForm user={user} />}
-          <SocialCard postContent={fakeData} user={user} />
+          {posts.map((post) => (
+            <SocialCard key={post.id} post={post} user={user} />
+          ))}
         </div>
       </div>
 

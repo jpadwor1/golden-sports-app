@@ -7,7 +7,7 @@ import { Post } from '@/lib/utils';
 import { UserRole } from '@prisma/client';
 
 interface AddCommentInputProps {
-  postContent: Post;
+  post: Post;
   user: {
     id: string;
     name: string;
@@ -21,7 +21,7 @@ interface AddCommentInputProps {
   } | null;
 }
 
-const AddCommentInput = ({ postContent, user }: AddCommentInputProps) => {
+const AddCommentInput = ({ post, user }: AddCommentInputProps) => {
   return (
     <div className='flex flex-row w-full mb-6 px-2 relative'>
       <Avatar className='h-10 w-10 relative bg-gray-200'>

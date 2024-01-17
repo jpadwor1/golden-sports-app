@@ -1,17 +1,36 @@
 import React from 'react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, ThumbsUp, MessageSquareMore, Send, Divide } from 'lucide-react';
+import {
+  User as UserIcon,
+  ThumbsUp,
+  MessageSquareMore,
+  Send,
+  Divide,
+} from 'lucide-react';
 import { format } from 'date-fns';
-import { Post, truncateText } from '@/lib/utils';
+import { truncateText, Reply } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ReplyFeed from './ReplyFeed';
+import { Comment as CommentType, Like, User } from '@prisma/client';
+
+
 
 interface CommentProps {
-  postContent: Post;
+  comment: {
+    id: string;
+    postId: string;
+    authorId: string;
+    content: string;
+    timestamp: Date;
+    replyToId: string | null;
+    replies: Reply[];
+    author: User;
+    likes: Like[];
+  };
 }
 
-const Comment = ({ postContent }: CommentProps) => {
+const Comment = ({ comment }: CommentProps) => {
   const maxLength = 230;
   const [isTruncated, setIsTruncated] = React.useState(true);
   const [commentsVisible, setCommentsVisible] = React.useState(false);
@@ -21,42 +40,42 @@ const Comment = ({ postContent }: CommentProps) => {
   };
 
   const truncatedContent = isTruncated
-    ? truncateText(postContent.postBody, maxLength)
-    : postContent.postBody;
+    ? truncateText(comment.content, maxLength)
+    : comment.content;
 
   return (
     <div className='flex flex-row items-start w-full'>
       <Avatar className='h-10 w-10 relative bg-gray-200'>
-        {postContent.poster.imageURL ? (
+        {comment.authorId ? (
           <div className='relative bg-white aspect-square h-full w-full'>
             <Image
               fill
               sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-              src={postContent.poster.imageURL}
+              src={comment.authorId}
               alt='profile picture'
               referrerPolicy='no-referrer'
             />
           </div>
         ) : (
           <AvatarFallback className='bg-white'>
-            <span className='sr-only'>{postContent.poster.name}</span>
-            <User className='h-4 w-4 text-gray-900' />
+            <span className='sr-only'>{comment.author.name}</span>
+            <UserIcon className='h-4 w-4 text-gray-900' />
           </AvatarFallback>
         )}
       </Avatar>
       <div className='flex flex-col'>
         <div className='flex flex-col w-full items-start justify-between px-2 bg-gray-100 mx-2 mb-0.5 rounded-br-lg rounded-tr-lg rounded-bl-lg relative'>
           <h1 className='text-sm text-gray-900 tracking-wide'>
-            {postContent.poster.name}
+            {comment.author.name}
           </h1>
           <p className='text-xs font-normal text-gray-500 mb-2'>
             {format(
-              new Date(postContent.date),
+              new Date(comment.timestamp),
               `MMM dd, yyyy ${String.fromCharCode(183)} HH:mm a`
             )}
           </p>
           <p className='text-sm font-light'>{truncatedContent}</p>
-          {postContent.postBody.length > maxLength && isTruncated && (
+          {comment.content.length > maxLength && isTruncated && (
             <Button
               className='absolute -bottom-0.5 right-3 bg-gray-100 px-0 py-0 my-0 h-6 font-light hover:font-normal hover:bg-transparent'
               variant='ghost'
@@ -74,13 +93,13 @@ const Comment = ({ postContent }: CommentProps) => {
           >
             Like
           </Button>
-          {postContent.usersLiked.length > 0 && (
+          {comment.likes.length > 0 && (
             <>
               <p>{String.fromCharCode(183)}</p>
               <ThumbsUp className='h-3 w-3 text-blue-500 ml-2' />
-              {postContent.usersLiked.length > 0 && (
+              {comment.likes.length > 0 && (
                 <p className='text-xs text-gray-600 ml-1'>
-                  {postContent.usersLiked.length}
+                  {comment.likes.length}
                 </p>
               )}
             </>
@@ -93,18 +112,18 @@ const Comment = ({ postContent }: CommentProps) => {
           >
             Reply
           </Button>
-          {postContent.usersLiked.length > 0 && (
+          {comment.replies.length > 0 && (
             <>
               <p>{String.fromCharCode(183)}</p>
-              {postContent.usersLiked.length > 0 && (
+              {comment.replies.length > 0 && (
                 <p className='text-xs text-gray-600 ml-1'>
-                  {postContent.usersLiked.length} replies
+                  {comment.replies.length} replies
                 </p>
               )}
             </>
           )}
         </div>
-        {postContent.comments.length > 1 && (
+        {comment.replies.length > 1 && (
           <p
             onClick={() => console.log('previous replies')}
             className='ml-2.5 my-1 text-xs font-light text-gray-900 hover:underline hover:cursor-pointer'
@@ -113,7 +132,7 @@ const Comment = ({ postContent }: CommentProps) => {
           </p>
         )}
 
-        {postContent.comments.length > 0 && <ReplyFeed postContent={postContent} />}
+        {comment.replies.length > 0 && <ReplyFeed replies={comment.replies} />}
       </div>
     </div>
   );

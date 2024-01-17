@@ -80,7 +80,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const mutation = trpc.updateUserProfileSettings.useMutation();
 
   function onSubmit(data: ProfileFormValues) {
-    console.log(data);
     mutation.mutate(data, {
       onSuccess: () => {
         toast({

@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
+import { Like, File, Comment, User } from '@prisma/client';
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -18,24 +18,38 @@ export function truncateText(text: string, maxLength: number): string {
   return text.substring(0, maxLength - 3);
 }
 
+export type Reply = {
+  id: string;
+  postId: string;
+  authorId: string;
+  content: string;
+  timestamp: Date;
+  replyToId: string | null;
+  replies: Comment[];
+  author: User;
+  likes: Like[];
+};
+
 export type Post = {
-  poster: { name: string; imageURL: string };
-  postBody: string;
-  image: string;
-  date: string;
-  usersLiked: string[];
+  id: string;
+  groupId: string;
+  authorId: string;
+  content: string;
+  timestamp: Date;
+  likes: Like[];
   comments: {
-    user: string;
-    comment: string | null | undefined;
-    date: string;
-    likes: string[] | null | undefined;
-    replies: {
-      user: string;
-      comment: string | null | undefined;
-      date: string;
-      likes: string[] | null | undefined;
-    }[];
+    id: string;
+    postId: string;
+    authorId: string;
+    content: string;
+    timestamp: Date;
+    replyToId: string | null;
+    replies: Reply[]; // Assuming replies follow the same structure
+    author: User;
+    likes: Like[];
   }[];
+  Files: File[];
+  author: User;
 };
 
 export type Posts = Post[];

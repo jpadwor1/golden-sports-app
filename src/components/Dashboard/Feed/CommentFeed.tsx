@@ -4,7 +4,7 @@ import { Post } from '@/lib/utils';
 import { UserRole } from '@prisma/client';
 
 interface CommentFeedProps {
-  postContent: Post;
+  post: Post;
   user: {
     id: string;
     name: string;
@@ -17,11 +17,12 @@ interface CommentFeedProps {
     parentId: string | null;
   } | null;
 }
-const CommentFeed = ({ postContent, user }: CommentFeedProps) => {
-  
+const CommentFeed = ({ post, user }: CommentFeedProps) => {
   return (
     <div className='flex flex-col w-full px-4'>
-      <Comment postContent={postContent} />
+      {post.comments.map((comment) => (
+        <Comment key={comment.id} comment={comment} />
+      ))}
     </div>
   );
 };

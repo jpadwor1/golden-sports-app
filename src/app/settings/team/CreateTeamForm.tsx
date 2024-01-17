@@ -74,7 +74,6 @@ const CreateTeamForm = () => {
       files: { ...fileData },
       name: data.teamName,
     };
-    console.log(formData);
 
     try {
       mutation.mutate(

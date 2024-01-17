@@ -21,7 +21,7 @@ import CommentFeed from './CommentFeed';
 import { UserRole } from '@prisma/client';
 
 type SocialCardProps = {
-  postContent: Post;
+  post: Post;
   user: {
     id: string;
     name: string;
@@ -35,7 +35,7 @@ type SocialCardProps = {
   } | null;
 };
 
-const SocialCard: React.FC<SocialCardProps> = ({ postContent, user }) => {
+const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
   const maxLength = 150;
   const [isTruncated, setIsTruncated] = React.useState(true);
   const [commentsVisible, setCommentsVisible] = React.useState(false);
@@ -44,28 +44,30 @@ const SocialCard: React.FC<SocialCardProps> = ({ postContent, user }) => {
     setIsTruncated(!isTruncated);
   };
 
-  const truncatedContent = isTruncated
-    ? truncateText(postContent.postBody, maxLength)
-    : postContent.postBody;
+  const author = post.author;
 
-  return (
+  const truncatedContent = isTruncated
+    ? truncateText(post.content, maxLength)
+    : post.content;
+
+    return (
     <Card className='w-full'>
       <CardHeader className='pb-0'>
         <div className='flex flex-grow-1 items-start justify-start space-x-2 -ml-2 -mt-2'>
           <Avatar className='h-10 w-10 relative bg-gray-200'>
-            {postContent.poster.imageURL ? (
+            {post.author.imageURL ? (
               <div className='relative bg-white aspect-square h-full w-full'>
                 <Image
                   fill
                   sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-                  src={postContent.poster.imageURL}
+                  src={post.author.imageURL}
                   alt='profile picture'
                   referrerPolicy='no-referrer'
                 />
               </div>
             ) : (
               <AvatarFallback className='bg-white'>
-                <span className='sr-only'>{postContent.poster.name}</span>
+                <span className='sr-only'>{author.name}</span>
                 <User className='h-4 w-4 text-gray-900' />
               </AvatarFallback>
             )}
@@ -73,11 +75,11 @@ const SocialCard: React.FC<SocialCardProps> = ({ postContent, user }) => {
 
           <div className='flex flex-col items-start justify-start '>
             <p className='text-sm font-medium text-gray-900'>
-              {postContent.poster.name}
+              {author.name}
             </p>
             <p className='text-xs font-normal text-gray-500'>
               {format(
-                new Date(postContent.date),
+                new Date(post.timestamp),
                 `MMM dd, yyyy ${String.fromCharCode(183)} HH:mm a`
               )}
             </p>
@@ -85,7 +87,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ postContent, user }) => {
         </div>
         <CardDescription className='text-sm font-light text-gray-950 min-h-fit'>
           {truncatedContent}
-          {postContent.postBody.length > maxLength && isTruncated && (
+          {post.content.length > maxLength && isTruncated && (
             <Button
               className='px-0 py-0 my-0 h-6 font-light hover:font-normal hover:bg-transparent'
               variant='ghost'
@@ -97,30 +99,42 @@ const SocialCard: React.FC<SocialCardProps> = ({ postContent, user }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className='p-0'>
-        {postContent.image && (
+        {post.Files.length <=1 ? (
           <Image
-            src={postContent.image}
+            src={post.Files[0].url}
             alt='post image'
             width={500}
             height={500}
           />
-        )}
+        ): (
+          <div className='grid grid-cols-2 gap-1'>
+            {post.Files.map((file) => (
+              <Image
+                key={file.id}
+                src={file.url}
+                alt='post image'
+                width={500}
+                height={500}
+              />
+            ))}
+          </div>
+        )
+        }
       </CardContent>
       <CardFooter className='w-full items-stretch flex flex-col pb-1 px-6'>
         <div className='flex flex-row justify-between items-stretch min-w-full mt-2'>
           <div className='mt-2'>
-            {postContent.usersLiked.length > 0 && (
+            {post.likes.length > 0 && (
               <div className='flex flex-row items-center justify-center space-x-1'>
                 <ThumbsUp className='h-3 w-3 text-blue-600' />
 
-                {postContent.usersLiked.length > 0 ? (
+                {post.likes.length > 0 ? (
                   <p className='text-xs text-gray-600 ml-1'>
-                    {postContent.usersLiked[0] +
-                      ` and ${postContent.usersLiked.length - 1} others`}
+                    {post.likes[0] + ` and ${post.likes.length - 1} others`}
                   </p>
                 ) : (
                   <p className='text-xs text-gray-600 ml-1'>
-                    {postContent.usersLiked[0]}
+                    {post.likes[0].authorId}
                   </p>
                 )}
               </div>
@@ -130,10 +144,10 @@ const SocialCard: React.FC<SocialCardProps> = ({ postContent, user }) => {
             onClick={() => setCommentsVisible(true)}
             className='hover:cursor-pointer hover:underline mt-1'
           >
-            {postContent.comments.length > 0 ? (
+            {post.comments.length > 0 ? (
               <div className='flex flex-row items-center justify-center space-x-1 mt-1'>
                 <p className='text-xs text-gray-600 ml-1'>
-                  {postContent.comments.length} comments
+                  {post.comments.length} comments
                 </p>
               </div>
             ) : null}
@@ -165,8 +179,8 @@ const SocialCard: React.FC<SocialCardProps> = ({ postContent, user }) => {
       </CardFooter>
       {commentsVisible && (
         <>
-          <AddCommentInput user={user} postContent={postContent} />
-          <CommentFeed user={user} postContent={postContent} />
+          <AddCommentInput user={user} post={post} />
+          <CommentFeed user={user} post={post} />
         </>
       )}
     </Card>

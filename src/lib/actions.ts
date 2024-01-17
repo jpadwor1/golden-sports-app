@@ -12,13 +12,11 @@ export const startFileUpload = async ({ file }: { file: File | null }) => {
 
   try {
     const snapshot = await uploadBytes(storageRef, file);
-    console.log('Uploaded a blob or file!');
 
     // After a successful upload, get the download URL
     const downloadURL = await getDownloadURL(snapshot.ref);
-    console.log('File available at', downloadURL);
 
-    return { downloadURL, fileName: file.name }; // Return the download URL on success
+    return { downloadURL, fileName: file.name, fileType: file.type }; // Return the download URL on success
   } catch (error) {
     console.error('Error uploading file:', error);
     return null; // Indicating an error occurred
@@ -66,7 +64,6 @@ export const addUser = async ({
   let token;
   try {
     token = await getAuthToken();
-    console.log('Token:', token);
     // Use the token for your subsequent API calls or other logic
   } catch (error) {
     console.error('Failed to get token:', error);
@@ -122,7 +119,6 @@ export const addUser = async ({
       }
     }
 
-    console.log(body);
     return body; // Return the response body for further processing
   } catch (error) {
     console.error('Failed to add user:', error);

@@ -40,36 +40,33 @@ export const appRouter = router({
           imageURL: user.picture,
         },
       });
-    } else{
-
+    } else {
       const invitedUser = await db.user.findFirst({
         where: {
           email: user.email,
-        }
-      })
-
-      if(invitedUser){
-      // update user in db
-      await db.user.update({
-        where: {
-          email: user.email,
-        },
-        data: {
-          id: user.id,
-          email: user.email,
-          name:
-            user.given_name && user.family_name
-              ? `${user.given_name} ${user.family_name}`
-              : user.given_name
-              ? user.given_name
-              : '',
-          imageURL: user.picture,
-          phone: '',
         },
       });
-    }
 
-
+      if (invitedUser) {
+        // update user in db
+        await db.user.update({
+          where: {
+            email: user.email,
+          },
+          data: {
+            id: user.id,
+            email: user.email,
+            name:
+              user.given_name && user.family_name
+                ? `${user.given_name} ${user.family_name}`
+                : user.given_name
+                ? user.given_name
+                : '',
+            imageURL: user.picture,
+            phone: '',
+          },
+        });
+      }
     }
 
     return { success: true };
@@ -367,7 +364,6 @@ export const appRouter = router({
       if (!userId || !user) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
-      console.log('Input received:', input);
 
       try {
         await Promise.all(input.member.map((member) => addUser({ ...member })));
@@ -444,7 +440,6 @@ export const appRouter = router({
 
         try {
           await sgMail.send(msg);
-          console.log('Email sent');
         } catch (error) {
           console.error('Error sending email:', error);
 
@@ -492,7 +487,6 @@ export const appRouter = router({
             };
 
             await sgMail.send(msg);
-            console.log('Email sent to: ', member.email);
           })
         );
       } catch (error) {
@@ -537,7 +531,6 @@ export const appRouter = router({
       if (!userId || !user) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
-      console.log('Input received:', input);
       const doesFileExist = await db.file.findFirst({
         where: {
           key: input.downloadURL,
@@ -545,7 +538,6 @@ export const appRouter = router({
       });
 
       if (doesFileExist) return;
-      console.log('going to create file');
 
       const createdFile = await db.file.create({
         data: {
@@ -580,69 +572,70 @@ export const appRouter = router({
 
       return createdFile;
     }),
-  createPost: privateProcedure.input(z.object({
-    postBody: z.string(),
-    fileName: z.string(),
-    fileType: z.string(),
-    groupId: z.string(),
-    files: z.array(z.object({
-      id: z.string().optional(),
-      downloadURL: z.string(),
-      fileName: z.string(),
-      fileType: z.string(),
-    }))
-  })).mutation(async ({ ctx, input }) => {
-    const { userId, user } = ctx;
+  createPost: privateProcedure
+    .input(
+      z.object({
+        postBody: z.string(),
+        groupId: z.string(),
+        files: z.array(
+          z.object({
+            downloadURL: z.string(),
+            fileName: z.string(),
+            fileType: z.string(),
+            groupId: z.string(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
 
-    if (!userId || !user) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
 
-    const dbUser = await db.user.findFirst({
-      where: {
-        id: user.id,
-      },
-    });
-
-    if (dbUser) {
-      const post = await db.post.create({
-        data: {
-          content: input.postBody,
-          Files: {
-            create: input.files.map((file) => ({
-              authorId: user.id,
-              key: file.downloadURL,
-              fileName: file.fileName,
-              url: file.downloadURL,
-              fileType: file.fileType,
-              uploadDate: new Date(),
-              groupId: input.groupId,
-              group: {
-                connect: {
-                  id: input.groupId,
-                },
-              }
-            })),
-          },
-          author: {
-            connect: {
-              id: user.id,
-            },
-          },
-          group: {
-            connect: {
-              id: input.groupId,
-            },
-          },
+      const dbUser = await db.user.findFirst({
+        where: {
+          id: user.id,
         },
       });
 
-      return post;
-    }
+      if (dbUser) {
+        const post = await db.post.create({
+          data: {
+            content: input.postBody,
+            Files: {
+              create: input.files.map((file) => ({
+                key: file.downloadURL,
+                fileName: file.fileName,
+                url: file.downloadURL,
+                fileType: file.fileType,
+                uploadDate: new Date(),
+                group: {
+                  connect: {
+                    id: file.groupId,
+                  },
+                },
+              })),
+            },
+            author: {
+              connect: {
+                id: user.id,
+              },
+            },
+            group: {
+              connect: {
+                id: input.groupId,
+              },
+            },
+          },
+        });
 
-    throw new TRPCError({ code: 'NOT_FOUND' });
-  })
+        return post;
+      }
 
+      throw new TRPCError({ code: 'NOT_FOUND' });
+    }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -1,15 +1,17 @@
 import React from 'react';
 import Reply from './Reply';
-import { Post } from '@/lib/utils';
+import { Reply as ReplyType } from '@/lib/utils';
 
 interface ReplyFeedProps {
-  postContent: Post;
+  replies: ReplyType[];
 }
 
-const ReplyFeed = (postContent: ReplyFeedProps) => {
+const ReplyFeed = ({ replies }: ReplyFeedProps) => {
   return (
     <div>
-      <Reply postContent={postContent.postContent} />
+      {replies.map((reply) => (
+        <Reply key={reply.id} reply={reply} />
+      ))}
     </div>
   );
 };

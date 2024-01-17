@@ -27,14 +27,12 @@ const AddMemberByFile = ({ teamId }: AddMemberByFileProps) => {
   const addMember = trpc.addTeamMember.useMutation();
 
   React.useEffect(() => {
-    console.log(parsedData);
   }, [parsedData]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsLoading(true);
     if (!e.target.files) return;
     const file = e.target.files[0];
-    console.log(file);
 
     Papa.parse(file, {
       header: false,
