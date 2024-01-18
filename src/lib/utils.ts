@@ -42,11 +42,7 @@ export type Post = {
     postId: string;
     authorId: string;
     content: string;
-    timestamp: Date;
-    replyToId: string | null;
-    replies: Reply[]; // Assuming replies follow the same structure
-    author: User;
-    likes: Like[];
+    timestamp: Date;    
   }[];
   Files: File[];
   author: User;

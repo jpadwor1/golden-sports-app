@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import AddCommentInput from './AddCommentInput';
 import CommentFeed from './CommentFeed';
 import { UserRole } from '@prisma/client';
+import { trpc } from '@/app/_trpc/client';
 
 type SocialCardProps = {
   post: Post;
@@ -39,7 +40,8 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
   const maxLength = 150;
   const [isTruncated, setIsTruncated] = React.useState(true);
   const [commentsVisible, setCommentsVisible] = React.useState(false);
-
+  const [likes, setLikes] = React.useState(post.likes);
+  const addLike = trpc.createLike.useMutation();
   const toggleTruncate = () => {
     setIsTruncated(!isTruncated);
   };
@@ -50,8 +52,38 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
     ? truncateText(post.content, maxLength)
     : post.content;
 
-    return (
-    <Card className='w-full'>
+  const handleLike = () => {
+    if (!user) return;
+    const likeData = {
+      authorId: user.id,
+      postId: post.id,
+    };
+
+    addLike.mutate(
+      { ...likeData },
+      {
+        onSuccess: () => {
+          console.log('like added');
+          setLikes([
+            ...likes,
+            {
+              id: '',
+              authorId: user.id,
+              postId: post.id,
+              timestamp: new Date(),
+              commentId: '',
+            },
+          ]);
+        },
+        onError: (error) => {
+          console.log(error);
+        },
+      }
+    );
+  };
+
+  return (
+    <Card className='w-full mb-4'>
       <CardHeader className='pb-0'>
         <div className='flex flex-grow-1 items-start justify-start space-x-2 -ml-2 -mt-2'>
           <Avatar className='h-10 w-10 relative bg-gray-200'>
@@ -74,9 +106,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
           </Avatar>
 
           <div className='flex flex-col items-start justify-start '>
-            <p className='text-sm font-medium text-gray-900'>
-              {author.name}
-            </p>
+            <p className='text-sm font-medium text-gray-900'>{author.name}</p>
             <p className='text-xs font-normal text-gray-500'>
               {format(
                 new Date(post.timestamp),
@@ -85,7 +115,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
             </p>
           </div>
         </div>
-        <CardDescription className='text-sm font-light text-gray-950 min-h-fit'>
+        <CardDescription className=' text-sm font-light text-gray-950 min-h-fit '>
           {truncatedContent}
           {post.content.length > maxLength && isTruncated && (
             <Button
@@ -98,15 +128,15 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
           )}
         </CardDescription>
       </CardHeader>
-      <CardContent className='p-0'>
-        {post.Files.length <=1 ? (
+      <CardContent className='p-0 mt-4'>
+        {post.Files.length <= 1 ? (
           <Image
             src={post.Files[0].url}
             alt='post image'
             width={500}
             height={500}
           />
-        ): (
+        ) : (
           <div className='grid grid-cols-2 gap-1'>
             {post.Files.map((file) => (
               <Image
@@ -118,24 +148,19 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
               />
             ))}
           </div>
-        )
-        }
+        )}
       </CardContent>
       <CardFooter className='w-full items-stretch flex flex-col pb-1 px-6'>
         <div className='flex flex-row justify-between items-stretch min-w-full mt-2'>
           <div className='mt-2'>
-            {post.likes.length > 0 && (
+            {likes.length > 0 && (
               <div className='flex flex-row items-center justify-center space-x-1'>
                 <ThumbsUp className='h-3 w-3 text-blue-600' />
 
-                {post.likes.length > 0 ? (
-                  <p className='text-xs text-gray-600 ml-1'>
-                    {post.likes[0] + ` and ${post.likes.length - 1} others`}
-                  </p>
+                {likes.length > 0 ? (
+                  <p className='text-xs text-gray-600 ml-1'>{likes.length}</p>
                 ) : (
-                  <p className='text-xs text-gray-600 ml-1'>
-                    {post.likes[0].authorId}
-                  </p>
+                  <p className='text-xs text-gray-600 ml-1'>{likes.length}</p>
                 )}
               </div>
             )}
@@ -156,20 +181,22 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
         <Separator className='my-2' />
         <div className='flex flex-row justify-evenly'>
           <div
+            onClick={handleLike}
             className={buttonVariants({
               variant: 'ghost',
               className:
-                'flex items-center justify-center w-full text-gray-600',
+                'flex items-center justify-center w-full text-gray-600 hover:cursor-pointer',
             })}
           >
             <ThumbsUp />
             <p className='ml-2'>Like</p>
           </div>
           <div
+            onClick={() => setCommentsVisible(true)}
             className={buttonVariants({
               variant: 'ghost',
               className:
-                'flex flex-row items-center justify-center w-full text-gray-600',
+                'flex flex-row items-center justify-center w-full text-gray-600 hover:cursor-pointer',
             })}
           >
             <MessageSquareMore />
@@ -180,7 +207,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
       {commentsVisible && (
         <>
           <AddCommentInput user={user} post={post} />
-          <CommentFeed user={user} post={post} />
+          <CommentFeed user={user} postId={post.id} />
         </>
       )}
     </Card>

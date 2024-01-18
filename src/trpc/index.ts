@@ -636,6 +636,197 @@ export const appRouter = router({
 
       throw new TRPCError({ code: 'NOT_FOUND' });
     }),
+  getComments:privateProcedure.input(z.string()).query(async ({ctx, input}) => {
+    const { userId, user } = ctx;
+
+    if (!userId || !user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED' });
+    }
+
+    try {
+      const comments = await db.comment.findMany({
+        where: {
+          postId: input,
+        },
+        include: {
+          likes: true,
+          author: true,
+          replyTo: true,
+          replies: {
+            include: {
+              likes: true,
+              author: true,
+            }
+        }
+      }
+    })
+      return {comments: comments};
+    } catch (error: any) {
+      console.error(error);
+      return error;
+    }
+
+}),
+
+  createLike: privateProcedure
+    .input(
+      z.object({
+        postId: z.string(),
+        authorId: z.string(),
+        commentId: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user || userId !== input.authorId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const dbUser = await db.user.findFirst({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!dbUser) {
+        return new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      if (input.commentId) {
+        const comment = await db.comment.findFirst({
+          where: {
+            id: input.commentId,
+          },
+        });
+
+        if (!comment) {
+          return new TRPCError({ code: 'NOT_FOUND' });
+        }
+
+        const newLike = await db.like.create({
+          data: {
+            author: {
+              connect: {
+                id: input.authorId,
+              },
+            },
+            post: {
+              connect: {
+                id: input.postId,
+              },
+            },
+            Comment: {
+              connect: {
+                id: input.commentId,
+              },
+            },
+          },
+          include: {
+            author: true,
+            post: true,
+          },
+        });
+
+        return { success: true, newLike };
+      }
+
+      const newLike = await db.like.create({
+        data: {
+          author: {
+            connect: {
+              id: input.authorId,
+            },
+          },
+          post: {
+            connect: {
+              id: input.postId,
+            },
+          },
+        },
+        include: {
+          author: true,
+          post: true,
+        },
+      });
+
+      return { success: true, newLike };
+    }),
+
+  createReply: privateProcedure
+    .input(
+      z.object({
+        postId: z.string(),
+        authorId: z.string(),
+        content: z.string(),
+        replyToId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user || userId !== input.authorId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const dbUser = await db.user.findFirst({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!dbUser) {
+        return new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      try {
+        if (!input.replyToId) {
+          const newComment = await db.comment.create({
+            data: {
+              content: input.content,
+              post: {
+                connect: {
+                  id: input.postId,
+                },
+              },
+              author: {
+                connect: {
+                  id: input.authorId,
+                },
+              },
+            },
+          });
+
+          return { success: true, newComment };
+        }
+
+        const newReply = await db.comment.create({
+          data: {
+            content: input.content,
+            post: {
+              connect: {
+                id: input.postId,
+              },
+            },
+            replyTo: {
+              connect: {
+                id: input.replyToId,
+              },
+            },
+            author: {
+              connect: {
+                id: input.authorId,
+              },
+            },
+          },
+        });
+
+        return { success: true, newReply };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
 });
 
 export type AppRouter = typeof appRouter;

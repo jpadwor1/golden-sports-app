@@ -36,13 +36,7 @@ const Page = async () => {
     },
     include: {
       likes: true,
-      comments: {
-        include: {
-          replies: true,
-          author: true,
-          likes: true,
-        },
-      },
+      comments: true,
       Files: true,
       author: true,
     },

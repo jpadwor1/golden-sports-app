@@ -7,6 +7,7 @@ interface ReplyFeedProps {
 }
 
 const ReplyFeed = ({ replies }: ReplyFeedProps) => {
+  console.log(replies);
   return (
     <div>
       {replies.map((reply) => (
