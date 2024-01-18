@@ -59,7 +59,6 @@ const Comment = ({ comment, user }: CommentProps) => {
     : comment.content;
 
   const handleCommentLike = () => {
-    console.log('liked');
     const likeData = {
       authorId: author.id,
       commentId: comment.id,
@@ -69,7 +68,6 @@ const Comment = ({ comment, user }: CommentProps) => {
     try {
       addLike.mutate(likeData, {
         onSuccess: () => {
-          console.log('liked');
           setLikes([
             ...comment.likes,
             {
@@ -87,7 +85,7 @@ const Comment = ({ comment, user }: CommentProps) => {
     }
   };
   return (
-    <div className='flex flex-row items-start w-full mt-4'>
+    <div className='flex flex-row items-start w-full mt-3'>
       <Avatar className='h-10 w-10 relative bg-gray-200'>
         {author.imageURL ? (
           <div className='relative bg-white aspect-square h-full w-full'>
@@ -163,14 +161,7 @@ const Comment = ({ comment, user }: CommentProps) => {
             </>
           )}
         </div>
-        {comment.replies.length === 0 && (
-          <p
-            onClick={() => console.log('previous replies')}
-            className='ml-2.5 my-1 text-xs font-light text-gray-900 hover:underline hover:cursor-pointer'
-          >
-            Load previous replies
-          </p>
-        )}
+        
         {replyInput && <AddReplyInput comment={comment} user={user}/>}
         
         {comment.replies.length > 0 && <ReplyFeed replies={comment.replies} />}

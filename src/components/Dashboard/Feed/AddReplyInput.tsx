@@ -29,38 +29,37 @@ interface AddReplyInputProps {
     email: string;
     phone: string;
     role: UserRole;
-    createdAt: Date;
     imageURL: string | null;
+    createdAt: Date;
     isProfileComplete: boolean;
     parentId: string | null;
-  } ;
+  } | null;
 }
 
 const AddReplyInput = ({ comment, user }: AddReplyInputProps) => {
   const router = useRouter();
-
+  const utils = trpc.useUtils();
   const [replyData, setReplyData] = React.useState({
     content: '',
-    authorId: user.id,
+    authorId: user?.id,
     postId: comment.postId,
     replyToId: comment.id,
   });
   const addReply = trpc.createReply.useMutation();
 
   const handleReply = () => {
-    console.log(replyData);
-
+    if (!user) return;
     addReply.mutate(
-      { ...replyData },
+      { ...replyData, authorId: user.id },
       {
         onSuccess: () => {
           setReplyData({
             content: '',
-            authorId: user.id,
+            authorId: user?.id,
             postId: comment.postId,
             replyToId: comment.id,
           });
-          router.refresh();
+          utils.getComments.invalidate();
         },
         onError: (error) => {
           console.log(error);
@@ -97,6 +96,7 @@ const AddReplyInput = ({ comment, user }: AddReplyInputProps) => {
         onChange={(e) =>
           setReplyData({ ...replyData, content: e.target.value })
         }
+        value={replyData.content}
         className='w-full ml-2 rounded-full relative'
         type='text'
         placeholder='Reply to this comment...'

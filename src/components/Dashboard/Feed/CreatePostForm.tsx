@@ -33,6 +33,8 @@ import { startFileUpload } from '@/lib/actions';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
+import VideoThumbnail from '@/components/VideoThumbnail';
+import { File as FileType } from '@prisma/client';
 
 interface PostFormProps {
   user: {
@@ -144,7 +146,6 @@ const CreatePostForm = ({ user }: PostFormProps) => {
         }));
       });
     }
-
   };
 
   const onSubmit = () => {
@@ -249,17 +250,34 @@ const CreatePostForm = ({ user }: PostFormProps) => {
           <div className='flex flex-row'>
             {formData.files.map((file) => (
               <div key={file.key} className='relative mr-1 mt-2 rounded-sm'>
-                <Image
-                  alt=''
-                  height={100}
-                  width={100}
-                  src={file.downloadURL}
-                  className='relative rounded-sm'
-                />
-                <X
-                  onClick={() => removeImage(file.key)}
-                  className='absolute top-1 right-1 h-6 w-6 text-red-600'
-                />
+                {file.fileType.includes('video') ? (
+                  <>
+                    <VideoThumbnail
+                      width={100}
+                      height={100}
+                      videoFile={file}
+                      className='relative rounded-sm'
+                    />
+                    <X
+                      onClick={() => removeImage(file.key)}
+                      className='absolute top-1 right-1 h-6 w-6 text-red-600'
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Image
+                      alt=''
+                      height={100}
+                      width={100}
+                      src={file.downloadURL}
+                      className='relative rounded-sm'
+                    />
+                    <X
+                      onClick={() => removeImage(file.key)}
+                      className='absolute top-1 right-1 h-6 w-6 text-red-600'
+                    />
+                  </>
+                )}
               </div>
             ))}
           </div>

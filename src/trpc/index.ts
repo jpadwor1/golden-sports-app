@@ -636,37 +636,80 @@ export const appRouter = router({
 
       throw new TRPCError({ code: 'NOT_FOUND' });
     }),
-  getComments:privateProcedure.input(z.string()).query(async ({ctx, input}) => {
-    const { userId, user } = ctx;
+  getComments: privateProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
 
-    if (!userId || !user) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
-
-    try {
-      const comments = await db.comment.findMany({
-        where: {
-          postId: input,
-        },
-        include: {
-          likes: true,
-          author: true,
-          replyTo: true,
-          replies: {
-            include: {
-              likes: true,
-              author: true,
-            }
-        }
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
-    })
-      return {comments: comments};
-    } catch (error: any) {
-      console.error(error);
-      return error;
-    }
 
-}),
+      try {
+        const comments = await db.comment.findMany({
+          where: {
+            postId: input,
+          },
+          include: {
+            likes: true,
+            author: true,
+            replyTo: true,
+            replies: {
+              include: {
+                likes: true,
+                author: true,
+              },
+            },
+          },
+          orderBy: {
+            timestamp: 'desc',
+          },
+        });
+        return { comments: comments };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
+
+  createComment: privateProcedure
+    .input(
+      z.object({
+        authorId: z.string(),
+        postId: z.string(),
+        groupId: z.string(),
+        content: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        const comment = await db.comment.create({
+          data: {
+            content: input.content,
+            post: {
+              connect: {
+                id: input.postId,
+              },
+            },
+            author: {
+              connect: {
+                id: input.authorId,
+              },
+            },
+          },
+        });
+        return { success: true };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
 
   createLike: privateProcedure
     .input(

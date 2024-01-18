@@ -94,7 +94,6 @@ export const addUser = async ({
     AccessControlAllowOrigin: '*',
   };
 
-  console.log(`${process.env.KINDE_ISSUER_URL}/api/v1/user`);
   try {
     const response = await fetch(
       `${process.env.KINDE_ISSUER_URL}/api/v1/user`,

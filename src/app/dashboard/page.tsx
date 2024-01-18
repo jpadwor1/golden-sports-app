@@ -40,6 +40,9 @@ const Page = async () => {
       Files: true,
       author: true,
     },
+    orderBy: {
+      timestamp: 'desc',
+    },
   });
 
   return <Dashboard user={dbUser} posts={dbPosts} />;

@@ -2,7 +2,15 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { User, ThumbsUp, MessageSquareMore, Send } from 'lucide-react';
+import {
+  User,
+  ThumbsUp,
+  MessageSquareMore,
+  Send,
+  X,
+  MoreVertical,
+  Trash,
+} from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Card,
@@ -12,14 +20,32 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { Post, truncateText } from '@/lib/utils';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import AddCommentInput from './AddCommentInput';
 import CommentFeed from './CommentFeed';
-import { UserRole } from '@prisma/client';
+import { File, UserRole } from '@prisma/client';
 import { trpc } from '@/app/_trpc/client';
+import FullScreenImageViewer from './FullScreenImageViewer';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type SocialCardProps = {
   post: Post;
@@ -41,6 +67,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
   const [isTruncated, setIsTruncated] = React.useState(true);
   const [commentsVisible, setCommentsVisible] = React.useState(false);
   const [likes, setLikes] = React.useState(post.likes);
+  const [fullscreenView, setFullscreenView] = React.useState(false);
   const addLike = trpc.createLike.useMutation();
   const toggleTruncate = () => {
     setIsTruncated(!isTruncated);
@@ -51,6 +78,34 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
   const truncatedContent = isTruncated
     ? truncateText(post.content, maxLength)
     : post.content;
+
+  const renderMedia = (file: File) => {
+    const videoFormats = ['mp4', 'avi', 'mov', 'wmv', 'flv'];
+    const isVideo = videoFormats.some((ext) => file.fileType.endsWith(ext));
+
+    if (isVideo) {
+      return (
+        <video
+          className='object-fill h-[335px]'
+          onClick={() => setFullscreenView(true)}
+          controls
+        >
+          <source src={file.url} type='video/mp4' />
+          Your browser does not support the video tag.
+        </video>
+      );
+    } else {
+      return (
+        <Image
+          onClick={() => setFullscreenView(true)}
+          src={file.url}
+          alt='post media'
+          width={500}
+          height={500}
+        />
+      );
+    }
+  };
 
   const handleLike = () => {
     if (!user) return;
@@ -85,7 +140,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
   return (
     <Card className='w-full mb-4'>
       <CardHeader className='pb-0'>
-        <div className='flex flex-grow-1 items-start justify-start space-x-2 -ml-2 -mt-2'>
+        <div className='flex flex-grow-1 space-x-2 -ml-2 -mt-2'>
           <Avatar className='h-10 w-10 relative bg-gray-200'>
             {post.author.imageURL ? (
               <div className='relative bg-white aspect-square h-full w-full'>
@@ -105,7 +160,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
             )}
           </Avatar>
 
-          <div className='flex flex-col items-start justify-start '>
+          <div className='flex flex-col items-start justify-start w-full '>
             <p className='text-sm font-medium text-gray-900'>{author.name}</p>
             <p className='text-xs font-normal text-gray-500'>
               {format(
@@ -113,6 +168,21 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
                 `MMM dd, yyyy ${String.fromCharCode(183)} HH:mm a`
               )}
             </p>
+          </div>
+          <div className='w-full flex flex-col items-end'>
+            {user && user.id === post.authorId && (
+              <DropdownMenu>
+                <DropdownMenuTrigger className=''>
+                  <MoreVertical className='h-4 w-4 cursor-pointer' />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className='w-[20px]'>
+                  <DropdownMenuItem>
+                    <Trash className='h-4 w-4 text-red-600 mr-2' />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
         <CardDescription className=' text-sm font-light text-gray-950 min-h-fit '>
@@ -128,26 +198,31 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
           )}
         </CardDescription>
       </CardHeader>
-      <CardContent className='p-0 mt-4'>
+      <CardContent className='p-0 mt-2'>
         {post.Files.length <= 1 ? (
-          <Image
-            src={post.Files[0].url}
-            alt='post image'
-            width={500}
-            height={500}
-          />
+          renderMedia(post.Files[0])
         ) : (
           <div className='grid grid-cols-2 gap-1'>
             {post.Files.map((file) => (
-              <Image
-                key={file.id}
-                src={file.url}
-                alt='post image'
-                width={500}
-                height={500}
-              />
+              <div key={file.id}>{renderMedia(file)}</div>
             ))}
           </div>
+        )}
+        {fullscreenView && (
+          <Dialog open={fullscreenView}>
+            <DialogContent>
+              <DialogClose>
+                <X
+                  onClick={() => setFullscreenView(false)}
+                  className='absolute right-5 top-5 self-end h-5 w-5'
+                />
+              </DialogClose>
+              <FullScreenImageViewer
+                images={post.Files}
+                setFullscreenView={setFullscreenView}
+              />
+            </DialogContent>
+          </Dialog>
         )}
       </CardContent>
       <CardFooter className='w-full items-stretch flex flex-col pb-1 px-6'>
