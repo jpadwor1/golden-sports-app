@@ -138,7 +138,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
   };
 
   return (
-    <Card className='w-full mb-4'>
+    <Card className='w-full mb-4 overflow-hidden'>
       <CardHeader className='pb-0'>
         <div className='flex flex-grow-1 space-x-2 -ml-2 -mt-2'>
           <Avatar className='h-10 w-10 relative bg-gray-200'>

@@ -98,7 +98,7 @@ const Comment = ({ comment, user }: CommentProps) => {
             />
           </div>
         ) : (
-          <AvatarFallback className='bg-white'>
+          <AvatarFallback className='bg-gray-200'>
             <span className='sr-only'>{author.name}</span>
             <UserIcon className='h-4 w-4 text-gray-900' />
           </AvatarFallback>

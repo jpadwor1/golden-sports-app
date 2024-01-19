@@ -11,7 +11,7 @@ interface ReplyProps {
   reply: Reply;
 }
 
-const Reply = ({reply}: ReplyProps) => {
+const Reply = ({ reply }: ReplyProps) => {
   const maxLength = 230;
   const [isTruncated, setIsTruncated] = React.useState(true);
   const [commentsVisible, setCommentsVisible] = React.useState(false);
@@ -36,7 +36,7 @@ const Reply = ({reply}: ReplyProps) => {
             />
           </div>
         ) : (
-          <AvatarFallback className='bg-white'>
+          <AvatarFallback className='bg-gray-200'>
             <span className='sr-only'>{reply.author.name}</span>
             <User className='h-4 w-4 text-gray-900' />
           </AvatarFallback>

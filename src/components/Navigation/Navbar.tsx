@@ -12,7 +12,6 @@ import Image from 'next/image';
 import MobileNav from './MobileNav';
 import UserAccountNav from './UserAccountNav';
 import NavbarMenu from './NavbarMenu';
-import { ModeToggle } from '../Layout/ModeToggle';
 
 const Navbar = async () => {
   const { getUser } = getKindeServerSession();
@@ -72,7 +71,6 @@ const Navbar = async () => {
                 />
               </>
             )}
-            <ModeToggle />
           </div>
         </div>
       </MaxWidthWrapper>

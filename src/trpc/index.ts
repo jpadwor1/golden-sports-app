@@ -364,55 +364,78 @@ export const appRouter = router({
       if (!userId || !user) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
-
       try {
-        await Promise.all(input.member.map((member) => addUser({ ...member })));
-
-        await Promise.all(
+        const results = await Promise.allSettled(
           input.member.map(async (member) => {
             const dbUser = await db.user.findFirst({
-              where: {
-                email: member.email,
-              },
+              where: { email: member.email },
             });
 
             if (dbUser) {
-              return new Error('User already exists');
-            }
-
-            const firstName = member.name.split(' ')[0];
-            const lastName = member.name.split(' ')[1];
-
-            const fullName = lastName ? `${firstName} ${lastName}` : firstName;
-
-            await db.user.create({
-              data: {
-                id: randomUUID(),
-                name: fullName,
-                email: member.email,
-                phone: '',
-                imageURL: '',
-                groupsAsMember: {
-                  connect: {
-                    id: input.teamId,
+              const [firstName, lastName] = member.name.split(' ');
+              const fullName = lastName
+                ? `${firstName} ${lastName}`
+                : firstName;
+              await db.user.update({
+                where: { email: member.email },
+                data: {
+                  name: fullName,
+                  phone: '',
+                  imageURL: '',
+                  groupsAsMember: {
+                    connect: {
+                      id: input.teamId,
+                    },
                   },
                 },
-              },
-            });
+              });
+            } else {
+              try {
+                await addUser(member);
+                const [firstName, lastName] = member.name.split(' ');
+                const fullName = lastName
+                  ? `${firstName} ${lastName}`
+                  : firstName;
+
+                await db.user.create({
+                  data: {
+                    name: fullName,
+                    email: member.email,
+                    phone: '',
+                    imageURL: '',
+                    groupsAsMember: {
+                      connect: {
+                        id: input.teamId,
+                      },
+                    },
+                  },
+                });
+              } catch (error) {
+                console.error('Error in adding user:', error);
+              }
+            }
           })
         );
+
+        results.forEach((result) => {
+          if (result.status === 'rejected') {
+            console.error('Error in adding team member:', result.reason);
+            // Handle individual errors or aggregate them as needed
+          }
+        });
+
+        return { success: true };
       } catch (error: any) {
         // Handle errors here
         if (Array.isArray(error)) {
           // If multiple errors are thrown, concatenate their messages
           const errorMessages = error.map((e) => e.message).join(', ');
-          throw errorMessages;
+          throw new Error(errorMessages);
         } else {
           console.log(error);
           throw error;
         }
       }
-      return { success: true };
     }),
   sendContactFormEmail: publicProcedure
     .input(

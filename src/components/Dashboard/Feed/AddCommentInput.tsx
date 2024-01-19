@@ -68,7 +68,7 @@ const AddCommentInput = ({ post, user }: AddCommentInputProps) => {
             />
           </div>
         ) : (
-          <AvatarFallback className='bg-white'>
+          <AvatarFallback className='bg-gray-200'>
             <span className='sr-only'>{user?.name}</span>
             <User className='h-4 w-4 text-gray-900' />
           </AvatarFallback>

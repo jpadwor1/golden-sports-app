@@ -104,10 +104,10 @@ export const addUser = async ({
       }
     );
 
-    const body = await response.json(); // Parse the JSON body first
+    const body = await response.json();
 
     if (!response.ok) {
-      // Check if the response has the 'errors' field and handle accordingly
+      
       if (body.errors && body.errors.length > 0) {
         const errorMessages = body.errors
           .map((err: { message: any }) => err.message)
@@ -118,10 +118,12 @@ export const addUser = async ({
       }
     }
 
-    return body; // Return the response body for further processing
-  } catch (error) {
+    return body; 
+  } catch (error: any) {
     console.error('Failed to add user:', error);
-
-    throw error; // Optionally re-throw the error for caller to handle
+    if (error.message === 'An existing user was found against the identity data provided.'){
+      return 
+    }
+    throw error; 
   }
 };
