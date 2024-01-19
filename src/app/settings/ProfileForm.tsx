@@ -21,6 +21,8 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { trpc } from '../_trpc/client';
 import { User } from './page';
+import { Upload } from 'lucide-react';
+import UploadDropzone from '@/components/UploadDropzone';
 
 const profileFormSchema = z.object({
   fullName: z
@@ -53,6 +55,14 @@ interface ProfileFormProps {
   user: User;
 }
 
+interface FileData {
+  id: string | undefined;
+  downloadURL: string;
+  fileName: string;
+  uploadDate: Date;
+  fileType: string;
+}
+
 export function ProfileForm({ user }: ProfileFormProps) {
   const router = useRouter();
   const defaultValues: Partial<ProfileFormValues> = {
@@ -61,6 +71,14 @@ export function ProfileForm({ user }: ProfileFormProps) {
     phone: user?.phone,
     children: user?.Children,
   };
+  const [fileData, setFileData] = useState<FileData>({
+    id: '',
+    downloadURL: '',
+    fileName: '',
+    uploadDate: new Date(),
+    fileType: '',
+  });
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
@@ -79,8 +97,27 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
   const mutation = trpc.updateUserProfileSettings.useMutation();
 
+  const handleFileUpload = (
+    downloadURL: string,
+    fileName: string,
+    fileType: string
+  ) => {
+    setFileData((prevData) => ({
+      ...prevData,
+      downloadURL,
+      fileName,
+      id: '',
+      fileType,
+      uploadDate: new Date(),
+    }));
+  };
+
   function onSubmit(data: ProfileFormValues) {
-    mutation.mutate(data, {
+    const formData = {
+      ...data,
+      files: { ...fileData },
+    };
+    mutation.mutate(formData, {
       onSuccess: () => {
         toast({
           title: 'Updated Successfully',
@@ -189,6 +226,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
           Add Child
         </Button>
 
+        <div>
+          <h2 className='text-lg font-semibold tracking-tight'>
+            Upload a Profile Picture
+          </h2>
+          <UploadDropzone onFileUpload={handleFileUpload} />
+        </div>
         <Button type='submit'>Update profile</Button>
       </form>
     </Form>

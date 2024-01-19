@@ -12,10 +12,20 @@ import Image from 'next/image';
 import MobileNav from './MobileNav';
 import UserAccountNav from './UserAccountNav';
 import NavbarMenu from './NavbarMenu';
+import { db } from '@/db';
 
 const Navbar = async () => {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
+ let dbUser;
+  if(user) {
+     dbUser = await db.user.findUnique({
+      where: {
+        id: user?.id,
+      },
+    })
+  }
+  
 
   return (
     <nav className='sticky h-20 inset-x-0 top-0 z-40 w-flow border-b border-gray-200 bg-white/60 backdrop-blur-lg transtion-all'>
@@ -64,7 +74,7 @@ const Navbar = async () => {
                     // !dbCustomer?.name ? 'Your Account' : `${dbCustomer?.name} `
                     'Your Account'
                   }
-                  imageUrl={user.picture ?? ''}
+                  imageUrl={dbUser?.imageURL ?? ''}
                   email={user.email ?? ''}
                   // role={dbCustomer?.role ?? ''}
                   role='Customer'

@@ -2,16 +2,18 @@
 import { useState } from 'react';
 import { Progress } from './ui/progress';
 import Dropzone, { useDropzone } from 'react-dropzone';
-import { Cloud, File, Loader2 } from 'lucide-react';
+import { Cloud, File } from 'lucide-react';
 import { useToast } from './ui/use-toast';
 import { startFileUpload } from '@/lib/actions';
-import { set } from 'date-fns';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface FileDropzoneProps {
     onFileUpload: (downloadURL: string, fileName: string, fileType: string) => void;
+  className?: string;
   }
 
-const UploadDropzone: React.FC<FileDropzoneProps> = ({ onFileUpload }) => {
+const UploadDropzone: React.FC<FileDropzoneProps> = ({ onFileUpload, className }) => {
   const [file, setFile] = useState<File[] | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -75,7 +77,6 @@ const UploadDropzone: React.FC<FileDropzoneProps> = ({ onFileUpload }) => {
     
     multiple: false,
   });
-
   return (
     <Dropzone
       multiple={false}
@@ -85,7 +86,7 @@ const UploadDropzone: React.FC<FileDropzoneProps> = ({ onFileUpload }) => {
       {({ getRootProps, getInputProps, acceptedFiles }) => (
         <div
           {...getRootProps()}
-          className='border m-4 border-dashed border-gray-300 rounded-lg h-full'
+          className={cn('border m-4 border-dashed border-gray-300 rounded-lg h-full', className)}
           onClick={(e) => e.stopPropagation()}
         >
           <div className='flex items-center justify-center w-full h-full'>
@@ -103,16 +104,12 @@ const UploadDropzone: React.FC<FileDropzoneProps> = ({ onFileUpload }) => {
                 (Only *.jpeg and *.png images will be accepted)
                 </p>
               </div>
-            <div className='grid grid-cols-2 gap-2 mb-4'>
+            <div className='grid grid-cols-1 gap-2 mb-4'>
               {acceptedFiles && acceptedFiles[0] ? acceptedFiles.map((file) => {
                 return (
-                  <div key={file.name} className='mt-1 max-w-[240px] bg-white flex items-center rounded-md overflow-hidden outline outline-[1px] outline-zinc-200 divide-x divide-zinc-200'>
-                    <div className='px-3 py-2 h-full grid place-items-center'>
-                      <File className='h-4 w-4 text-blue-500' />
-                    </div>
-                    <div className='px-3 py-2 h-full text-sm truncate'>
-                      {file.name}
-                    </div>
+                  <div key={file.name} className='mt-1 max-w-[100px] bg-white flex items-center overflow-hidden outline outline-[1px] outline-zinc-200 divide-x divide-zinc-200 rounded-full'>
+                   
+                      <Image className='aspect-square h-full w-full' height={50} width={100} src={URL.createObjectURL(file)} alt={file.name} />
                   </div>
                 );
               }) : null}

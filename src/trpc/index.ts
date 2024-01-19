@@ -277,6 +277,12 @@ export const appRouter = router({
             })
           )
           .optional(),
+        files: z.object({
+          id: z.string().optional(),
+          downloadURL: z.string(),
+          fileName: z.string(),
+          fileType: z.string(),
+        }),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -339,6 +345,7 @@ export const appRouter = router({
               updateMany: childrenToUpdate,
               deleteMany: childrenToDelete,
             },
+            imageURL: input.files.downloadURL,
           },
         });
       }
