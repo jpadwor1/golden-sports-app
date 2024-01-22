@@ -86,7 +86,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
     if (isVideo) {
       return (
         <video
-          className='object-fill h-[335px]'
+          className='object-contain h-[275px]'
           onClick={() => setFullscreenView(true)}
           controls
         >
@@ -102,6 +102,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
           alt='post media'
           width={500}
           height={500}
+          className='object-cover h-[275px]'
         />
       );
     }
