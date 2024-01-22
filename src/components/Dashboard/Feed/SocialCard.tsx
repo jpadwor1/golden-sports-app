@@ -165,7 +165,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
             <p className='text-xs font-normal text-gray-500'>
               {format(
                 new Date(post.timestamp),
-                `MMM dd, yyyy ${String.fromCharCode(183)} HH:mm a`
+                `MMM dd, yyyy ${String.fromCharCode(183)} hh:mm a`
               )}
             </p>
           </div>

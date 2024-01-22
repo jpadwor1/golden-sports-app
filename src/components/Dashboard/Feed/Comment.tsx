@@ -53,7 +53,7 @@ const Comment = ({ comment, user }: CommentProps) => {
     setIsTruncated(!isTruncated);
   };
   const addLike = trpc.createLike.useMutation();
- 
+
   const truncatedContent = isTruncated
     ? truncateText(comment.content, maxLength)
     : comment.content;
@@ -110,7 +110,7 @@ const Comment = ({ comment, user }: CommentProps) => {
           <p className='text-xs font-normal text-gray-500 mb-2'>
             {format(
               new Date(comment.timestamp),
-              `MMM dd, yyyy ${String.fromCharCode(183)} HH:mm a`
+              `MMM dd, yyyy ${String.fromCharCode(183)} hh:mm a`
             )}
           </p>
           <p className='text-sm font-light mb-2'>{truncatedContent}</p>
@@ -161,9 +161,9 @@ const Comment = ({ comment, user }: CommentProps) => {
             </>
           )}
         </div>
-        
-        {replyInput && <AddReplyInput comment={comment} user={user}/>}
-        
+
+        {replyInput && <AddReplyInput comment={comment} user={user} />}
+
         {comment.replies.length > 0 && <ReplyFeed replies={comment.replies} />}
       </div>
     </div>

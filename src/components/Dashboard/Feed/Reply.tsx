@@ -50,7 +50,7 @@ const Reply = ({ reply }: ReplyProps) => {
           <p className='text-xs font-normal text-gray-500 mb-2'>
             {format(
               new Date(reply.timestamp),
-              `MMM dd, yyyy ${String.fromCharCode(183)} HH:mm a`
+              `MMM dd, yyyy ${String.fromCharCode(183)} hh:mm a`
             )}
           </p>
           <p className='text-sm font-light'>{truncatedContent}</p>

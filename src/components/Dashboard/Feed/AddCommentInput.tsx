@@ -51,7 +51,6 @@ const AddCommentInput = ({ post, user }: AddCommentInputProps) => {
       onError: (error: any) => {
         console.log(error);
       },
-
     });
   };
   return (
@@ -80,7 +79,7 @@ const AddCommentInput = ({ post, user }: AddCommentInputProps) => {
         rows={1}
         value={commentText}
         onChange={(e) => setCommentText(e.target.value)}
-        className='w-full ml-2 mb-0 border-none focus-visible:outline-none focus-visible:border-none focus-visible:rounded-none relative resize-none focus:ring-0 focus-visible:ring-0'
+        className='w-full ml-2 mb-0 focus-visible:ring-none focus:outline-none border-none focus-visible:outline-none focus-visible:border-none focus-visible:rounded-none relative resize-none focus-visible:ring-0 focus-visible:ring-offset-0'
         placeholder='Add a comment...'
         aria-label='Add a comment...'
         onInput={(e) => {

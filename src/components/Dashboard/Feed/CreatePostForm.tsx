@@ -244,7 +244,7 @@ const CreatePostForm = ({ user }: PostFormProps) => {
           }
           onInput={handleInput}
           placeholder="What's on your mind?"
-          className='rounded-none focus-visible:outline-none focus-visible:ring-0 resize-none border-none min-h-fit overflow-hidden'
+          className='rounded-none focus-visible:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 resize-none border-none min-h-fit overflow-hidden'
         />
         {formData.files.length > 0 && (
           <div className='flex flex-row'>
