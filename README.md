@@ -1,7 +1,7 @@
 # Golden Sports App
 
 ## Overview
-*Golden Sports App* is a robust and user-friendly platform designed to streamline the management of sports teams and clubs. Drawing inspiration from the Spond app, it offers a suite of tools tailored for coaches, club administrators, and players, facilitating efficient communication, event organization, and member management.
+*Golden Sports App* is a robust and user-friendly platform designed to streamline the management of sports teams and clubs. It offers a suite of tools tailored for coaches, club administrators, and players, facilitating efficient communication, event organization, and member management.
 
 
 ## Key Features
