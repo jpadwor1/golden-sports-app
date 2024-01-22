@@ -15,10 +15,12 @@ const MiniNewsCard = () => {
           alt=''
           width={255}
           height={100}
-          className='rounded-md'
+          className='rounded-tr-md rounded-tl-md w-full relative'
         />
-        <div className='flex flex-col absolute bottom-0 left-1 max-w-[255px] bg-white/50 backdrop-blur-sm'>
-          <h1 className='text-sm text-gray-900 font-medium ml-0.5'>The Athletic</h1>
+        <div className='flex flex-col absolute bottom-0 left-0 right-0 bg-white/50 backdrop-blur-sm'>
+          <h1 className='text-sm text-gray-900 font-medium ml-0.5'>
+            The Athletic
+          </h1>
           <p className='text-xs text-gray-900 ml-0.5 line-clamp-2'>
             Why Titans fired Mike Vrabel, a story of festering slights and a
             lack of communication Why Titans fired Mike Vrabel,
