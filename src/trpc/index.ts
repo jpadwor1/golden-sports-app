@@ -72,11 +72,35 @@ export const appRouter = router({
     return { success: true };
   }),
 
-  getCustomers: privateProcedure.query(async ({ ctx }) => {
-    const users = await db.user.findMany();
-
-    return users;
-  }),
+  getTeamMembers: privateProcedure
+    .input(z.object({ groupId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+      const users = await db.user.findMany({
+        where: {
+          OR: [
+            {
+              groupsAsMember: {
+                some: {
+                  id: input.groupId,
+                },
+              },
+            },
+            {
+              groupsAsCoach: {
+                some: {
+                  id: input.groupId,
+                },
+              },
+            },
+          ],
+        },
+      });
+      return users;
+    }),
 
   addCustomer: privateProcedure
     .input(

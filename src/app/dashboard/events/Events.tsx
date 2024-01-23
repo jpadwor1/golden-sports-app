@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Plus } from 'lucide-react';
 import { User } from '@prisma/client';
 import { ExtendedEvent } from './page';
+import EventCard from '@/components/Dashboard/Events/EventCard';
 
 interface EventsPageProps {
   user: {
@@ -38,14 +39,14 @@ const Events = ({ user, events }: EventsPageProps) => {
     <div className='flex flex-col space-y-8 md:flex-row md:items-start md:space-x-2 lg:space-y-0 px-8'>
       <div className='flex flex-col items-start justify-between space-y-2 mt-10 w-full md:w-3/5 max-w-md'>
         <div className='flex flex-row w-full justify-between'>
-          <h2 className='text-2xl font-bold tracking-wide '>Your Feed</h2>
+          <h2 className='text-2xl font-bold tracking-wide '>Events</h2>
           {!eventFormOpen && (
             <button
               onClick={() => setEventFormOpen(true)}
               className='flex flex-row items-center justify-center space-x-1 hover:bg-gray-200 hover:cursor-pointer px-2 py-1 rounded-full'
             >
               <Plus className='h-3 w-3 text-blue-500' />
-              <p className='text-sm text-blue-500 pr-1 mb-0.5'>Create Post </p>
+              <p className='text-sm text-blue-500 pr-1 mb-0.5'>Create Event </p>
             </button>
           )}
         </div>
