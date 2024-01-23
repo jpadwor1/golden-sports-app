@@ -23,7 +23,7 @@ import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { User } from '@prisma/client';
-import { File, Link2, Plus } from 'lucide-react';
+import { File, Link2, Plus, Trash } from 'lucide-react';
 import { MultiSelect } from 'react-multi-select-component';
 import { useRouter } from 'next/navigation';
 import React from 'react';
@@ -238,7 +238,7 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
       for (let i = 0; i < files.length; i++) {
         newFiles.push(files[i]);
       }
-      setFiles(newFiles);
+      setFiles((prevFiles) => [...prevFiles, ...newFiles]);
     }
   };
 
@@ -490,9 +490,15 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
                     className='flex flex-row items-start border rounded-md p-2 my-2'
                   >
                     <File className='h-6 w-6 text-blue-600 mr-2' />
-                    <p className='text-sm text-gray-500'>
-                      {file.name}
-                    </p>
+                    <p className='text-sm text-gray-500'>{file.name}</p>
+                    <Trash
+                      className='h-4 w-4 text-red-500 ml-auto hover:cursor-pointer self-center'
+                      onClick={() => {
+                        setFiles((prevFiles) =>
+                          prevFiles.filter((_, i) => i !== index)
+                        );
+                      }}
+                    />
                   </div>
                 ))}
               </div>
