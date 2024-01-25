@@ -32,7 +32,14 @@ import { z } from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 import { CheckedState } from '@radix-ui/react-checkbox';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/fullscreen-dialog';
 interface CreateEventFormProps {
   user: {
     groupsAsCoach: {
@@ -434,7 +441,7 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
             </div>
 
             {recurring && (
-              <>
+              <div className='grid grid-cols-2 gap-4 justify-between'>
                 <FormField
                   control={form.control}
                   name='repeatFrequency'
@@ -451,7 +458,6 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
                           disableSearch={true}
                           closeOnChangedValue={true}
                           hasSelectAll={false}
-                          cus
                         />
                       </FormControl>
                       <FormMessage />
@@ -472,7 +478,7 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
                     </FormItem>
                   )}
                 />
-              </>
+              </div>
             )}
 
             <FormField
@@ -553,13 +559,27 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
               />
             </div>
 
-            <div
-              onClick={handlePayments}
-              className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-4 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50'
-            >
-              <CircleDollarSign className='h-6 w-6 text-green-700' />
-              <p>Registration Fee</p>
-            </div>
+            <Dialog>
+              <DialogTrigger>
+                {' '}
+                <div
+                  onClick={handlePayments}
+                  className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-4 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50'
+                >
+                  <CircleDollarSign className='h-6 w-6 text-green-700' />
+                  <p>Registration Fee</p>
+                </div>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Are you absolutely sure?</DialogTitle>
+                  <DialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    your account and remove your data from our servers.
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
 
             {files.length > 0 && (
               <div className='grid grid-cols-1 gap-2'>
