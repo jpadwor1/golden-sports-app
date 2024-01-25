@@ -31,6 +31,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
+import { CheckedState } from '@radix-ui/react-checkbox';
 
 interface CreateEventFormProps {
   user: {
@@ -62,6 +63,10 @@ const eventFormSchema = z.object({
   invitees: z.array(z.string()).optional(),
   notificationDate: z.string().default('immediately'),
   reminders: z.boolean().default(false).optional(),
+  repeatFrequency: z
+    .array(z.object({ label: z.string(), value: z.string() }))
+    .optional(),
+  recurringEndDate: z.string().optional(),
 });
 
 type EventFormValues = z.infer<typeof eventFormSchema>;
@@ -136,7 +141,11 @@ const mergeRefs = (...refs: React.Ref<any>[]) => {
   };
 };
 
-const options = ['john', 'jared'];
+const repeatFrequencyOptions: Option[] = [
+  { label: 'Daily', value: 'daily' },
+  { label: 'Weekly', value: 'weekly' },
+  { label: 'Monthly', value: 'monthly' },
+];
 
 const CreateEventForm = ({ user }: CreateEventFormProps) => {
   const router = useRouter();
@@ -148,8 +157,8 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
   const [fetchTeamMembers, setFetchTeamMembers] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [paymentDialogOpen, setPaymentDialogOpen] = React.useState(false);
+  const [repeatFrequency, setRepeatFrequency] = React.useState<Option[]>([]);
 
-  
   const [files, setFiles] = React.useState<File[]>([]);
 
   const [formData, setFormData] = React.useState({
@@ -159,6 +168,7 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
   const ref = React.useRef<HTMLDivElement>(null);
   const TextAreaRef = React.useRef<HTMLTextAreaElement>(null);
   const userGroups = [...user.groupsAsCoach, ...user.groupsAsMember];
+  const [recurring, setRecurring] = React.useState<CheckedState>();
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     mode: 'onChange',
@@ -246,10 +256,10 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
   };
 
   const handlePayments = () => {
-    if (!user.paymentsSetup){
+    if (user) {
       setPaymentDialogOpen(true);
     }
-  }
+  };
 
   const onSubmit = () => {
     if (TextAreaRef.current) {
@@ -413,11 +423,63 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
               )}
             </div>
 
+            <div className='flex flex-row items-center space-x-3 space-y-0 mt-6'>
+              <Checkbox onCheckedChange={setRecurring} />
+              <div className='space-y-1 leading-none'>
+                <FormLabel>Is this a recurring event?</FormLabel>
+                <FormDescription>
+                  Notifications will be sent automatically.
+                </FormDescription>
+              </div>
+            </div>
+
+            {recurring && (
+              <>
+                <FormField
+                  control={form.control}
+                  name='repeatFrequency'
+                  render={({ field }) => (
+                    <FormItem className='mt-4'>
+                      <FormLabel>Repeat</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          className='w-full'
+                          options={repeatFrequencyOptions}
+                          value={repeatFrequency}
+                          onChange={setRepeatFrequency}
+                          labelledBy='Select Frequency'
+                          disableSearch={true}
+                          closeOnChangedValue={true}
+                          hasSelectAll={false}
+                          cus
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='recurringEndDate'
+                  render={({ field }) => (
+                    <FormItem className='mt-4'>
+                      <FormLabel>Stop Repeating</FormLabel>
+                      <FormControl>
+                        <Input type='date' placeholder='End Date' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+
             <FormField
               control={form.control}
               name='invitees'
               render={({ field }) => (
-                <FormItem className='mt-4'>
+                <FormItem className='mt-8'>
                   <FormLabel>Invitees</FormLabel>
                   <FormControl>
                     <MultiSelect
@@ -425,7 +487,7 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
                       options={teamMembers}
                       value={invitees}
                       onChange={setInvitees}
-                      labelledBy='Select Chemicals'
+                      labelledBy='Select Members'
                     />
                   </FormControl>
                   <FormMessage />
@@ -437,7 +499,7 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
               control={form.control}
               name='notificationDate'
               render={({ field }) => (
-                <FormItem className='mt-4'>
+                <FormItem className='mt-8'>
                   <FormLabel>Send Invite</FormLabel>
                   <FormControl>
                     <input
@@ -478,7 +540,7 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
 
             <div
               onClick={handleAttachments}
-              className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-4 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50'
+              className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-10 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50'
             >
               <Link2 className='h-6 w-6 text-green-700' />
               <p>Attachments</p>
