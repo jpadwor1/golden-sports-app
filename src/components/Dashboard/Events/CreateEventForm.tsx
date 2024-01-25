@@ -23,7 +23,7 @@ import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { User } from '@prisma/client';
-import { File, Link2, Plus, Trash } from 'lucide-react';
+import { CircleDollarSign, File, Link2, Plus, Trash } from 'lucide-react';
 import { MultiSelect } from 'react-multi-select-component';
 import { useRouter } from 'next/navigation';
 import React from 'react';
@@ -147,6 +147,9 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
   const [teamMembers, setTeamMembers] = React.useState<Option[]>([]);
   const [fetchTeamMembers, setFetchTeamMembers] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [paymentDialogOpen, setPaymentDialogOpen] = React.useState(false);
+
+  
   const [files, setFiles] = React.useState<File[]>([]);
 
   const [formData, setFormData] = React.useState({
@@ -241,6 +244,12 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
       setFiles((prevFiles) => [...prevFiles, ...newFiles]);
     }
   };
+
+  const handlePayments = () => {
+    if (!user.paymentsSetup){
+      setPaymentDialogOpen(true);
+    }
+  }
 
   const onSubmit = () => {
     if (TextAreaRef.current) {
@@ -469,9 +478,9 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
 
             <div
               onClick={handleAttachments}
-              className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 mt-4 hover:cursor-pointer'
+              className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-4 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50'
             >
-              <Link2 className='h-6 w-6 text-blue-600' />
+              <Link2 className='h-6 w-6 text-green-700' />
               <p>Attachments</p>
               <input
                 type='file'
@@ -480,6 +489,14 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
                 onChange={handleFileChange}
                 className='hidden'
               />
+            </div>
+
+            <div
+              onClick={handlePayments}
+              className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-4 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50'
+            >
+              <CircleDollarSign className='h-6 w-6 text-green-700' />
+              <p>Registration Fee</p>
             </div>
 
             {files.length > 0 && (
