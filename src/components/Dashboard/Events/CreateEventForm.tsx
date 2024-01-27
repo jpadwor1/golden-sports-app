@@ -23,7 +23,7 @@ import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { User } from '@prisma/client';
-import { CircleDollarSign, File, Link2, Plus, Trash } from 'lucide-react';
+import { CircleDollarSign, File, Link2, Plus, Trash, X } from 'lucide-react';
 import { MultiSelect } from 'react-multi-select-component';
 import { useRouter } from 'next/navigation';
 import React from 'react';
@@ -40,6 +40,16 @@ import {
   DialogTitle as FSDialogTitle,
   DialogTrigger as FSDialogTrigger,
 } from '@/components/ui/fullscreen-dialog';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 interface CreateEventFormProps {
   user: {
     groupsAsCoach: {
@@ -263,7 +273,7 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
   };
 
   const handlePayments = () => {
-    if (user) {
+    if (!user) {
       setPaymentDialogOpen(true);
     }
   };
@@ -563,9 +573,8 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
               />
             </div>
 
-            <FSDialog>
-              <FSDialogTrigger>
-                {' '}
+            <Dialog>
+              <DialogTrigger>
                 <div
                   onClick={handlePayments}
                   className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-4 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50'
@@ -573,27 +582,48 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
                   <CircleDollarSign className='h-6 w-6 text-green-700' />
                   <p>Registration Fee</p>
                 </div>
-              </FSDialogTrigger>
-              <FSDialogContent>
-                {true && (
-                  <>
-                    <FSDialogHeader className='items-center mt-20 px-20'>
-                      <FSDialogTitle>Create a payout method</FSDialogTitle>
-                      <FSDialogDescription>
-                        To collect money you need to have a payout method. The
-                        payout method is used to transfer money to you.
-                      </FSDialogDescription>
-                      <div className='flex flex-row w-full justify-end py-20 px-20'>
-                        <Button
-                          variant='ghost'
-                          className='mr-10'>Cancel</Button>
-                        <Button> Create Payout Method </Button>
-                      </div>
-                    </FSDialogHeader>
-                  </>
-                )}
-              </FSDialogContent>
-            </FSDialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader className=''>
+                  <DialogTitle>Create a payout method</DialogTitle>
+                  <DialogDescription>
+                    To collect money you need to have a payout method. The
+                    payout method is used to transfer money to you.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className='mt-10'>
+                  <DialogClose>
+                    <Button variant='ghost' className='mr-10'>
+                      Cancel
+                    </Button>
+                    <Button onClick={() => setPaymentDialogOpen(true)}>
+                      Create Payout Method
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {paymentDialogOpen && (
+              <FSDialog open={paymentDialogOpen}>
+                <FSDialogContent>
+                  <div
+                    onClick={() => setPaymentDialogOpen(false)}
+                    className='absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 data-[state=open]:text-gray-500 dark:ring-offset-gray-950 dark:focus:ring-gray-300 dark:data-[state=open]:bg-gray-800 dark:data-[state=open]:text-gray-400'
+                  >
+                    <X className='h-8 w-8' />
+                    <span className='sr-only'>Close</span>
+                  </div>
+                  <FSDialogHeader className=''>
+                    <FSDialogTitle>Create a payout method</FSDialogTitle>
+                    <FSDialogDescription>
+                      To collect money you need to have a payout method. The
+                      payout method is used to transfer money to you.
+                    </FSDialogDescription>
+                  </FSDialogHeader>
+                </FSDialogContent>
+              </FSDialog>
+            )}
 
             {files.length > 0 && (
               <div className='grid grid-cols-1 gap-2'>
