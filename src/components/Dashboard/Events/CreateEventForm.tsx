@@ -33,12 +33,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 import { CheckedState } from '@radix-ui/react-checkbox';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog as FSDialog,
+  DialogContent as FSDialogContent,
+  DialogDescription as FSDialogDescription,
+  DialogHeader as FSDialogHeader,
+  DialogTitle as FSDialogTitle,
+  DialogTrigger as FSDialogTrigger,
 } from '@/components/ui/fullscreen-dialog';
 interface CreateEventFormProps {
   user: {
@@ -496,6 +496,10 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
                       labelledBy='Select Members'
                     />
                   </FormControl>
+                  <FormDescription>
+                    By default event will be visible to all team members. Select
+                    invitees to change visibility.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -559,8 +563,8 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
               />
             </div>
 
-            <Dialog>
-              <DialogTrigger>
+            <FSDialog>
+              <FSDialogTrigger>
                 {' '}
                 <div
                   onClick={handlePayments}
@@ -569,17 +573,27 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
                   <CircleDollarSign className='h-6 w-6 text-green-700' />
                   <p>Registration Fee</p>
                 </div>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Are you absolutely sure?</DialogTitle>
-                  <DialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    your account and remove your data from our servers.
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
+              </FSDialogTrigger>
+              <FSDialogContent>
+                {true && (
+                  <>
+                    <FSDialogHeader className='items-center mt-20 px-20'>
+                      <FSDialogTitle>Create a payout method</FSDialogTitle>
+                      <FSDialogDescription>
+                        To collect money you need to have a payout method. The
+                        payout method is used to transfer money to you.
+                      </FSDialogDescription>
+                      <div className='flex flex-row w-full justify-end py-20 px-20'>
+                        <Button
+                          variant='ghost'
+                          className='mr-10'>Cancel</Button>
+                        <Button> Create Payout Method </Button>
+                      </div>
+                    </FSDialogHeader>
+                  </>
+                )}
+              </FSDialogContent>
+            </FSDialog>
 
             {files.length > 0 && (
               <div className='grid grid-cols-1 gap-2'>

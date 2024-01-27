@@ -15,34 +15,40 @@ import Image from 'next/image';
 
 const components: { title: string; href: string; description: string }[] = [
   {
-    title: 'Regular Pool Cleaning',
-    href: '/services/regular-cleaning',
+    title: 'Overview',
+    href: '/features/overview',
     description:
-      'Routine cleaning services including skimming, vacuuming, and brushing to keep your pool pristine.',
+      "A comprehensive summary of our platform's features, giving you a bird's-eye view of all functionalities.",
   },
   {
-    title: 'Chemical Balancing',
-    href: '/services/chemical-balancing',
+    title: 'Events',
+    href: '/features/events',
     description:
-      'Expert testing and adjustment of pool water chemicals to ensure a safe and balanced swimming environment.',
+      'Effortless event creation and management, ensuring your group stays active and engaged.',
   },
   {
-    title: 'Algae Treatment',
-    href: '/services/algae-treatment',
+    title: 'Invites & Reminders',
+    href: '/features/invites-reminders',
     description:
-      'Effective solutions for algae removal and prevention, keeping your pool clean and clear.',
+      'Automated invites and reminders to keep your group members informed and punctual for all events.',
   },
   {
-    title: 'Tile and Deck Cleaning',
-    href: '/services/tile-deck-cleaning',
+    title: 'File Storage',
+    href: '/features/file-storage',
     description:
-      'Specialized cleaning for pool tiles and decks to remove dirt, grime, and mildew, ensuring a spotless pool area.',
+      "Secure and organized cloud storage for all your group's files, easily accessible by members.",
   },
   {
-    title: 'Pool Opening & Closing',
-    href: '/services/opening-closing',
+    title: 'Messaging',
+    href: '/features/messaging',
     description:
-      'Seasonal services to prepare your pool for the summer and winterize it for the off-season.',
+      'Instant messaging capabilities for real-time communication within your group.',
+  },
+  {
+    title: 'Payments',
+    href: '/features/payments',
+    description:
+      'Convenient and secure payment processing for group subscriptions, events, and more.',
   },
 ];
 
@@ -51,7 +57,9 @@ export default function NavbarMenu() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger className='bg-transparent'>What We Do</NavigationMenuTrigger>
+          <NavigationMenuTrigger className='bg-transparent'>
+            What We Do
+          </NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className='grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
               <li className='row-span-3'>
@@ -61,29 +69,28 @@ export default function NavbarMenu() {
                     href='/about'
                   >
                     <Image
-                      src='/logo.png'
+                      src='/GSlogo.png'
                       width={80}
                       height={80}
-                      alt='Always Clean'
+                      alt='Golden Sports'
                     />
-                    <div className='mb-2 text-lg font-medium'>Always Clean</div>
+                    <div className='mb-2 text-lg font-medium'>
+                      Golden Sports
+                    </div>
                     <p className='text-sm leading-tight text-muted-foreground'>
-                      Expert Pool Cleaning for a Sparkling, Hassle-Free Summer.
-                      Honest. Reliable. Affordable.
+                      Simplify Your Sports Management with Golden Sports
                     </p>
                   </a>
                 </NavigationMenuLink>
               </li>
-              <ListItem href='/services' title='Our Services'>
-                Comprehensive Pool Maintenance & Repair Services. Quality You
-                Can Trust.
+              <ListItem href='#' title='Features'>
+              A comprehensive summary of our platform&apos;s features, giving you a bird&apos;s-eye view of all functionalities.
               </ListItem>
-              <ListItem href='/process' title='Our Process'>
-                A Step-by-Step Guide to Our Professional Pool Cleaning Process.
-                Efficiency and Transparency.
+              <ListItem href='#' title='Who uses Golden Sports'>
+                Be the coach that spends time on what matters most
               </ListItem>
-              <ListItem href='/testimonials' title='Testimonials'>
-                Hear From Our Satisfied Customers. Quality Service Guaranteed.
+              <ListItem href='#' title='Our Mission'>
+                We believe these precious social activities ought to be easier.
               </ListItem>
             </ul>
           </NavigationMenuContent>
@@ -96,7 +103,7 @@ export default function NavbarMenu() {
                 <ListItem
                   key={component.title}
                   title={component.title}
-                  href={component.href}
+                  href="#"
                 >
                   {component.description}
                 </ListItem>
