@@ -50,6 +50,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import StepperForm from './Stepper';
 interface CreateEventFormProps {
   user: {
     groupsAsCoach: {
@@ -614,13 +615,14 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
                     <X className='h-8 w-8' />
                     <span className='sr-only'>Close</span>
                   </div>
-                  <FSDialogHeader className=''>
-                    <FSDialogTitle>Create a payout method</FSDialogTitle>
+                  <FSDialogHeader className='items-center mt-20'>
+                    <FSDialogTitle className='text-2xl'>Create a payout method</FSDialogTitle>
                     <FSDialogDescription>
                       To collect money you need to have a payout method. The
                       payout method is used to transfer money to you.
                     </FSDialogDescription>
                   </FSDialogHeader>
+                  <StepperForm />
                 </FSDialogContent>
               </FSDialog>
             )}
