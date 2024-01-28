@@ -3,7 +3,13 @@ import React from 'react';
 import { Stepper, Step, Typography } from '@material-tailwind/react';
 import { Button } from '@/components/ui/button';
 
-import { CogIcon, UserIcon, CalendarClock } from 'lucide-react';
+import {
+  CogIcon,
+  UserIcon,
+  CalendarClock,
+  Check,
+  ChevronsUpDown,
+} from 'lucide-react';
 import MaxWidthWrapper from '@/components/Layout/MaxWidthWrapper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -13,6 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -31,6 +38,19 @@ import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { trpc } from '@/app/_trpc/client';
 import { useRouter } from 'next/navigation';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
+import { Textarea } from '@/components/ui/textarea';
 
 declare global {
   interface Window {
@@ -39,87 +59,54 @@ declare global {
 }
 
 type FormFields =
-  | 'fullName'
+  | 'accountName'
+  | 'accountType'
+  | 'accountPurpose'
+  | 'firstName'
+  | 'lastName'
   | 'email'
   | 'phoneNumber'
-  | 'address'
-  | 'service'
+  | 'dateOfBirth'
+  | 'SSN'
+  | 'streetAddress'
+  | 'city'
+  | 'state'
+  | 'zipcode'
   | undefined;
 
-const initGooglePlaces = (form: any) => {
-  // Ensure that the Google Maps API script has loaded
-  if (!window.google || !window.google.maps || !window.google.maps.places) {
-    console.error('Google Maps API script not loaded');
-    return;
-  }
-
-  // Select the input element for the address field
-  const addressInput = document.getElementById('address') as HTMLInputElement;
-  if (!addressInput) {
-    console.error('Address input not found');
-    return;
-  }
-
-  // Create a new instance of the Google Places Autocomplete
-  const autocomplete = new google.maps.places.Autocomplete(addressInput, {
-    types: ['address'],
-  });
-
-  // Add a listener for the 'place_changed' event
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace();
-    const address = place.formatted_address;
-    if (address) {
-      form.setValue('address', address, { shouldValidate: true });
-    }
-  });
-};
-
-const loadGooglePlacesScript = (callback: () => void) => {
-  if (typeof window !== 'undefined') {
-    const isScriptLoaded = document.querySelector(
-      "script[src*='maps.googleapis.com/maps/api/js']"
-    );
-    if (!isScriptLoaded) {
-      window.initGooglePlaces = callback;
-
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&callback=initGooglePlaces`;
-      document.head.appendChild(script);
-    } else if (window.google && window.google.maps) {
-      callback();
-    }
-  }
-};
-
-const mergeRefs = (...refs: React.Ref<any>[]) => {
-  return (element: HTMLInputElement) => {
-    refs.forEach((ref) => {
-      if (typeof ref === 'function') {
-        ref(element);
-      } else if (ref != null) {
-        (ref as React.MutableRefObject<HTMLInputElement>).current = element;
-      }
-    });
-  };
-};
-
+const phoneRegex = new RegExp(
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+);
 const FormSchema = z.object({
-  fullName: z.string({
-    required_error: 'Please enter your full name.',
-  }),
-  email: z
+  accountName: z
     .string({
-      required_error: 'Please select an email to display.',
+      required_error: 'Please enter a nickname for this account.',
     })
-    .email(),
-  phoneNumber: z.string({
-    required_error: 'Please enter your phone number.',
-  }),
-  address: z.string().min(1, 'Please enter your address.'),
-  service: z.string().min(1, 'Please select a service.'),
+    .min(1, 'Please enter a nickname for this account.'),
+  accountType: z
+    .string({
+      required_error: 'Please select an account type.',
+    })
+    .min(1, 'Please enter a nickname for this account.'),
+  accountPurpose: z.string().min(1, 'Please describe the accounts purpose.'),
+  firstName: z.string().min(1, 'Please enter your first name.'),
+  lastName: z.string().min(1, 'Please enter your last name.'),
+  email: z.string().email('Please enter a valid email address.'),
+  phoneNumber: z
+    .string()
+    .regex(phoneRegex, 'Please Enter a valid phone number.'),
+  dateOfBirth: z.string().min(1, 'Please enter your date of birth.'),
+  SSN: z.string().min(1, 'Please enter your SSN.'),
+  streetAddress: z.string().min(1, 'Please enter your street address.'),
+  city: z.string().min(1, 'Please enter your city.'),
+  state: z.string().min(1, 'Please enter your state.'),
+  zipcode: z.string().min(1, 'Please enter your zipcode.'),
 });
+
+const accountTypes = [
+  { label: 'Private', value: 'private' },
+  { label: 'Public', value: 'public' },
+];
 
 export default function StepperForm() {
   const router = useRouter();
@@ -134,24 +121,6 @@ export default function StepperForm() {
     formState: { errors, isValid },
   } = form;
 
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
-  const [selectedTime, setSelectedTime] = React.useState('');
-  const addressInputRef = React.useRef<HTMLInputElement>(null);
-  const onAddressInputMount = mergeRefs(
-    addressInputRef,
-    form.register('address').ref
-  );
-  const availableTimes = [
-    '9:00 AM',
-    '10:00 AM',
-    '11:00 AM',
-    '12:00 PM',
-    '1:00 PM',
-    '2:00 PM',
-    '3:00 PM',
-    '4:00 PM',
-    '5:00 PM',
-  ];
   const components: { title: string; href: string; description: string }[] = [
     {
       title: 'Regular Pool Cleaning',
@@ -193,21 +162,30 @@ export default function StepperForm() {
   });
 
   const stepFields: FormFields[][] = [
-    ['fullName', 'email', 'address', 'phoneNumber'], // Fields for step 0
-    ['service'], // Fields for step 1
+    ['accountName', 'accountType'], // Fields for step 0
+    [
+      'accountPurpose',
+      'firstName',
+      'lastName',
+      'email',
+      'phoneNumber',
+      'dateOfBirth',
+      'SSN',
+      'streetAddress',
+      'city',
+      'state',
+      'zipcode',
+    ], // Fields for step 1
   ];
-  React.useEffect(() => {
-    loadGooglePlacesScript(() => initGooglePlaces(form));
-  }, [form]);
 
-  const handleNext = async () => {
+  const handleNext = async (step?: number) => {
     const currentFields = stepFields[activeStep] as Array<
       keyof typeof FormSchema.shape
     >;
     const isStepValid = await form.trigger(currentFields);
 
     if (isStepValid) {
-      setActiveStep((cur) => cur + 1);
+      step ? setActiveStep(step) : setActiveStep((cur) => cur + 1);
     } else {
       toast({
         title: 'Oops, something went wrong!',
@@ -217,51 +195,25 @@ export default function StepperForm() {
   };
   const handlePrev = () => !isFirstStep && setActiveStep((cur) => cur - 1);
 
-  const handleTimeSelect = (time: string) => {
-    setSelectedTime(time);
-  };
-
-  const getCombinedDateTime = () => {
-    if (!date || !selectedTime) return '';
-
-    const timeParts = selectedTime.split(/[:\s]/); // Split time string into components
-    const hours = timeParts[0];
-    const minutes = timeParts[1];
-    const meridian = timeParts[2];
-
-    const dateTime = new Date(date);
-    dateTime.setHours(
-      meridian === 'PM' ? parseInt(hours) + 12 : parseInt(hours)
-    ); // Adjust for AM/PM
-    dateTime.setMinutes(parseInt(minutes));
-
-    return dateTime.toISOString();
-  };
-
-
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    const combinedDateTime = getCombinedDateTime();
     const formData = {
       ...data,
-      nextServiceDate: combinedDateTime,
     };
-
-    
   }
 
   return (
     <MaxWidthWrapper>
-      <div className='px-2 py-4'>
+      <div className='px-2 py-2'>
         <Stepper
-          activeLineClassName='bg-blue-500'
+          activeLineClassName='bg-green-700'
           placeholder='false'
           activeStep={activeStep}
           isLastStep={(value) => setIsLastStep(value)}
           isFirstStep={(value) => setIsFirstStep(value)}
         >
           <Step
-            activeClassName='bg-blue-500'
-            completedClassName='bg-blue-500'
+            activeClassName='bg-green-700 items-center justify-center'
+            completedClassName='bg-green-700 items-center justify-center'
             placeholder='false'
             onClick={() => setActiveStep(0)}
           >
@@ -270,7 +222,7 @@ export default function StepperForm() {
               <Typography
                 placeholder='false'
                 variant='h6'
-                color={activeStep === 0 ? 'blue' : 'gray'}
+                color={activeStep === 0 ? 'green' : 'gray'}
                 className='hidden md:block'
               >
                 Contact Information
@@ -278,17 +230,17 @@ export default function StepperForm() {
             </div>
           </Step>
           <Step
-            activeClassName='bg-blue-500'
-            completedClassName='bg-blue-500'
+            activeClassName='bg-green-700 items-center justify-center'
+            completedClassName='bg-green-700 items-center justify-center'
             placeholder='false'
-            onClick={() => setActiveStep(1)}
+            onClick={() => (activeStep === 2 ? handlePrev() : handleNext(1))}
           >
             <CogIcon className='h-5 w-5' />
             <div className='absolute -bottom-[2.5rem] w-max text-center'>
               <Typography
                 placeholder='false'
                 variant='h6'
-                color={activeStep === 1 ? 'blue' : 'gray'}
+                color={activeStep === 1 ? 'green' : 'gray'}
                 className='hidden md:block'
               >
                 Service
@@ -296,17 +248,17 @@ export default function StepperForm() {
             </div>
           </Step>
           <Step
-            activeClassName='bg-blue-500'
-            completedClassName='bg-blue-500'
+            activeClassName='bg-green-700 items-center justify-center'
+            completedClassName='bg-green-700 items-center justify-center'
             placeholder='false'
-            onClick={() => setActiveStep(2)}
+            onClick={() => handleNext(2)}
           >
             <CalendarClock className='h-5 w-5' />
             <div className='absolute -bottom-[2.5rem] w-max text-center'>
               <Typography
                 placeholder='false'
                 variant='h6'
-                color={activeStep === 2 ? 'blue' : 'gray'}
+                color={activeStep === 2 ? 'green' : 'gray'}
                 className='hidden md:block'
               >
                 Date & Time
@@ -314,107 +266,121 @@ export default function StepperForm() {
             </div>
           </Step>
         </Stepper>
-        <div className='mt-20 py-5 flex flex-col items-center'>
+        <div className='mt-10 py-5 flex flex-col items-center'>
           <>
             <Separator className='my-4 mx-2 ' />
 
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className='w-full space-y-6'
+                className='w-full space-y-6 flex items-center justify-center'
               >
                 {activeStep === 0 ? (
-                  <div className='flex flex-col -mx-4 mb-8 rounded-md w-full text-center gap-2'>
+                  <div className='flex flex-col -mx-4 rounded-md w-3/4 text-center gap-2 min-h-[475px]'>
                     <h2 className='text-2xl font-bold'>
-                      Enter Your Contact Information
+                      Payout account Information
                     </h2>
                     <div className='px-4 mt-6 mb-2'>
                       <FormField
                         control={form.control}
-                        name='fullName'
+                        name='accountName'
                         defaultValue=''
                         render={({ field }) => (
-                          <FormItem className='flex flex-row justify-center items-center w-full mt-0'>
-                            <FormLabel className='min-w-fit mr-2 mt-2'>
-                              Full Name
+                          <FormItem className='flex flex-row justify-center items-start w-full mt-0'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Account Nickname
                             </FormLabel>
-                            <div className='flex flex-col justify-center items-center w-full mb-2'>
-                              <FormControl>
-                                <Input placeholder='Full Name' {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className='px-4 my-2 flex flex-row items-center text-center align-middle '>
-                      <FormField
-                        control={form.control}
-                        name='address'
-                        defaultValue=''
-                        render={({ field }) => (
-                          <FormItem className='flex flex-row justify-center items-center w-full mt-0'>
-                            <FormLabel className='min-w-fit mr-2 mt-2'>
-                              Home Address
-                            </FormLabel>
-                            <div className='flex flex-col justify-center items-center w-full'>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
                               <FormControl>
                                 <Input
-                                  ref={onAddressInputMount}
-                                  id='address'
-                                  name='address'
-                                  onChange={field.onChange}
-                                  onBlur={field.onBlur}
-                                  placeholder='12348 Express Way'
-                                  value={field.value}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className='px-4 my-2 flex flex-row items-center text-center align-middle '>
-                      <FormField
-                        control={form.control}
-                        name='email'
-                        defaultValue=''
-                        render={({ field }) => (
-                          <FormItem className='flex flex-row justify-center items-center w-full mt-0'>
-                            <FormLabel className='min-w-fit mr-2 mt-2'>
-                              Email Address
-                            </FormLabel>
-                            <div className='flex flex-col justify-center items-center w-full'>
-                              <FormControl>
-                                <Input
-                                  placeholder='john@alwaysclean.com'
+                                  placeholder='My payout account'
                                   {...field}
                                 />
                               </FormControl>
                               <FormMessage />
+
+                              <FormDescription className='text-left mt-2'>
+                                The account name is never exposed to the
+                                receiver. It makes it easy for you to recognize
+                                multiple payout accounts.
+                              </FormDescription>
                             </div>
                           </FormItem>
                         )}
                       />
                     </div>
-                    <div className='px-4 my-2 flex flex-row items-center text-center align-middle '>
+                    <div className='px-4 mt-6 mb-2'>
                       <FormField
                         control={form.control}
-                        name='phoneNumber'
+                        name='accountType'
                         defaultValue=''
                         render={({ field }) => (
-                          <FormItem className='flex flex-row justify-center items-center w-full mt-0'>
-                            <FormLabel className='min-w-fit mr-2 mt-2'>
-                              Phone Number
+                          <FormItem className='flex flex-row justify-center items-start w-full mt-0'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Account Type
                             </FormLabel>
-                            <div className='flex flex-col justify-center items-center w-full'>
-                              <FormControl>
-                                <Input placeholder='760-912-7396' {...field} />
-                              </FormControl>
+                            <div className='flex flex-col justify-center items-start w-full mb-2 ml-8'>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant='outline'
+                                      role='combobox'
+                                      className={cn(
+                                        'w-[200px] justify-between',
+                                        !field.value && 'text-muted-foreground'
+                                      )}
+                                    >
+                                      {field.value
+                                        ? accountTypes.find(
+                                            (type) => type.value === field.value
+                                          )?.label
+                                        : 'Select Type'}
+                                      <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-[200px] p-0'>
+                                  <Command>
+                                    <CommandEmpty>
+                                      No language found.
+                                    </CommandEmpty>
+                                    <CommandGroup>
+                                      {accountTypes.map((type) => (
+                                        <CommandItem
+                                          value={type.label}
+                                          key={type.value}
+                                          onSelect={() => {
+                                            form.setValue(
+                                              'accountType',
+                                              type.value
+                                            );
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              'mr-2 h-4 w-4',
+                                              type.value === field.value
+                                                ? 'opacity-100'
+                                                : 'opacity-0'
+                                            )}
+                                          />
+                                          {type.label}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                               <FormMessage />
+
+                              <FormDescription className='text-left mt-2'>
+                                Choose private if the collected money should be
+                                transferred to your personal bank account.
+                                Choose company If the money should be
+                                transferred to an account belonging to a company
+                                or organization.
+                              </FormDescription>
                             </div>
                           </FormItem>
                         )}
@@ -425,37 +391,252 @@ export default function StepperForm() {
 
                 {activeStep === 1 ? (
                   <>
-                    <div className='flex flex-col items-center'>
-                      <h2 className='text-2xl font-bold'>Select a Service</h2>
+                    <div className='flex flex-col items-center min-h-[475px] '>
+                      <h2 className='text-2xl font-bold'>
+                        Account Information
+                      </h2>
+
                       <FormField
                         control={form.control}
-                        name='service'
+                        name='accountPurpose'
                         render={({ field }) => (
-                          <FormItem className='w-1/2 mt-2'>
-                            <Select onValueChange={field.onChange}>
+                          <FormItem className='flex flex-row justify-center items-start w-full my-8'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Account purpose
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
                               <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder='Select a service' />
-                                </SelectTrigger>
+                                <Textarea
+                                  placeholder='Training and participation fees for XYZ Team'
+                                  className='resize-none'
+                                  {...field}
+                                />
                               </FormControl>
-                              <SelectContent>
-                                {components.map((component) => (
-                                  <SelectItem
-                                    onChange={() =>
-                                      setFormData({
-                                        ...formData,
-                                        service: component.title,
-                                      })
-                                    }
-                                    value={component.title}
-                                    key={component.title}
-                                  >
-                                    {component.title}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
+
+                              <FormMessage className='text-left mt-2' />
+                              <FormDescription className='text-left mt-2'>
+                                For legal reasons, Stripe is required to know
+                                the intended purpose of this account.
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <Separator />
+
+                     
+
+                      <FormField
+                        control={form.control}
+                        name='firstName'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              First Name
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  placeholder='Enter your first name'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='lastName'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Last Name
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  placeholder='Enter your last name'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='email'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Email
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  type='email'
+                                  placeholder='Enter your email'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='phoneNumber'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Phone Number
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  type='tel'
+                                  placeholder='Enter your phone number'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='dateOfBirth'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Date of Birth
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  type='date'
+                                  placeholder='Select your date of birth'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='SSN'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              SSN
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  type='password'
+                                  placeholder='Enter your SSN'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='streetAddress'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Street Address
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  placeholder='Enter your street address'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='city'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              City
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  placeholder='Enter your city'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='state'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              State
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  placeholder='Enter your state'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='zipcode'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Zip Code
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  placeholder='Enter your zip code'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
                           </FormItem>
                         )}
                       />
@@ -463,52 +644,7 @@ export default function StepperForm() {
                   </>
                 ) : null}
 
-                {activeStep === 2 ? (
-                  <div className='flex flex-col items-center px-4'>
-                    <div className='flex flex-col items-center px-4'>
-                      <h2 className='text-2xl font-bold'>
-                        Select a date and time
-                      </h2>
-                    </div>
-                    <Separator className='my-1 mx-2 w-[50%]' />
-
-                    <div className='flex md:flex-row flex-col items-center px-4 py-4 gap-4'>
-                      <div className='flex flex-col items-center'>
-                        <Calendar
-                          mode='single'
-                          selected={date}
-                          onSelect={setDate}
-                          className='rounded-md'
-                        />
-                      </div>
-                      <div className='flex flex-col items-center mt-2'>
-                        <h3 className='text-lg font-semibold'>
-                          {date
-                            ? format(date, 'EEEE, d MMMM')
-                            : 'No date selected'}
-                        </h3>
-
-                        <div className='grid grid-cols-2 gap-2'>
-                          {availableTimes.map((time) => (
-                            <Button
-                              type='button'
-                              onClick={() => handleTimeSelect(time)}
-                              key={time}
-                              className={cn(
-                                selectedTime === time
-                                  ? 'bg-primary text-white'
-                                  : 'bg-transparent text-slate-600',
-                                ' hover:text-white border rounded-md px-4 py-2 my-2'
-                              )}
-                            >
-                              {time}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
+                {activeStep === 2 ? <div></div> : null}
               </form>
             </Form>
           </>
@@ -519,7 +655,7 @@ export default function StepperForm() {
           </Button>
           <Button
             className={cn(isLastStep ? 'hidden' : '')}
-            onClick={handleNext}
+            onClick={() => handleNext()}
             disabled={isLastStep}
           >
             Next

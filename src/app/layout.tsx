@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Navbar from '@/components/Navigation/Navbar';
 import { cn } from '@/lib/utils';
 import Providers from '@/components/Misc/Providers';
-
+import { GoogleAnalytics } from '@next/third-parties/google'
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -32,6 +32,7 @@ export default function RootLayout({
           {children}
         </body>
       </Providers>
+      <GoogleAnalytics gaId="G-RXE0C2JZME" />
     </html>
   );
 }
