@@ -9,12 +9,12 @@ import {
   CalendarClock,
   Check,
   ChevronsUpDown,
+  Banknote,
 } from 'lucide-react';
 import MaxWidthWrapper from '@/components/Layout/MaxWidthWrapper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
 import {
   Form,
@@ -25,14 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { format } from 'date-fns';
+
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
@@ -51,7 +44,7 @@ import {
   CommandItem,
 } from '@/components/ui/command';
 import { Textarea } from '@/components/ui/textarea';
-
+import InputMask from 'react-input-mask';
 declare global {
   interface Window {
     initGooglePlaces: (form: any) => void;
@@ -217,7 +210,7 @@ export default function StepperForm() {
             placeholder='false'
             onClick={() => setActiveStep(0)}
           >
-            <UserIcon className='h-5 w-5' />
+            <Banknote className='h-5 w-5' />
             <div className='absolute -bottom-[2.5rem] w-max text-center'>
               <Typography
                 placeholder='false'
@@ -225,7 +218,7 @@ export default function StepperForm() {
                 color={activeStep === 0 ? 'green' : 'gray'}
                 className='hidden md:block'
               >
-                Contact Information
+                Basics
               </Typography>
             </div>
           </Step>
@@ -235,7 +228,7 @@ export default function StepperForm() {
             placeholder='false'
             onClick={() => (activeStep === 2 ? handlePrev() : handleNext(1))}
           >
-            <CogIcon className='h-5 w-5' />
+            <UserIcon className='h-5 w-5' />
             <div className='absolute -bottom-[2.5rem] w-max text-center'>
               <Typography
                 placeholder='false'
@@ -243,7 +236,7 @@ export default function StepperForm() {
                 color={activeStep === 1 ? 'green' : 'gray'}
                 className='hidden md:block'
               >
-                Service
+                Account Information
               </Typography>
             </div>
           </Step>
@@ -425,8 +418,6 @@ export default function StepperForm() {
 
                       <Separator />
 
-                     
-
                       <FormField
                         control={form.control}
                         name='firstName'
@@ -541,14 +532,16 @@ export default function StepperForm() {
                         render={({ field }) => (
                           <FormItem className='flex flex-row justify-center items-start w-full my-4'>
                             <FormLabel className='min-w-fit mr-6 mt-6'>
-                              SSN
+                              Last Four of SSN
                             </FormLabel>
                             <div className='flex flex-col justify-center items-start w-full mb-2'>
                               <FormControl>
-                                <Input
-                                  type='password'
-                                  placeholder='Enter your SSN'
-                                  {...field}
+                                <InputMask
+                                  className='flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300'
+                                  mask='99-999-9999'
+                                  maskPlaceholder='&#x2022;&#x2022;-&#x2022;&#x2022;&#x2022;-xxxx'
+                                  onChange={field.onChange}
+                                  value={field.value}
                                 />
                               </FormControl>
                               <FormMessage className='text-left mt-2' />
