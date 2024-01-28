@@ -4,7 +4,6 @@ import { Stepper, Step, Typography } from '@material-tailwind/react';
 import { Button } from '@/components/ui/button';
 
 import {
-  CogIcon,
   UserIcon,
   CalendarClock,
   Check,
@@ -44,7 +43,6 @@ import {
   CommandItem,
 } from '@/components/ui/command';
 import { Textarea } from '@/components/ui/textarea';
-import InputMask from 'react-input-mask';
 import { Label } from '@radix-ui/react-dropdown-menu';
 declare global {
   interface Window {
@@ -66,6 +64,8 @@ type FormFields =
   | 'city'
   | 'state'
   | 'zipcode'
+  |'payoutSchedule'
+  |'accountNumber'
   | undefined;
 
 const phoneRegex = new RegExp(
@@ -95,11 +95,18 @@ const FormSchema = z.object({
   city: z.string().min(1, 'Please enter your city.'),
   state: z.string().min(1, 'Please enter your state.'),
   zipcode: z.string().min(1, 'Please enter your zipcode.'),
+  payoutSchedule: z.string().min(1, 'Please select preferred payout schedule.'),
+  accountNumber: z.string().min(1, 'Please enter your account number.'),
 });
 
 const accountTypes = [
   { label: 'Private', value: 'private' },
   { label: 'Public', value: 'public' },
+];
+const frequencies = [
+  { label: 'Daily', value: 'daily' },
+  { label: 'Weekly', value: 'weekly' },
+  { label: 'Monthly', value: 'monthly' }
 ];
 
 export default function StepperForm() {
@@ -170,6 +177,7 @@ export default function StepperForm() {
       'state',
       'zipcode',
     ], // Fields for step 1
+    ['payoutSchedule', 'accountNumber'], // Fields for step 2
   ];
 
   const handleNext = async (step?: number) => {
@@ -648,7 +656,104 @@ export default function StepperForm() {
                   </>
                 ) : null}
 
-                {activeStep === 2 ? <div></div> : null}
+                {activeStep === 2 ? (
+                <div>
+<FormField
+                        control={form.control}
+                        name='payoutSchedule'
+                        defaultValue=''
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full mt-0'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Payout Schedule
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2 ml-8'>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant='outline'
+                                      role='combobox'
+                                      className={cn(
+                                        'w-[200px] justify-between',
+                                        !field.value && 'text-muted-foreground'
+                                      )}
+                                    >
+                                      {field.value
+                                        ? frequencies.find(
+                                            (frequency) => frequency.value === field.value
+                                          )?.label
+                                        : 'Select Frequency'}
+                                      <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-[200px] p-0'>
+                                  <Command>
+                                    
+                                    <CommandGroup>
+                                      {frequencies.map((frequency) => (
+                                        <CommandItem
+                                          value={frequency.label}
+                                          key={frequency.value}
+                                          onSelect={() => {
+                                            form.setValue(
+                                              'payoutSchedule',
+                                              frequency.value
+                                            );
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              'mr-2 h-4 w-4',
+                                              frequency.value === field.value
+                                                ? 'opacity-100'
+                                                : 'opacity-0'
+                                            )}
+                                          />
+                                          {frequency.label}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+
+                              <FormDescription className='text-left mt-2'>
+                                Choose private if the collected money should be
+                                transferred to your personal bank account.
+                                Choose company If the money should be
+                                transferred to an account belonging to a company
+                                or organization.
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+<FormField
+                        control={form.control}
+                        name='zipcode'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row justify-center items-start w-full my-4'>
+                            <FormLabel className='min-w-fit mr-6 mt-6'>
+                              Zip Code
+                            </FormLabel>
+                            <div className='flex flex-col justify-center items-start w-full mb-2'>
+                              <FormControl>
+                                <Input
+                                  placeholder='Enter your zip code'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className='text-left mt-2' />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                </div>
+                ) : null}
               </form>
             </Form>
           </>
