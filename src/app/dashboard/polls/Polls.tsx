@@ -10,7 +10,27 @@ import { User } from '@prisma/client';
 import EventCard from '@/components/Dashboard/Events/EventCard';
 import PollCard from '@/components/Dashboard/Polls/PollCard';
 
-const Polls = ({ user, events }: PollsPageProps) => {
+interface PollsPageProps {
+    user: {
+        groupsAsCoach: {
+          id: string;
+          name: string;
+          description: string | null;
+          coachId: string;
+          createdAt: Date;
+          logoURL: string | null;
+        }[];
+        groupsAsMember: {
+          id: string;
+          name: string;
+          description: string | null;
+          coachId: string;
+          createdAt: Date;
+          logoURL: string | null;
+        }[];
+      } & User;
+    }
+const Polls = ({ user }: PollsPageProps) => {
     const [pollFormOpen, setPollFormOpen] = React.useState(false);
 
   return (

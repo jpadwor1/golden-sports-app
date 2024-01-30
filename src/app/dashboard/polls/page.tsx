@@ -2,8 +2,9 @@ import React from 'react';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { db } from '@/db';
 import { redirect } from 'next/navigation';
+import Polls from './Polls';
 
-const Page = () => {
+const Page = async () => {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
 
@@ -23,7 +24,21 @@ const Page = () => {
     redirect('/auth-callback?origin=dashboard');
   }
 
-  return <Polls />;
+  const groups = [...dbUser.groupsAsCoach, ...dbUser.groupsAsMember];
+
+  const dbPolls = await db.poll.findMany({
+    where: {
+      groupId: {
+        in: groups.map((g) => g.id),
+      },
+    },
+    include: {
+      options: true,
+      votes: true,
+    },
+  });
+
+  return <Polls polls={dbPolls} />;
 };
 
 export default Page;
