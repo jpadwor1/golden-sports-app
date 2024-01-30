@@ -9,6 +9,7 @@ import { Plus } from 'lucide-react';
 import { Poll, User, PollOption, PollVote } from '@prisma/client';
 import EventCard from '@/components/Dashboard/Events/EventCard';
 import PollCard from '@/components/Dashboard/Polls/PollCard';
+import CreatePollForm from '@/components/Dashboard/Polls/CreatePollForm';
 
 interface PollsPageProps {
   user: {
@@ -46,21 +47,21 @@ const Polls = ({ user, polls }: PollsPageProps) => {
     <div className='flex flex-col space-y-8 md:flex-row md:items-start md:space-x-2 lg:space-y-0 px-8'>
       <div className='flex flex-col items-start justify-between space-y-2 mt-10 w-full md:w-3/5 max-w-md'>
         <div className='flex flex-row w-full justify-between'>
-          <h2 className='text-2xl font-bold tracking-wide '>Events</h2>
+          <h2 className='text-2xl font-bold tracking-wide '>Polls</h2>
           {!pollFormOpen && (
             <button
               onClick={() => console.log('clicked')}
               className='flex flex-row items-center justify-center space-x-1 hover:bg-gray-200 hover:cursor-pointer px-2 py-1 rounded-full'
             >
               <Plus className='h-3 w-3 text-blue-500' />
-              <p className='text-sm text-blue-500 pr-1 mb-0.5'>Create Event </p>
+              <p className='text-sm text-blue-500 pr-1 mb-0.5'>Create Poll </p>
             </button>
           )}
         </div>
         <div className='flex flex-col min-h-[calc(100vh-20rem)] w-full'>
           {pollFormOpen && <CreatePollForm user={user} />}
           {polls.map((poll) => (
-            <PollCardCard key={poll.id} event={poll} user={user} />
+            <PollCard key={poll.id} event={poll} user={user} />
           ))}
         </div>
       </div>
