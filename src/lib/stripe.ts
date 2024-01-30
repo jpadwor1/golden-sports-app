@@ -86,11 +86,13 @@ export async function createStripeAccount(accountData){
         }
       })
 
+    }
+
        // Create an account link for the user's Stripe account
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: absoluteUrl('/pilots/stripe/authorize'),
-      return_url: absoluteUrl('/pilots/stripe/onboarded'),
+      refresh_url: absoluteUrl('/payments/authorize'),
+      return_url: absoluteUrl('/payments/onboarded'),
       type: 'account_onboarding'
     });
   
@@ -102,6 +104,6 @@ export async function createStripeAccount(accountData){
     console.log(err);
   }
 
-
+}
 
 
