@@ -3,6 +3,7 @@ import { db } from '@/db';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { redirect } from 'next/navigation';
 import Stripe from 'stripe';
+import { absoluteUrl } from './utils';
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
   apiVersion: '2023-10-16',
@@ -36,10 +37,23 @@ export async function createStripeAccount(accountData){
       // Define the parameters to create a new Stripe account with
       let accountParams = {
         type: 'express',
-        country: accountData.country || undefined,
-        email: accountData.email || undefined,
-        business_type: accountData.type || 'individual', 
-      }
+        country: accountData.country || 'US', // Default to US if not provided
+        email: accountData.email,
+        business_type: accountData.businessType || 'individual',
+        business_profile: {
+            mcc: accountData.mcc, // Merchant Category Code
+            url: accountData.businessURL // Business URL
+        },
+        settings: {
+            payments: {
+                statement_descriptor: accountData.statementDescriptor // Statement descriptor
+            }
+        },
+        tos_acceptance: { // Terms of Service acceptance
+            ip: accountData.tosIP, // IP address of the user accepting the TOS
+            date: Math.floor(Date.now() / 1000) // Current timestamp in seconds
+        }
+    }
   
       // Companies and invididuals require different parameters
       if (accountParams.business_type === 'company') {
@@ -71,9 +85,23 @@ export async function createStripeAccount(accountData){
           stripeAccountId: accountId
         }
       })
-    }
+
+       // Create an account link for the user's Stripe account
+    const accountLink = await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: absoluteUrl('/pilots/stripe/authorize'),
+      return_url: absoluteUrl('/pilots/stripe/onboarded'),
+      type: 'account_onboarding'
+    });
+  
+
+    // Redirect to Stripe to start the Express onboarding flow
+    redirect(accountLink.url);
+  } catch (err) {
+    console.log('Failed to create a Stripe account.');
+    console.log(err);
+  }
 
 
 
 
-}
