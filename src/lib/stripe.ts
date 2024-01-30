@@ -1,6 +1,7 @@
 import { PLANS } from '@/config/stripe';
 import { db } from '@/db';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
+import { redirect } from 'next/navigation';
 import Stripe from 'stripe';
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
@@ -8,58 +9,71 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
   typescript: true,
 });
 
-export async function getUserSubscriptionPlan() {
+
+export async function createStripeAccount(accountData){
   const { getUser } = getKindeServerSession();
   const user = await getUser();
 
-  if (!user?.id) {
-    return {
-      ...PLANS[0],
-      isSubscribed: false,
-      isCanceled: false,
-      stripeCurrentPeriodEnd: null,
-    };
+  if(!user?.id){
+    redirect('/sign-in')
   }
 
-  const dbUser = await db.user.findFirst({
+  const dbUser = await db.user.findUnique({
     where: {
-      id: user.id,
-    },
-  });
+      id: user.id
+    }
+  })
 
-  if (!dbUser) {
-    return {
-      ...PLANS[0],
-      isSubscribed: false,
-      isCanceled: false,
-      stripeCurrentPeriodEnd: null,
-    };
+  if(!dbUser){
+    redirect('/auth-callback/?origin=/dashboard')
   }
 
-  const isSubscribed = Boolean(
-    dbUser.stripePriceId &&
-      dbUser.stripeCurrentPeriodEnd && // 86400000 = 1 day
-      dbUser.stripeCurrentPeriodEnd.getTime() + 86_400_000 > Date.now()
-  );
+  try {
+    let accountId = dbUser.stripeAccountId;
 
-  const plan = isSubscribed
-    ? PLANS.find((plan) => plan.price.priceIds.test === dbUser.stripePriceId)
-    : null;
+    // Create a Stripe account for this user if one does not exist already
+    if (accountId == undefined) {
+      // Define the parameters to create a new Stripe account with
+      let accountParams = {
+        type: 'express',
+        country: accountData.country || undefined,
+        email: accountData.email || undefined,
+        business_type: accountData.type || 'individual', 
+      }
+  
+      // Companies and invididuals require different parameters
+      if (accountParams.business_type === 'company') {
+        accountParams = Object.assign(accountParams, {
+          company: {
+            name: accountData.businessName || undefined
+          }
+        });
+      } else {
+        accountParams = Object.assign(accountParams, {
+          individual: {
+            first_name: accountData.firstName || undefined,
+            last_name: accountData.lastName || undefined,
+            email: accountData.email || undefined
+          }
+        });
+      }
+  
+      const account = await stripe.accounts.create(accountParams);
+      accountId = account.id;
 
-  let isCanceled = false;
-  if (isSubscribed && dbUser.stripeSubscriptionId) {
-    const stripePlan = await stripe.subscriptions.retrieve(
-      dbUser.stripeSubscriptionId
-    );
-    isCanceled = stripePlan.cancel_at_period_end;
-  }
+      // Update the model and store the Stripe account ID in the accountDatastore:
+      // this Stripe account ID will be used to issue payouts to the pilot
+      db.user.update({
+        where: {
+          id: dbUser.id
+        },
+        data: {
+          stripeAccountId: accountId
+        }
+      })
+    }
 
-  return {
-    ...plan,
-    stripeSubscriptionId: dbUser.stripeSubscriptionId,
-    stripeCurrentPeriodEnd: dbUser.stripeCurrentPeriodEnd,
-    stripeCustomerId: dbUser.stripeCustomerId,
-    isSubscribed,
-    isCanceled,
-  };
+
+
+
 }

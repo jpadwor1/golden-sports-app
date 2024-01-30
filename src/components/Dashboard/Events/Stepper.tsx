@@ -186,7 +186,7 @@ export default function StepperForm() {
     >;
     const isStepValid = await form.trigger(currentFields);
 
-    if (isStepValid) {
+    if (!isStepValid) {
       step ? setActiveStep(step) : setActiveStep((cur) => cur + 1);
     } else {
       toast({

@@ -21,6 +21,7 @@ model User {
   createdAt         DateTime      @default(now())
   isProfileComplete Boolean       @default(false)
   imageURL          String?
+  stripeAccountId   String?
   groupsAsCoach     Group[]       @relation("CoachGroups")
   groupsAsMember    Group[]       @relation("MemberGroups")
   payments          Payment[]
