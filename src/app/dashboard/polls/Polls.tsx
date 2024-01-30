@@ -6,32 +6,41 @@ import MiniEventCard from '@/components/Dashboard/Events/MiniEventCard';
 import MiniNewsCard from '@/components/Dashboard/MiniNewsCard';
 import { Separator } from '@/components/ui/separator';
 import { Plus } from 'lucide-react';
-import { User } from '@prisma/client';
+import { Poll, User, PollOption, PollVote } from '@prisma/client';
 import EventCard from '@/components/Dashboard/Events/EventCard';
 import PollCard from '@/components/Dashboard/Polls/PollCard';
 
 interface PollsPageProps {
-    user: {
-        groupsAsCoach: {
-          id: string;
-          name: string;
-          description: string | null;
-          coachId: string;
-          createdAt: Date;
-          logoURL: string | null;
-        }[];
-        groupsAsMember: {
-          id: string;
-          name: string;
-          description: string | null;
-          coachId: string;
-          createdAt: Date;
-          logoURL: string | null;
-        }[];
-      } & User;
-    }
-const Polls = ({ user }: PollsPageProps) => {
-    const [pollFormOpen, setPollFormOpen] = React.useState(false);
+  user: {
+    groupsAsCoach: {
+      id: string;
+      name: string;
+      description: string | null;
+      coachId: string;
+      createdAt: Date;
+      logoURL: string | null;
+    }[];
+    groupsAsMember: {
+      id: string;
+      name: string;
+      description: string | null;
+      coachId: string;
+      createdAt: Date;
+      logoURL: string | null;
+    }[];
+  } & User;
+  polls: {
+    options: { id: string; pollId: string; text: string }[];
+    votes: { userId: string; optionId: string; pollId: string | null }[];
+    id: string;
+    groupId: string;
+    question: string;
+    createdAt: Date;
+    expiresAt: Date | null;
+  }[];
+}
+const Polls = ({ user, polls }: PollsPageProps) => {
+  const [pollFormOpen, setPollFormOpen] = React.useState(false);
 
   return (
     <div className='flex flex-col space-y-8 md:flex-row md:items-start md:space-x-2 lg:space-y-0 px-8'>
@@ -40,7 +49,7 @@ const Polls = ({ user }: PollsPageProps) => {
           <h2 className='text-2xl font-bold tracking-wide '>Events</h2>
           {!pollFormOpen && (
             <button
-              onClick={() => console.log("clicked")}
+              onClick={() => console.log('clicked')}
               className='flex flex-row items-center justify-center space-x-1 hover:bg-gray-200 hover:cursor-pointer px-2 py-1 rounded-full'
             >
               <Plus className='h-3 w-3 text-blue-500' />

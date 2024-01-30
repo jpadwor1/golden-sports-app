@@ -38,7 +38,7 @@ const Page = async () => {
     },
   });
 
-  return <Polls polls={dbPolls} />;
+  return <Polls polls={dbPolls} user={dbUser} />;
 };
 
 export default Page;
