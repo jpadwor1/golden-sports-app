@@ -59,8 +59,8 @@ const Events = ({ user, events }: EventsPageProps) => {
   
 
   return (
-    <div className='flex flex-col space-y-8 md:flex-row md:items-start md:space-x-2 lg:space-y-0 px-8'>
-      <div className='flex flex-col items-start justify-between space-y-2 mt-10 w-full md:w-3/5 max-w-md'>
+    <div className='flex flex-col space-y-8 md:flex-row md:items-start md:space-x-2 lg:space-y-0 px-8 w-[100vw]'>
+      <div className='flex flex-col items-center justify-center space-y-2 mt-10 w-full md:w-3/5 max-w-md'>
         <div className='flex flex-row w-full justify-between'>
           <h2 className='text-2xl font-bold tracking-wide '>Events</h2>
           {!eventFormOpen && (
@@ -79,6 +79,8 @@ const Events = ({ user, events }: EventsPageProps) => {
             <EventCard key={event.id} event={event} user={user} />
           ))}  */}
           <EventCard event={testEvent} user={user} />
+          <EventCard event={testEvent} user={user} />
+
         </div>
       </div>
 

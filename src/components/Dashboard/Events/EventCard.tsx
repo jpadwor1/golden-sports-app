@@ -35,7 +35,7 @@ const EventCard = ({ event, user }: EventCardProps) => {
       <div className='relative flex flex-row items-center justify-start bg-white shadow-md rounded-md w-full mb-4 p-4 overflow-hidden h-[120px]'>
         <div className={cn(!hasAnswered ? 'bg-red-500' : 'bg-green-500', 'w-[2px] h-full absolute left-0 top-0 bottom-0')}></div>
         <div className='w-1/4 bg-gray-200 flex flex-col p-4 rounded-sm items-center justify-center'>
-          <h1 className='text-green-700 font-medium text-3xl -m-2 p-0'>21</h1>
+          <h1 className='text-green-700 font-semibold text-3xl -m-2 p-0'>21</h1>
           <p className='text-gray-900 text-lg font-medium'>June</p>
         </div>
         <div className='w-3/4 flex flex-col p-4'>
