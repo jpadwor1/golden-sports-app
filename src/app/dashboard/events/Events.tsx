@@ -6,7 +6,7 @@ import MiniEventCard from '@/components/Dashboard/Events/MiniEventCard';
 import MiniNewsCard from '@/components/Dashboard/MiniNewsCard';
 import { Separator } from '@/components/ui/separator';
 import { Plus } from 'lucide-react';
-import { User } from '@prisma/client';
+import { EventType, User } from '@prisma/client';
 import { ExtendedEvent } from './page';
 import EventCard from '@/components/Dashboard/Events/EventCard';
 
@@ -32,8 +32,31 @@ interface EventsPageProps {
   events: ExtendedEvent[];
 }
 
+const testEvent: ExtendedEvent = {
+  id: '1',
+  groupId: '1',
+  name: 'Test Event',
+  description: 'Test Event Description',
+  startDateTime: new Date(),
+  endDateTime: new Date(),
+  location: 'Test Location',
+  maxParticipants: 10,
+  eventType: 'PRACTICE' as EventType,
+  payments: [],
+  participants: [],
+  group: {
+    id: '1',
+    name: 'Test Group',
+    description: 'Test Group Description',
+    coachId: '1',
+    createdAt: new Date(),
+    logoURL: null,
+  },
+};
+
 const Events = ({ user, events }: EventsPageProps) => {
   const [eventFormOpen, setEventFormOpen] = React.useState(false);
+  
 
   return (
     <div className='flex flex-col space-y-8 md:flex-row md:items-start md:space-x-2 lg:space-y-0 px-8'>
@@ -51,10 +74,11 @@ const Events = ({ user, events }: EventsPageProps) => {
           )}
         </div>
         <div className='flex flex-col min-h-[calc(100vh-20rem)] w-full'>
-          {eventFormOpen && <CreateEventForm user={user} />}
-          {events.map((event) => (
+         {eventFormOpen && <CreateEventForm setEventFormOpen={setEventFormOpen} user={user} />}
+          {/* {events.map((event) => (
             <EventCard key={event.id} event={event} user={user} />
-          ))}
+          ))}  */}
+          <EventCard event={testEvent} user={user} />
         </div>
       </div>
 

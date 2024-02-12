@@ -51,7 +51,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import StepperForm from './Stepper';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 interface CreateEventFormProps {
   user: {
     groupsAsCoach: {
@@ -71,6 +71,7 @@ interface CreateEventFormProps {
       logoURL: string | null;
     }[];
   } & User;
+  setEventFormOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const eventFormSchema = z.object({
@@ -166,7 +167,7 @@ const repeatFrequencyOptions: Option[] = [
   { label: 'Monthly', value: 'monthly' },
 ];
 
-const CreateEventForm = ({ user }: CreateEventFormProps) => {
+const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   const router = useRouter();
   const [inputOpen, setInputOpen] = React.useState(false);
   const [endTimeInput, setEndTimeInput] = React.useState(false);
@@ -608,25 +609,25 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
 
             {paymentDialogOpen && (
               <FSDialog open={paymentDialogOpen}>
-                  <FSDialogContent className='overflow-y-scroll scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch'>
-                    <div
-                      onClick={() => setPaymentDialogOpen(false)}
-                      className='absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 data-[state=open]:text-gray-500 dark:ring-offset-gray-950 dark:focus:ring-gray-300 dark:data-[state=open]:bg-gray-800 dark:data-[state=open]:text-gray-400'
-                    >
-                      <X className='h-8 w-8' />
-                      <span className='sr-only'>Close</span>
-                    </div>
-                    <FSDialogHeader className='items-center mt-10'>
-                      <FSDialogTitle className='text-2xl'>
-                        Create a payout method
-                      </FSDialogTitle>
-                      <FSDialogDescription>
-                        To collect money you need to have a payout method. The
-                        payout method is used to transfer money to you.
-                      </FSDialogDescription>
-                    </FSDialogHeader>
-                    <StepperForm />
-                  </FSDialogContent>
+                <FSDialogContent className='overflow-y-scroll scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch'>
+                  <div
+                    onClick={() => setPaymentDialogOpen(false)}
+                    className='absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 data-[state=open]:text-gray-500 dark:ring-offset-gray-950 dark:focus:ring-gray-300 dark:data-[state=open]:bg-gray-800 dark:data-[state=open]:text-gray-400'
+                  >
+                    <X className='h-8 w-8' />
+                    <span className='sr-only'>Close</span>
+                  </div>
+                  <FSDialogHeader className='items-center mt-10'>
+                    <FSDialogTitle className='text-2xl'>
+                      Create a payout method
+                    </FSDialogTitle>
+                    <FSDialogDescription>
+                      To collect money you need to have a payout method. The
+                      payout method is used to transfer money to you.
+                    </FSDialogDescription>
+                  </FSDialogHeader>
+                  <StepperForm />
+                </FSDialogContent>
               </FSDialog>
             )}
 
@@ -660,6 +661,13 @@ const CreateEventForm = ({ user }: CreateEventFormProps) => {
                 className='self-end max-w-fit rounded-full bg-blue-600 disabled:bg-gray-200 hover:bg-blue-400 disabled:text-gray-600'
               >
                 Post
+              </Button>
+              <Button
+                onClick={() => setEventFormOpen(false)}
+                size='xs'
+                className='self-end max-w-fit rounded-full bg-black disabled:bg-gray-200 hover:bg-black/75 disabled:text-gray-600'
+              >
+                Cancel
               </Button>
             </div>
           </div>
