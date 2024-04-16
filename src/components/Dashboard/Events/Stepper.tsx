@@ -315,7 +315,6 @@ export default function StepperForm() {
                       <FormField
                         control={form.control}
                         name='accountType'
-                        defaultValue=''
                         render={({ field }) => (
                           <FormItem className='flex flex-row justify-center items-start w-full mt-0'>
                             <FormLabel className='min-w-fit mr-6 mt-6'>
@@ -765,6 +764,7 @@ export default function StepperForm() {
             className={cn(isLastStep ? 'hidden' : '')}
             onClick={() => handleNext()}
             disabled={isLastStep}
+            type='button'
           >
             Next
           </Button>

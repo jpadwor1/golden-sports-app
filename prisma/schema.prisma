@@ -12,26 +12,27 @@ generator client {
 }
 
 model User {
-  id                String        @id @default(uuid())
-  name              String
-  email             String        @unique
-  phone             String
-  role              UserRole      @default(PLAYER)
-  createdAt         DateTime      @default(now())
-  isProfileComplete Boolean       @default(false)
-  imageURL          String?
-  stripeAccountId   String?
-  groupsAsCoach     Group[]       @relation("CoachGroups")
-  groupsAsMember    Group[]       @relation("MemberGroups")
-  payments          Payment[]
-  messages          Message[]
-  parentId          String?
-  Participant       Participant[]
-  Post              Post[]
-  Comment           Comment[]
-  PollVote          PollVote[]
-  Children          Children[]
-  Like              Like[]
+  id                    String        @id @default(uuid())
+  name                  String
+  email                 String        @unique
+  phone                 String
+  role                  UserRole      @default(PLAYER)
+  createdAt             DateTime      @default(now())
+  isProfileComplete     Boolean       @default(false)
+  imageURL              String?
+  stripeAccountId       String?
+  stripeAccountComplete Boolean       @default(false)
+  groupsAsCoach         Group[]       @relation("CoachGroups")
+  groupsAsMember        Group[]       @relation("MemberGroups")
+  payments              Payment[]
+  messages              Message[]
+  parentId              String?
+  Participant           Participant[]
+  Post                  Post[]
+  Comment               Comment[]
+  PollVote              PollVote[]
+  Children              Children[]
+  Like                  Like[]
 
   @@index([parentId])
 }

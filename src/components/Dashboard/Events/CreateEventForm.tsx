@@ -1,6 +1,6 @@
 import { trpc } from '@/app/_trpc/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -19,13 +19,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { User } from '@prisma/client';
-import { CircleDollarSign, File, Link2, Plus, Trash, X } from 'lucide-react';
+import {
+  CircleDollarSign,
+  File,
+  Link2,
+  Loader2,
+  Plus,
+  Trash,
+  X,
+} from 'lucide-react';
 import { MultiSelect } from 'react-multi-select-component';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -169,6 +176,7 @@ const repeatFrequencyOptions: Option[] = [
 
 const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   const router = useRouter();
+  const [loading, setLoading] = React.useState(false);
   const [inputOpen, setInputOpen] = React.useState(false);
   const [endTimeInput, setEndTimeInput] = React.useState(false);
   const [groupId, setGroupId] = React.useState('');
@@ -278,6 +286,24 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   const handlePayments = () => {
     if (!user) {
       setPaymentDialogOpen(true);
+    }
+  };
+
+  const handleAccountCreation = async () => {
+    setLoading(true);
+    console.log('handling account creation');
+    const response = await fetch('/api/create-stripe-account', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId: user.id }),
+    });
+
+    if (response.ok) {
+      const url = await response.text();
+      console.log('Redirecting to:', url);
+      window.location.href = url;
     }
   };
 
@@ -599,10 +625,17 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
                     <Button variant='ghost' className='mr-10'>
                       Cancel
                     </Button>
-                    <Button onClick={() => setPaymentDialogOpen(true)}>
-                      Create Payout Method
-                    </Button>
                   </DialogClose>
+                  <Button type='button' onClick={() => handleAccountCreation()}>
+                    {loading ? (
+                      <>
+                        <Loader2 className='h-4 w-4 text-white animate-spin mr-2' />
+                        <p> Loading...</p>
+                      </>
+                    ) : (
+                      'Create Payout Method'
+                    )}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
