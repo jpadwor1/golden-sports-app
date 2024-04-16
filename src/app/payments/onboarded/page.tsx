@@ -17,14 +17,13 @@ const Page = async () => {
     },
   });
 
-  // if (!dbUser) {
-  //   redirect('/auth-callback?origin=dashboard');
-  // }
+  if (!dbUser) {
+    redirect('/auth-callback?origin=dashboard');
+  }
 
-  // if (dbUser.stripeAccountComplete) {
-  //   redirect('/dashboard');
-  // }
-  console.log('dbUser:', dbUser);
+  if (dbUser.stripeAccountComplete) {
+    redirect('/dashboard');
+  }
 
   if (!dbUser?.stripeAccountId) {
     const response = await fetch('/api/create-stripe-account', {
@@ -46,12 +45,15 @@ const Page = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ stripeAccountId: dbUser.stripeAccountId }),
-    })
-    
-    if(response.status === 200) {
+    });
+
+    if (response.status === 200) {
+      redirect('/dashboard');
+    } else {
+      console.error('Failed to verify Stripe account.');
+      alert('Failed to verify Stripe account.');
       redirect('/dashboard');
     }
-    
   }
 
   return (
