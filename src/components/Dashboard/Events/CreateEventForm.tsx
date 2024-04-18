@@ -1,6 +1,6 @@
 import { trpc } from '@/app/_trpc/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -58,6 +58,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import StepperForm from './Stepper';
+import PaymentDialog from './PaymentDialog';
 
 interface CreateEventFormProps {
   user: {
@@ -186,7 +187,7 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [paymentDialogOpen, setPaymentDialogOpen] = React.useState(false);
   const [repeatFrequency, setRepeatFrequency] = React.useState<Option[]>([]);
-
+  const [feeDialogOpen, setFeeDialogOpen] = React.useState(false);
   const [files, setFiles] = React.useState<File[]>([]);
 
   const [formData, setFormData] = React.useState({
@@ -284,14 +285,15 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   };
 
   const handlePayments = () => {
-    if (!user) {
+    if (!user.stripeAccountComplete) {
       setPaymentDialogOpen(true);
+    } else {
+      setFeeDialogOpen(true);
     }
   };
 
   const handleAccountCreation = async () => {
     setLoading(true);
-    console.log('handling account creation');
     const response = await fetch('/api/create-stripe-account', {
       method: 'POST',
       headers: {
@@ -602,67 +604,13 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
               />
             </div>
 
-            <Dialog>
-              <DialogTrigger>
-                <div
-                  onClick={handlePayments}
-                  className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-4 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50'
-                >
-                  <CircleDollarSign className='h-6 w-6 text-green-700' />
-                  <p>Registration Fee</p>
-                </div>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader className=''>
-                  <DialogTitle>Create a payout method</DialogTitle>
-                  <DialogDescription>
-                    To collect money you need to have a payout method. The
-                    payout method is used to transfer money to you.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className='mt-10'>
-                  <DialogClose>
-                    <Button variant='ghost' className='mr-10'>
-                      Cancel
-                    </Button>
-                  </DialogClose>
-                  <Button type='button' onClick={() => handleAccountCreation()}>
-                    {loading ? (
-                      <>
-                        <Loader2 className='h-4 w-4 text-white animate-spin mr-2' />
-                        <p> Loading...</p>
-                      </>
-                    ) : (
-                      'Create Payout Method'
-                    )}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            {paymentDialogOpen && (
-              <FSDialog open={paymentDialogOpen}>
-                <FSDialogContent className='overflow-y-scroll scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch'>
-                  <div
-                    onClick={() => setPaymentDialogOpen(false)}
-                    className='absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 data-[state=open]:text-gray-500 dark:ring-offset-gray-950 dark:focus:ring-gray-300 dark:data-[state=open]:bg-gray-800 dark:data-[state=open]:text-gray-400'
-                  >
-                    <X className='h-8 w-8' />
-                    <span className='sr-only'>Close</span>
-                  </div>
-                  <FSDialogHeader className='items-center mt-10'>
-                    <FSDialogTitle className='text-2xl'>
-                      Create a payout method
-                    </FSDialogTitle>
-                    <FSDialogDescription>
-                      To collect money you need to have a payout method. The
-                      payout method is used to transfer money to you.
-                    </FSDialogDescription>
-                  </FSDialogHeader>
-                  <StepperForm />
-                </FSDialogContent>
-              </FSDialog>
-            )}
+            <PaymentDialog
+              open={paymentDialogOpen}
+              loading={loading}
+              handlePayments={handlePayments}
+              setPaymentDialogOpen={setPaymentDialogOpen}
+              handleAccountCreation={handleAccountCreation}
+            />
 
             {files.length > 0 && (
               <div className='grid grid-cols-1 gap-2'>
