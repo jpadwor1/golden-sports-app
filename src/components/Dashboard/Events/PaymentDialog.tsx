@@ -19,6 +19,11 @@ interface PaymentDialogProps {
   handleAccountCreation: () => void;
   setPaymentDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handlePayments: () => void;
+  feeData: {
+    fee: number;
+    feeDescription: string;
+    feeServiceCharge: boolean;
+  };
 }
 
 const PaymentDialog = ({
@@ -27,6 +32,7 @@ const PaymentDialog = ({
   handleAccountCreation,
   setPaymentDialogOpen,
   handlePayments,
+  feeData,
 }: PaymentDialogProps) => {
   return (
     <Dialog open={open}>
@@ -36,7 +42,11 @@ const PaymentDialog = ({
           className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-4 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50'
         >
           <CircleDollarSign className='h-6 w-6 text-green-700' />
-          <p>Registration Fee</p>
+          {feeData.fee === 0 ? (
+            <p>Registration Fee</p>
+          ) : (
+            <p>Registration Fee: ${feeData.fee}</p>
+          )}
         </div>
       </DialogTrigger>
       <DialogContent>

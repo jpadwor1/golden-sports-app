@@ -59,6 +59,7 @@ import {
 } from '@/components/ui/dialog';
 import StepperForm from './Stepper';
 import PaymentDialog from './PaymentDialog';
+import EventFeeDialog from './EventFeeDialog';
 
 interface CreateEventFormProps {
   user: {
@@ -189,6 +190,11 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   const [repeatFrequency, setRepeatFrequency] = React.useState<Option[]>([]);
   const [feeDialogOpen, setFeeDialogOpen] = React.useState(false);
   const [files, setFiles] = React.useState<File[]>([]);
+  const [feeData, setFeeData] = React.useState({
+    fee: 0,
+    feeDescription: '',
+    feeServiceCharge: false,
+  });
 
   const [formData, setFormData] = React.useState({
     postBody: '',
@@ -610,6 +616,15 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
               handlePayments={handlePayments}
               setPaymentDialogOpen={setPaymentDialogOpen}
               handleAccountCreation={handleAccountCreation}
+              feeData={feeData}
+            />
+
+            <EventFeeDialog
+              open={feeDialogOpen}
+              setFeeDialogOpen={setFeeDialogOpen}
+              loading={loading}
+              setFeeData={setFeeData}
+              feeData={feeData}
             />
 
             {files.length > 0 && (
@@ -634,19 +649,20 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
               </div>
             )}
 
-            <div className='flex flex-row justify-between mt-6'>
+            <div className='flex flex-row-reverse justify-between mt-6'>
               <Button
                 onClick={onSubmit}
                 disabled={formData.postBody.length === 0}
                 size='xs'
-                className='self-end max-w-fit rounded-full bg-blue-600 disabled:bg-gray-200 hover:bg-blue-400 disabled:text-gray-600'
+                className='rounded-full bg-blue-600 disabled:bg-gray-200 hover:bg-blue-400 disabled:text-gray-600'
               >
                 Post
               </Button>
               <Button
+                variant='outline'
                 onClick={() => setEventFormOpen(false)}
                 size='xs'
-                className='self-end max-w-fit rounded-full bg-black disabled:bg-gray-200 hover:bg-black/75 disabled:text-gray-600'
+                className='rounded-full  disabled:bg-gray-200'
               >
                 Cancel
               </Button>
