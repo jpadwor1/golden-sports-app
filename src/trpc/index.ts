@@ -1,10 +1,10 @@
 import { privateProcedure, publicProcedure, router } from './trpc';
 import { TRPCError } from '@trpc/server';
 import { db } from '@/db';
-import z from 'zod';
+import z, { boolean } from 'zod';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { randomUUID } from 'crypto';
-import { getUserSubscriptionPlan, stripe } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe';
 import { absoluteUrl } from '@/lib/utils';
 import sgMail from '@sendgrid/mail';
 import { addUser } from '@/lib/actions';
@@ -923,6 +923,31 @@ export const appRouter = router({
         console.error(error);
         return error;
       }
+    }),
+
+  createEvent: privateProcedure
+    .input(
+      z.object({
+        title: z.string(),
+        description: z.string(),
+        address: z.string(),
+        startDateTime: z.string(),
+        endDateTime: z.string().optional(),
+        groupId: z.string(),
+        fee: z.number(),
+        feeDescription: z.string(),
+        feeServiceCharge: boolean(),
+        notificationDate: z.string(),
+        recurringEndDate: z.string().optional(),
+        reminders: boolean(),
+        repeatFrequency: z.array(z.string()).optional(),
+        invitees: z.array(z.string()).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      console.log(input);
+
+      return { success: true };
     }),
 });
 

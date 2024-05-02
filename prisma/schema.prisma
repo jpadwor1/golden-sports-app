@@ -77,11 +77,17 @@ model Event {
   endDateTime     DateTime
   location        String?
   maxParticipants Int?
+  isRecurring     Boolean
+  ParentEventId   String?
 
-  group        Group         @relation(fields: [groupId], references: [id])
-  participants Participant[]
-  payments     Payment[]
-  eventType    EventType
+  group            Group         @relation(fields: [groupId], references: [id])
+  participants     Participant[]
+  feeAmount        Float?
+  feeDescription   String?
+  feeServiceCharge Float?
+  payments         Payment[]
+  eventType        EventType
+  childEvents      String[]
 
   @@index([groupId])
 }

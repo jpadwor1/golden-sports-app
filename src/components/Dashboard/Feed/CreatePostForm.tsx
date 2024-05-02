@@ -80,6 +80,7 @@ const CreatePostForm = ({ user }: PostFormProps) => {
   const userGroups = [...user.groupsAsCoach, ...user.groupsAsMember];
   const submitPost = trpc.createPost.useMutation();
   const addPost = trpc.createPost.useMutation();
+  
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       // Check if the clicked area is outside the ref and not part of the select component

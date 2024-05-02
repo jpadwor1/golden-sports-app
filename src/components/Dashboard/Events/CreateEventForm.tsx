@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import { MultiSelect } from 'react-multi-select-component';
 import { redirect, useRouter } from 'next/navigation';
-import React from 'react';
+import React, { FormEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -91,7 +91,7 @@ const eventFormSchema = z.object({
   endDateTime: z.string().optional(),
   invitees: z.array(z.string()).optional(),
   notificationDate: z.string().default('immediately'),
-  reminders: z.boolean().default(false).optional(),
+  reminders: z.boolean().default(false),
   repeatFrequency: z
     .array(z.object({ label: z.string(), value: z.string() }))
     .optional(),
@@ -315,13 +315,25 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
     }
   };
 
-  const onSubmit = () => {
-    if (TextAreaRef.current) {
-      const newFormData = {
-        postBody: TextAreaRef.current.value,
-        groupId: groupId,
-      };
-    }
+  const submitEvent = trpc.createEvent.useMutation();
+  const onSubmit = (data: EventFormValues) => {
+    const newFormData = {
+      ...data,
+      ...feeData,
+      invitees: invitees.map((invitee) => invitee.value),
+      repeatFrequency: repeatFrequency.map((frequency) => frequency.value),
+      groupId: groupId,
+    };
+    console.log('Form data:', newFormData);
+
+    submitEvent.mutate(newFormData, {
+      onSuccess: () => {
+        setEventFormOpen(false);
+      },
+      onError: (error) => {
+        console.error('Error creating event:', error);
+      },
+    });
   };
 
   return (
@@ -651,8 +663,10 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
 
             <div className='flex flex-row-reverse justify-between mt-6'>
               <Button
-                onClick={onSubmit}
-                disabled={formData.postBody.length === 0}
+                type='submit'
+                disabled={
+                  form.formState.isSubmitting || !form.formState.isValid
+                }
                 size='xs'
                 className='rounded-full bg-blue-600 disabled:bg-gray-200 hover:bg-blue-400 disabled:text-gray-600'
               >
