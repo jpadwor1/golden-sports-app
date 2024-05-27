@@ -1,9 +1,12 @@
-import { Separator } from '@/components/ui/separator';
-import { SidebarNav } from './sidebarNav';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { db } from '@/db';
-import Image from 'next/image';
 import { Calendar, LayoutDashboard, Vote } from 'lucide-react';
+import MaxWidthWrapper from '@/components/Layout/MaxWidthWrapper';
+import { redirect } from 'next/navigation';
+import { User } from '@prisma/client';
+import { Separator } from '@/components/ui/separator';
+import { SidebarNav } from './sidebarNav';
+import Image from 'next/image';
 const sidebarNavItems = [
   {
     title: 'Your Feed / Posts',
@@ -12,7 +15,7 @@ const sidebarNavItems = [
   },
   {
     title: 'Events',
-    href: '/dashboard/events',
+    href: '/dashboard/group',
     icon: <Calendar className=' h-6 w-6 ml-3 mr-5' />,
   },
   {
@@ -31,20 +34,36 @@ export default async function SettingsLayout({
 }: SettingsLayoutProps) {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
+  if (!user || !user.id) redirect('/auth-callback?origin=dashboard');
 
   const dbUser = await db.user.findFirst({
     where: {
-      id: user?.id,
+      id: user.id,
+    },
+    include: {
+      groupsAsCoach: true,
+      groupsAsMember: true,
     },
   });
 
+  if (!dbUser) {
+    redirect('/auth-callback?origin=dashboard');
+  }
   return (
-    <div className='flex flex-row w-full'>
-      <aside className='md:block hidden min-h-[calc(100vh-5rem)] lg:w-1/4 bg-white'>
-        {dbUser && <SidebarNav items={sidebarNavItems} user={dbUser} />}
-      </aside>
-
-      <div className='md:w-3/4'>{children}</div>
-    </div>
+    // <MaxWidthWrapper className='md:px-2'>
+    //   <div className='space-y-6 md:p-10 p-4 pb-16 block '>
+    //     <div className='space-y-0.5 '>
+    //       <Image src='/logo.svg' width={200} height={50} alt='logo' />
+    //     </div>
+    //     <Separator className='my-6' />
+    //     <div className='flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0'>
+    //       {/* <aside className='md:-mx-4 lg:w-1/5'>
+    //         <SidebarNav user={dbUser} items={sidebarNavItems} />
+    //       </aside> */}
+    //       <div className='flex-1 lg:max-w-3xl'>{children}</div>
+    //     </div>
+    //   </div>
+    // </MaxWidthWrapper>
+    <>{children}</>
   );
 }

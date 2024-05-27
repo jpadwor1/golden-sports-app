@@ -945,9 +945,95 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      console.log(input);
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      let feeServiceCharge = 0;
+
+      if (input.feeServiceCharge) {
+        feeServiceCharge = input.fee * 0.029 + 0.3;
+      }
+
+      const event = await db.event.create({
+        data: {
+          title: input.title,
+          description: input.description,
+          address: input.address,
+          startDateTime: new Date(input.startDateTime),
+          endDateTime: input.endDateTime ? new Date(input.endDateTime) : null,
+          feeAmount: input.fee + feeServiceCharge,
+          feeDescription: input.feeDescription,
+          feeServiceCharge: feeServiceCharge,
+          recurringEndDate: input.recurringEndDate ? new Date(input.recurringEndDate) : null,
+          reminders: input.reminders,
+          repeatFrequency: input.repeatFrequency?.join(','),
+          group: {
+            connect: {
+              id: input.groupId,
+            },
+          },
+        },
+      });
+  
+      if (input.invitees && input.invitees.length > 0) {
+        for (const invitee of input.invitees) {
+          await db.participant.create({
+            data: {
+              userId: invitee,
+              eventId: event.id,
+              status: 'PENDING',
+            },
+          });
+
+          await db.notification.create({
+            data: {
+              userId: invitee,
+              resourceId: event.id,
+              message: `You've been invited to ${event.title}.`,
+              read: false,
+            }
+          })
+        }
+      }
+  
 
       return { success: true };
+    }),
+    getGroups: privateProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        const dbUser = await db.user.findFirst({
+          where: {
+            id: input,
+          },
+          include: {
+            groupsAsCoach: true,
+            groupsAsMember: true,
+          },
+        });
+      
+        if (!dbUser) {
+          return [];
+        }
+        const groups = [...dbUser.groupsAsCoach, ...dbUser.groupsAsMember];
+      
+        
+      
+        return groups;
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
     }),
 });
 

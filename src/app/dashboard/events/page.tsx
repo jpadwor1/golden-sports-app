@@ -3,22 +3,12 @@ import Events from './Events';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { db } from '@/db';
 import { redirect } from 'next/navigation';
-import { Group, Participant, Payment, EventType } from '@prisma/client';
+import { Group, Participant, Payment, Event } from '@prisma/client';
 
-export type ExtendedEvent = {
-  id: string;
-  groupId: string;
-  name: string;
-  description: string | null;
-  startDateTime: Date;
-  endDateTime: Date;
-  location: string | null;
-  maxParticipants: number | null;
-  eventType: EventType;
-} & {
-  payments: Payment[];
-  participants: Participant[];
+export type ExtendedEvent = Event & {
+  invitees: Participant[];
   group: Group;
+  payments: Payment[];
 };
 
 const Page = async () => {
@@ -45,18 +35,25 @@ const Page = async () => {
 
   const dbEvents: ExtendedEvent[] = await db.event.findMany({
     where: {
+      invitees: {
+        some: {
+          userId: user.id,
+        },
+      },
       groupId: {
         in: groups.map((g) => g.id),
       },
     },
     include: {
       payments: true,
-      participants: true,
+      invitees: true,
       group: true,
     },
   });
 
-  return <Events events={dbEvents} user={dbUser} />;
+  const groupIds = groups.map((g) => g.id);
+
+  return <Events events={dbEvents} user={dbUser} groupIds={groupIds} />;
 };
 
 export default Page;

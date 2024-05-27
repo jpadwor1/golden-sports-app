@@ -69,27 +69,30 @@ model Group {
 }
 
 model Event {
-  id              String   @id @default(uuid())
-  groupId         String
-  name            String
-  description     String?
-  startDateTime   DateTime
-  endDateTime     DateTime
-  location        String?
-  maxParticipants Int?
-  isRecurring     Boolean
-  ParentEventId   String?
-
+  id               String        @id @default(uuid())
+  title            String
+  groupId          String
+  description      String?
+  startDateTime    DateTime
+  endDateTime      DateTime?
+  address          String?
+  maxParticipants  Int?
+  recurringEndDate DateTime?
+  repeatFrequency  String?
+  reminders        Boolean
+  notificationDate DateTime?
+  parentEventId    String?
+  parentEvent      Event?        @relation("ChildEvents", fields: [parentEventId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  childEvents      Event[]       @relation("ChildEvents")
   group            Group         @relation(fields: [groupId], references: [id])
-  participants     Participant[]
+  invitees         Participant[]
   feeAmount        Float?
   feeDescription   String?
   feeServiceCharge Float?
   payments         Payment[]
-  eventType        EventType
-  childEvents      String[]
 
   @@index([groupId])
+  @@index([parentEventId])
 }
 
 model Participant {
@@ -184,6 +187,15 @@ model Like {
   @@index([postId])
   @@index([authorId])
   @@index([commentId])
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  message    String
+  read       Boolean
+  timestamp  DateTime @default(now())
+  resourceId String
 }
 
 model Poll {

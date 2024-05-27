@@ -28,7 +28,7 @@ interface EventCardProps {
 }
 
 const EventCard = ({ event, user }: EventCardProps) => {
-  const hasAnswered = event.participants.some((p) => p.userId === user.id);
+  const hasAnswered = event.invitees.some((p) => p.userId === user.id);
 
   return (
     <Link href={`/events/${event.id}`}>

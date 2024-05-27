@@ -6,11 +6,12 @@ import MiniEventCard from '@/components/Dashboard/Events/MiniEventCard';
 import MiniNewsCard from '@/components/Dashboard/MiniNewsCard';
 import { Separator } from '@/components/ui/separator';
 import { Plus } from 'lucide-react';
-import { EventType, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import { ExtendedEvent } from './page';
 import EventCard from '@/components/Dashboard/Events/EventCard';
 
 interface EventsPageProps {
+  groupIds: string[];
   user: {
     groupsAsCoach: {
       id: string;
@@ -35,15 +36,15 @@ interface EventsPageProps {
 const testEvent: ExtendedEvent = {
   id: '1',
   groupId: '1',
-  name: 'Test Event',
+  title: 'Test Event',
   description: 'Test Event Description',
   startDateTime: new Date(),
   endDateTime: new Date(),
-  location: 'Test Location',
+  address: 'Test Location',
   maxParticipants: 10,
-  eventType: 'PRACTICE' as EventType,
+  invitees: [],
+  reminders: true,
   payments: [],
-  participants: [],
   group: {
     id: '1',
     name: 'Test Group',
@@ -52,18 +53,24 @@ const testEvent: ExtendedEvent = {
     createdAt: new Date(),
     logoURL: null,
   },
+  notificationDate: new Date(),
+  feeAmount: 0,
+  feeServiceCharge: 0,
+  feeDescription: 'Free Event',
+  repeatFrequency: 'none',
+  recurringEndDate: new Date(),
+  parentEventId: null,  
 };
 
-const Events = ({ user, events }: EventsPageProps) => {
+const Events = ({ user, events, groupIds }: EventsPageProps) => {
   const [eventFormOpen, setEventFormOpen] = React.useState(false);
-  
-
+  const isUserCoachOfGroup = user.role === 'COACH' && groupIds.some(groupId => user.groupsAsCoach.some(group => group.id === groupId));
   return (
     <div className='flex flex-col space-y-8 md:flex-row md:items-start md:space-x-2 lg:space-y-0 px-8 w-[100vw]'>
       <div className='flex flex-col items-center justify-center space-y-2 mt-10 w-full md:w-3/5 max-w-md'>
         <div className='flex flex-row w-full justify-between'>
           <h2 className='text-2xl font-bold tracking-wide '>Events</h2>
-          {!eventFormOpen && (
+          {!eventFormOpen && isUserCoachOfGroup && (
             <button
               onClick={() => setEventFormOpen(true)}
               className='flex flex-row items-center justify-center space-x-1 hover:bg-gray-200 hover:cursor-pointer px-2 py-1 rounded-full'
@@ -74,13 +81,14 @@ const Events = ({ user, events }: EventsPageProps) => {
           )}
         </div>
         <div className='flex flex-col min-h-[calc(100vh-20rem)] w-full'>
-         {eventFormOpen && <CreateEventForm setEventFormOpen={setEventFormOpen} user={user} />}
+          {eventFormOpen && (
+            <CreateEventForm setEventFormOpen={setEventFormOpen} user={user} />
+          )}
           {/* {events.map((event) => (
             <EventCard key={event.id} event={event} user={user} />
           ))}  */}
           <EventCard event={testEvent} user={user} />
           <EventCard event={testEvent} user={user} />
-
         </div>
       </div>
 
