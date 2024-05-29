@@ -314,26 +314,7 @@ const CreatePostForm = ({ user }: PostFormProps) => {
           </Button>
         </div>
       </div>
-      <div className='flex flex-row items-center justify-evenly w-3/4'>
-        <div
-          className={buttonVariants({
-            variant: 'ghost',
-            className: 'flex items-center justify-center gap-2 mb-2',
-          })}
-        >
-          <CalendarCheck2 className='h-4 w-4 text-orange-600' />
-          <h2 className='text-sm text-gray-500 font-medium'>Event</h2>
-        </div>
-        <div
-          className={buttonVariants({
-            variant: 'ghost',
-            className: 'flex items-center justify-center gap-2 mb-2',
-          })}
-        >
-          <VoteIcon className='h-6 w-6 text-blue-600' />
-          <h2 className='text-sm text-gray-500 font-medium'>Poll</h2>
-        </div>
-      </div>
+      
     </div>
   );
 };

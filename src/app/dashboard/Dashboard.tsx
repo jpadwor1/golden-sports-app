@@ -37,8 +37,8 @@ const Dashboard = ({ user, posts }: DashboardProps) => {
   const [postFormOpen, setPostFormOpen] = React.useState(false);
 
   return (
-    <div className='flex flex-col space-y-8 md:flex-row md:items-start md:space-x-2 lg:space-y-0 px-8'>
-      <div className='flex flex-col items-start justify-between space-y-2 mt-10 w-full md:w-3/5 max-w-md'>
+    <div className='flex flex-col space-y-8 md:flex-row md:items-start md:space-x-2 lg:space-y-0 px-1'>
+      <div className='flex flex-col items-start justify-between space-y-2 mt-10 w-full md:w-3/4 max-w-xl'>
         <div className='flex flex-row w-full justify-between'>
           <h2 className='text-2xl font-bold tracking-wide '>Your Feed</h2>
           {!postFormOpen && (
@@ -59,7 +59,7 @@ const Dashboard = ({ user, posts }: DashboardProps) => {
         </div>
       </div>
 
-      <div className='flex-col hidden md:flex md:w-2/5 md:py-8 md:mt-6 md:px-6 max-w-xs'>
+      <div className='flex-col hidden md:flex md:w-1/2 md:py-8 md:mt-6 md:px-6 max-w-md'>
         <div className='bg-white min-h-[300px]  shadow-md rounded-md mt-3 '>
           <h2 className='text-md font-semibold tracking-wide ml-3 my-2 '>
             Upcoming Events

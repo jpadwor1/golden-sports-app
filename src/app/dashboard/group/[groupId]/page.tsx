@@ -57,6 +57,23 @@ const Page = async ({params}: PageProps) => {
     },
   });
 
+  const dbPosts = await db.post.findMany({
+    where: {
+      groupId: {
+        in: groups.map((g) => g.id),
+      },
+    },
+    include: {
+      likes: true,
+      comments: true,
+      Files: true,
+      author: true,
+    },
+    orderBy: {
+      timestamp: 'desc',
+    },
+  });
+
   const groupIds = groups.map((g) => g.id);
   return (
     <>
@@ -69,7 +86,7 @@ const Page = async ({params}: PageProps) => {
                 height={300}
               />
             </div>
-    <HorizontalNavbar groupId={groupId} events={dbEvents} user={dbUser}/>
+    <HorizontalNavbar posts={dbPosts} groupId={groupId} events={dbEvents} user={dbUser}/>
     </>
   );
 };

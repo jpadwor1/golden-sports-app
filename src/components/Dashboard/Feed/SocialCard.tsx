@@ -6,10 +6,9 @@ import {
   User,
   ThumbsUp,
   MessageSquareMore,
-  Send,
-  X,
   MoreVertical,
   Trash,
+  X 
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -80,6 +79,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
     : post.content;
 
   const renderMedia = (file: File) => {
+    if (!file) return null;
     const videoFormats = ['mp4', 'avi', 'mov', 'wmv', 'flv'];
     const isVideo = videoFormats.some((ext) => file.fileType.endsWith(ext));
 
@@ -102,7 +102,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
           alt='post media'
           width={500}
           height={500}
-          className='object-cover h-[275px]'
+          className='object-contain h-[275px]'
         />
       );
     }
@@ -215,7 +215,7 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
               <DialogClose>
                 <X
                   onClick={() => setFullscreenView(false)}
-                  className='absolute right-5 top-5 self-end h-5 w-5'
+                  className='absolute right-2 top-2 self-end h-5 w-5'
                 />
               </DialogClose>
               <FullScreenImageViewer
