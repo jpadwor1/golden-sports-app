@@ -1035,6 +1035,43 @@ export const appRouter = router({
         return error;
       }
     }),
+    updateParticipantStatus: privateProcedure.input(z.object({
+      userId: z.string(),
+      eventId: z.string(),
+      status: z.string(),
+    })).mutation(async ({ctx, input}) => {
+      const { userId, user } = ctx;
+      
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const participant = await db.participant.findFirst({
+        where: {
+          userId: input.userId,
+          eventId: input.eventId,
+        }
+      });
+
+      if (!participant) {
+        return new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      await db.participant.update({
+        where: {
+          userId_eventId: {
+          userId: input.userId,
+          eventId: input.eventId,
+          }
+        },
+        data: {
+          status: input.status,
+        }
+      });
+
+      return { success: true };
+    }),
+    
 });
 
 export type AppRouter = typeof appRouter;

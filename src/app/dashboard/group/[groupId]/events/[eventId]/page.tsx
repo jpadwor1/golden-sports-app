@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon,  Loader2, MapPin, User2 } from 'lucide-react';
+import { CalendarIcon, Loader2, MapPin, User2 } from 'lucide-react';
 import Image from 'next/image';
 import {
   DialogTrigger,
@@ -20,6 +20,9 @@ import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { redirect } from 'next/navigation';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { trpc } from '@/app/_trpc/client';
+import ParticipationButtons from '@/components/Dashboard/Events/participationButtons';
+import EventComment from '@/components/Dashboard/Events/EventComment';
 
 interface PageProps {
   params: {
@@ -42,13 +45,12 @@ const Page = async ({ params }: PageProps) => {
     },
     include: {
       Children: true,
-    }
+    },
   });
   const group = await db.group.findFirst({
     where: {
       id: groupId,
     },
-    
   });
 
   const coach = await db.user.findFirst({
@@ -63,8 +65,8 @@ const Page = async ({ params }: PageProps) => {
     },
     include: {
       invitees: true,
-      
-    }
+      eventComment: true,
+    },
   });
 
   if (!event || !group || !coach) {
@@ -78,21 +80,46 @@ const Page = async ({ params }: PageProps) => {
       </div>
     );
   }
+
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const encodedAddress = encodeURIComponent(
     event.address ? event.address : 'Hemet, CA'
   );
-  
+
   const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=12&size=600x300&maptype=roadmap&markers=color:green%7Clabel:A%7C${encodedAddress}&key=${apiKey}`;
-  const eventStartDate = format(new Date(event.startDateTime), "EEEE mm, yyyy 'at' hh:mm a");
-  const eventEndDate = event.endDateTime ? format(new Date(event.endDateTime), 'hh:mm a') : null;
+  const eventStartDate = format(
+    new Date(event.startDateTime),
+    "EEEE mm, yyyy 'at' hh:mm a"
+  );
+  const eventEndDate = event.endDateTime
+    ? format(new Date(event.endDateTime), 'hh:mm a')
+    : null;
   let initials = '';
-  if (dbUser && dbUser.Children.length > 0 && dbUser.Children[0].name.split(' ').length > 1){
-    initials = dbUser?.Children[0].name.split(' ')[0][0] + dbUser?.Children[0].name.split(' ')[1][0]
-  } else if (dbUser && dbUser.Children.length > 0){
-    initials = dbUser?.Children[0].name[0]
+  if (
+    dbUser &&
+    dbUser.Children.length > 0 &&
+    dbUser.Children[0].name.split(' ').length > 1
+  ) {
+    initials =
+      dbUser?.Children[0].name.split(' ')[0][0] +
+      dbUser?.Children[0].name.split(' ')[1][0];
+  } else if (dbUser && dbUser.Children.length > 0) {
+    initials = dbUser?.Children[0].name[0];
   }
-  console.log(event)
+  const participationStatus = event.invitees.find((invitee) => {
+    return invitee.userId === dbUser?.id;
+  })?.status;
+  const attending = event.invitees.filter((invitee) => {
+    return invitee.status === 'ATTENDING';
+  });
+  const declined = event.invitees.filter((invitee) => {
+    return invitee.status === 'DECLINED';
+  });
+  const unanswered = event.invitees.filter((invitee) => {
+    return invitee.status === 'UNANSWERED';
+  });
+
+  console.log(declined.length)
   return (
     <div className='max-w-4xl mx-auto p-4 bg-white rounded-lg shadow'>
       <div className='flex flex-col'>
@@ -124,27 +151,28 @@ const Page = async ({ params }: PageProps) => {
             </Avatar>
             <div className='ml-2'>
               <p className='font-semibold'>Answering on behalf of</p>
-              <p className='font-semibold text-indigo-600'>{dbUser?.Children[0].name}</p>
+              <p className='font-semibold text-indigo-600'>
+                {dbUser?.Children[0].name}
+              </p>
             </div>
           </div>
-          <div className='flex'>
-            <Button className='mr-2' variant='secondary'>
-              Accept
-            </Button>
-            <Button variant='destructive'>Decline</Button>
-          </div>
+          <ParticipationButtons participation={participationStatus} userId={dbUser?.id} eventId={event.id} />
+
         </div>
         <div className='flex flex-col mb-4'>
           <div className='flex items-center mb-2'>
             <CalendarIcon className='text-gray-500 mr-2' />
-            <p>{eventStartDate} - {eventEndDate}</p>
+            <p>
+              {eventStartDate} - {eventEndDate}
+            </p>
           </div>
           <div className='flex items-center mb-2'>
             <MapPin className='text-gray-500 mr-2' />
-            <Link href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`} target='_blank'>
-            <p>
-              {event.address}
-            </p>
+            <Link
+              href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`}
+              target='_blank'
+            >
+              <p>{event.address}</p>
             </Link>
           </div>
           <div className='flex items-center'>
@@ -153,9 +181,7 @@ const Page = async ({ params }: PageProps) => {
           </div>
         </div>
         <div className='mb-4'>
-          <p>
-            {event.description}
-          </p>
+          <p>{event.description}</p>
         </div>
         <div className='flex justify-between items-center mb-4'>
           <Dialog>
@@ -182,27 +208,15 @@ const Page = async ({ params }: PageProps) => {
           </Dialog>
           <div className='flex'>
             <Badge className='mr-2' variant='secondary'>
-              7 attending
+              {attending.length} attending
             </Badge>
             <Badge className='mr-2' variant='secondary'>
-              22 unanswered
+              {unanswered.length} unanswered
             </Badge>
-            <Badge variant='secondary'>0 declined</Badge>
+            <Badge variant='secondary'>{declined.length} declined</Badge>
           </div>
         </div>
-        <div className='border-t pt-4'>
-          <Textarea className='mb-4' placeholder='Write a comment...' />
-          <div className='flex justify-between items-center'>
-            <Checkbox id='notify' />
-            <label
-              className='text-sm font-medium leading-none mr-2'
-              htmlFor='notify'
-            >
-              Notify everyone (29)
-            </label>
-            <Button>Publish</Button>
-          </div>
-        </div>
+        <EventComment userId={dbUser?.id} eventId={event.id} comments={event.eventComments} />
       </div>
     </div>
   );
