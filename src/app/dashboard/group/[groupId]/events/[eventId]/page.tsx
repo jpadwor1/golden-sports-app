@@ -65,7 +65,7 @@ const Page = async ({ params }: PageProps) => {
     },
     include: {
       invitees: true,
-      eventComment: true,
+      eventComments: true,
     },
   });
 
