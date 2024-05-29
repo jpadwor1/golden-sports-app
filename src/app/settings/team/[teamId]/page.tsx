@@ -1,24 +1,5 @@
 import React from 'react';
 import { db } from '@/db';
-import Image from 'next/image';
-import { Separator } from '@/components/ui/separator';
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
 import TeamDetails from './TeamDetails';
 
 interface PageProps {

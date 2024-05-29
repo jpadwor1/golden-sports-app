@@ -4,11 +4,18 @@ import React from 'react';
 
 import Link from 'next/link';
 import { useSelectedLayoutSegment } from 'next/navigation';
-
+import Image from 'next/image';
 import useScroll from '@/hooks/use-scroll';
 import { cn } from '@/lib/utils';
+import UserAccountNav from '../Navigation/UserAccountNav';
+import NavbarMenu from '../Navigation/NavbarMenu';
 
-const Header = () => {
+interface HeaderProps {
+  imageURL: string;
+  email: string;
+}
+
+const Header = ({ imageURL, email }: HeaderProps) => {
   const scrolled = useScroll(5);
   const selectedLayout = useSelectedLayoutSegment();
 
@@ -22,21 +29,24 @@ const Header = () => {
         }
       )}
     >
-      <div className='flex h-[47px] items-center justify-between px-4'>
+      <div className='flex h-[65px] items-center justify-between px-4'>
         <div className='flex items-center space-x-4'>
           <Link
             href='/'
             className='flex flex-row space-x-3 items-center justify-center md:hidden'
           >
-            <span className='h-7 w-7 bg-zinc-300 rounded-lg' />
-            <span className='font-bold text-xl flex '>Logo</span>
+            <Image src='/GSlogo.png' width={40} height={40} alt='Logo' />
           </Link>
         </div>
 
-        <div className='hidden md:block'>
-          <div className='h-8 w-8 rounded-full bg-zinc-300 flex items-center justify-center text-center'>
-            <span className='font-semibold text-sm'>HQ</span>
-          </div>
+        <div className='hidden md:flex flex-row items-center md:mr-20'>
+          <NavbarMenu />
+          <UserAccountNav
+            name='Your Account'
+            role='Customer'
+            imageUrl={imageURL}
+            email={email}
+          />
         </div>
       </div>
     </div>

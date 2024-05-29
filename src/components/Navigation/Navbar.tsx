@@ -60,7 +60,7 @@ const Navbar = async () => {
             ) : (
               <>
                 <Link
-                  href='/dashboard'
+                  href='/dashboard/group'
                   // href={dbCustomer?.role === 'ADMIN' ? '/dashboard' : '/client'}
                   className={buttonVariants({ variant: 'ghost', size: 'sm' })}
                 >

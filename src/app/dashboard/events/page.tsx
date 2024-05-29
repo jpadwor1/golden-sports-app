@@ -53,7 +53,7 @@ const Page = async () => {
 
   const groupIds = groups.map((g) => g.id);
 
-  return <Events events={dbEvents} user={dbUser} groupIds={groupIds} />;
+  return <Events events={dbEvents} user={dbUser} groupId={groupIds} />;
 };
 
 export default Page;

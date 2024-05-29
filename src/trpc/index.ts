@@ -372,8 +372,8 @@ export const appRouter = router({
             imageURL: input.files.downloadURL,
           },
         });
-      }
 
+      }
       return { success: true };
     }),
 
@@ -984,7 +984,7 @@ export const appRouter = router({
             data: {
               userId: invitee,
               eventId: event.id,
-              status: 'PENDING',
+              status: 'UNANSWERED',
             },
           });
 

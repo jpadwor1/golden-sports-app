@@ -19,7 +19,7 @@ interface UserAccountNavProps {
   role: string;
 }
 
-const UserAccountNav = async ({
+const UserAccountNav = ({
   role,
   email,
   imageUrl,

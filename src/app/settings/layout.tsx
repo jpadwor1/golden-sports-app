@@ -2,6 +2,7 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarNav } from './sidebarNav';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { db } from '@/db';
+import Navbar from '@/components/Navigation/Navbar';
 
 const sidebarNavItems = [
   {
@@ -36,6 +37,7 @@ export default async function SettingsLayout({
 
   return (
     <>
+    <Navbar />
       <div className='space-y-6 p-10 pb-16 block '>
         <div className='space-y-0.5'>
           <h2 className='text-2xl font-bold tracking-tight'>Settings</h2>
