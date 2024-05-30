@@ -6,23 +6,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CalendarIcon, Loader2, MapPin, User2 } from 'lucide-react';
 import Image from 'next/image';
-import {
-  DialogTrigger,
-  DialogTitle,
-  DialogDescription,
-  DialogHeader,
-  DialogFooter,
-  DialogContent,
-  Dialog,
-} from '@/components/ui/dialog';
+
 import { db } from '@/db';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { redirect } from 'next/navigation';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import { trpc } from '@/app/_trpc/client';
 import ParticipationButtons from '@/components/Dashboard/Events/participationButtons';
 import EventComment from '@/components/Dashboard/Events/EventComment';
+import MessageDialog from '@/components/Dashboard/Events/MessageDialog';
 
 interface PageProps {
   params: {
@@ -119,7 +111,8 @@ const Page = async ({ params }: PageProps) => {
     return invitee.status === 'UNANSWERED';
   });
 
-  console.log(declined.length)
+  
+
   return (
     <div className='max-w-4xl mx-auto p-4 bg-white rounded-lg shadow'>
       <div className='flex flex-col'>
@@ -184,28 +177,7 @@ const Page = async ({ params }: PageProps) => {
           <p>{event.description}</p>
         </div>
         <div className='flex justify-between items-center mb-4'>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant='outline'>Send message to host</Button>
-            </DialogTrigger>
-            <DialogContent className='sm:max-w-[425px]'>
-              <DialogHeader>
-                <DialogTitle>Send a message to the host</DialogTitle>
-                <DialogDescription>
-                  Let the host know if you have any questions or comments.
-                </DialogDescription>
-              </DialogHeader>
-              <div className='grid gap-4 py-4'>
-                <Textarea
-                  className='min-h-[100px]'
-                  placeholder='Write your message...'
-                />
-              </div>
-              <DialogFooter>
-                <Button type='submit'>Send message</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <MessageDialog />
           <div className='flex'>
             <Badge className='mr-2' variant='secondary'>
               {attending.length} attending
