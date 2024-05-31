@@ -13,6 +13,7 @@ import { ExtendedEvent } from '@/app/dashboard/group/[groupId]/page';
 import { User } from '@prisma/client';
 import { Post } from '@/lib/utils';
 import Dashboard from '@/app/dashboard/Dashboard';
+import PollPage from '../Polls/poll-page';
 
 interface HorizontalNavbarProps {
   groupId: string;
@@ -97,27 +98,10 @@ export default function HorizontalNavbar({
         <Events events={events} user={user} groupId={groupId} />
       </TabsContent>
       <TabsContent className='p-4' value='posts'>
-          <Dashboard user={user} posts={posts} />
+        <Dashboard user={user} posts={posts} />
       </TabsContent>
       <TabsContent className='p-4' value='polls'>
-        <div className='prose prose-sm dark:prose-invert'>
-          <h2>Our Key Features</h2>
-          <p>
-            Discover the powerful features that set us apart from the
-            competition.
-          </p>
-          <ul>
-            <li>Intuitive user interface</li>
-            <li>Robust security measures</li>
-            <li>Seamless integration with your existing systems</li>
-          </ul>
-          <Link
-            className='inline-flex items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300'
-            href='#'
-          >
-            Learn More
-          </Link>
-        </div>
+          <PollPage />
       </TabsContent>
       <TabsContent className='p-4' value='payments'>
         <div className='prose prose-sm dark:prose-invert'>

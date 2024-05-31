@@ -4,7 +4,7 @@ import { trpc } from '@/app/_trpc/client';
 import { SideNavItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Group } from '@prisma/client';
-import { ChevronDown, Folder, Home, Loader2, Users } from 'lucide-react';
+import { ChevronDown, Folder, Home, Info, Loader2, MessageSquare, Settings, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -53,13 +53,13 @@ const SidebarNav = ({ userId }: SidebarNavProps) => {
     },
     {
       title: 'Messages',
-      path: '/messages',
-      icon: <Folder className='w-6 h-6' />,
+      path: '/dashboard/messages',
+      icon: <MessageSquare className='w-6 h-6' />,
     },
     {
       title: 'Settings',
       path: '/settings',
-      icon: <Folder className='w-6 h-6' />,
+      icon: <Settings className='w-6 h-6' />,
       submenu: true,
       subMenuItems: [
         { title: 'Account', path: '/settings/account' },
@@ -69,7 +69,7 @@ const SidebarNav = ({ userId }: SidebarNavProps) => {
     {
       title: 'Help',
       path: '/help',
-      icon: <Folder className='w-6 h-6' />,
+      icon: <Info className='w-6 h-6' />,
     },
   ];
 
