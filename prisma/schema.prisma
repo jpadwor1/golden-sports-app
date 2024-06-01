@@ -225,11 +225,13 @@ model Poll {
   expiresAt DateTime?
   authorId  String
 
-  author      User          @relation(fields: [authorId], references: [id])
-  group       Group         @relation(fields: [groupId], references: [id])
-  options     PollOption[]
-  votes       PollVote[]
-  PollComment PollComment[]
+  author        User          @relation(fields: [authorId], references: [id])
+  group         Group         @relation(fields: [groupId], references: [id])
+  options       PollOption[]
+  votes         PollVote[]
+  PollComment   PollComment[]
+  allowComments Boolean       @default(true)
+  hideVotes     Boolean       @default(false)
 
   @@index([groupId])
   @@index([authorId])

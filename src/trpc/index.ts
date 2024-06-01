@@ -8,6 +8,7 @@ import { stripe } from '@/lib/stripe';
 import { absoluteUrl } from '@/lib/utils';
 import sgMail from '@sendgrid/mail';
 import { addUser } from '@/lib/actions';
+import { create } from 'domain';
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -1070,6 +1071,47 @@ export const appRouter = router({
       });
 
       return { success: true };
+    }),
+    createPoll: privateProcedure.input(z.object({
+      title: z.string(),
+      description: z.string().optional(),
+      options: z.array(
+        z.object({
+          option: z.string(),
+        })
+      ),
+      hideVotes: z.boolean().optional(),
+      dueDate: z.string(),
+      allowComments: z.boolean().optional(),
+      groupId: z.string(),
+    })).mutation(async ({ctx, input}) => {
+      const { userId, user } = ctx;
+      
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const poll = await db.poll.create({
+        data: {
+          title: input.title,
+          description: input.description,
+          options: {
+            create: input.options.map((option) => ({
+              text: option.option,
+            })),
+          },
+          hideVotes: input.hideVotes,
+          dueDate: new Date(input.dueDate),
+          allowComments: input.allowComments,
+          group: {
+            connect: {
+              id: input.groupId,
+            }
+          }
+        }
+      });
+
+      return poll;
     }),
     
 });
