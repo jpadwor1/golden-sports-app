@@ -10,33 +10,17 @@ import { Button } from '@/components/ui/button';
 import Events from '@/components/Dashboard/Events/Events';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ExtendedEvent } from '@/app/dashboard/group/[groupId]/page';
-import { User } from '@prisma/client';
+import {ExtendedPoll, ExtendedUser } from '@/types/types';
 import { Post } from '@/lib/utils';
 import Dashboard from '@/app/dashboard/Dashboard';
 import PollPage from '../Polls/poll-page';
 
 interface HorizontalNavbarProps {
   groupId: string;
-  user: {
-    groupsAsCoach: {
-      id: string;
-      name: string;
-      description: string | null;
-      coachId: string;
-      createdAt: Date;
-      logoURL: string | null;
-    }[];
-    groupsAsMember: {
-      id: string;
-      name: string;
-      description: string | null;
-      coachId: string;
-      createdAt: Date;
-      logoURL: string | null;
-    }[];
-  } & User;
+  user: ExtendedUser;
   events: ExtendedEvent[];
   posts: Post[];
+  polls: ExtendedPoll
 }
 
 export default function HorizontalNavbar({
@@ -44,6 +28,7 @@ export default function HorizontalNavbar({
   user,
   events,
   posts,
+  polls
 }: HorizontalNavbarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -101,7 +86,7 @@ export default function HorizontalNavbar({
         <Dashboard user={user} posts={posts} />
       </TabsContent>
       <TabsContent className='p-4' value='polls'>
-          <PollPage />
+          <PollPage user={user} polls={polls} groupId={groupId}  />
       </TabsContent>
       <TabsContent className='p-4' value='payments'>
         <div className='prose prose-sm dark:prose-invert'>

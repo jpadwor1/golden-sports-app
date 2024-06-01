@@ -60,26 +60,10 @@ import {
 import StepperForm from './Stepper';
 import PaymentDialog from './PaymentDialog';
 import EventFeeDialog from './EventFeeDialog';
+import { ExtendedUser } from '@/types/types';
 
 interface CreateEventFormProps {
-  user: {
-    groupsAsCoach: {
-      id: string;
-      name: string;
-      description: string | null;
-      coachId: string;
-      createdAt: Date;
-      logoURL: string | null;
-    }[];
-    groupsAsMember: {
-      id: string;
-      name: string;
-      description: string | null;
-      coachId: string;
-      createdAt: Date;
-      logoURL: string | null;
-    }[];
-  } & User;
+  user: ExtendedUser;
   setEventFormOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 

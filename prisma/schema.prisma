@@ -34,6 +34,8 @@ model User {
   Children              Children[]
   Like                  Like[]
   eventComment          eventComment[]
+  Poll                  Poll[]
+  PollComment           PollComment[]
 
   @@index([parentId])
 }
@@ -217,15 +219,20 @@ model Notification {
 model Poll {
   id        String    @id @default(uuid())
   groupId   String
+  title     String
   question  String
   createdAt DateTime  @default(now())
   expiresAt DateTime?
+  authorId  String
 
-  group   Group        @relation(fields: [groupId], references: [id])
-  options PollOption[]
-  votes   PollVote[]
+  author      User          @relation(fields: [authorId], references: [id])
+  group       Group         @relation(fields: [groupId], references: [id])
+  options     PollOption[]
+  votes       PollVote[]
+  PollComment PollComment[]
 
   @@index([groupId])
+  @@index([authorId])
 }
 
 model PollOption {
@@ -252,6 +259,21 @@ model PollVote {
   @@index([userId])
   @@index([optionId])
   @@index([pollId])
+}
+
+model PollComment {
+  id        String   @id @default(uuid())
+  postId    String
+  pollId    String
+  authorId  String
+  content   String
+  timestamp DateTime @default(now())
+
+  poll   Poll @relation(fields: [pollId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([pollId])
+  @@index([authorId])
 }
 
 model File {

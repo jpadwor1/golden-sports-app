@@ -75,6 +75,18 @@ const Page = async ({params}: PageProps) => {
   });
 
   const groupIds = groups.map((g) => g.id);
+
+  const polls = await db.poll.findMany({
+    where: {
+      groupId: groupId
+    },
+    include: {
+      options: true,
+      votes: true,
+      PollComment:true
+    }
+  })
+
   return (
     <>
     <div className='w-full h-[300px] overflow-hidden mb-0'>
@@ -86,7 +98,7 @@ const Page = async ({params}: PageProps) => {
                 height={300}
               />
             </div>
-    <HorizontalNavbar posts={dbPosts} groupId={groupId} events={dbEvents} user={dbUser}/>
+    <HorizontalNavbar polls={polls} posts={dbPosts} groupId={groupId} events={dbEvents} user={dbUser}/>
     </>
   );
 };
