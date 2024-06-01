@@ -50,11 +50,11 @@ type PollFormValues = z.infer<typeof pollFormSchema>;
 interface CreatePollFormProps {
   setPollFormOpen: React.Dispatch<React.SetStateAction<boolean>>;
   user: ExtendedUser;
+  groupId: string;
 }
 
-const CreatePollForm = ({ user, setPollFormOpen }: CreatePollFormProps) => {
+const CreatePollForm = ({ user, setPollFormOpen, groupId }: CreatePollFormProps) => {
   const [inputOpen, setInputOpen] = React.useState(false);
-  const [groupId, setGroupId] = React.useState('');
   const [formData, setFormData] = React.useState({
     postBody: '',
   });
@@ -78,12 +78,31 @@ const CreatePollForm = ({ user, setPollFormOpen }: CreatePollFormProps) => {
     name: 'options',
   });
 
+  const addPoll = trpc.createPoll.useMutation();
   function onSubmit(data: PollFormValues) {
     const formData = {
       ...data,
+      groupId,
     };
 
+    addPoll.mutate(formData, {
+      onSuccess: () => {
+        toast({
+          title: 'Poll created',
+          description: 'Your poll has been created successfully.',
+        })
+        setPollFormOpen(false);
+      },
+      onError: (error: any) => {
+        toast({
+          title: 'Oops, Something went wrong!',
+          description: 'Try reloading the page and try again.',
+          
+        })
+      },
     
+    })
+
   }
 
   return (

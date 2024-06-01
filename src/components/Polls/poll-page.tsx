@@ -36,7 +36,7 @@ const PollPage = ({user, polls, groupId}: PollPageProps) => {
         </div>
         <div className='flex flex-col min-h-[calc(100vh-20rem)] w-full'>
           {pollFormOpen && (
-            <CreatePollForm setPollFormOpen={setPollFormOpen} user={user} />
+            <CreatePollForm setPollFormOpen={setPollFormOpen} user={user} groupId={groupId} />
           )}
         <PollCard />
         <PollCard />

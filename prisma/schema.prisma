@@ -220,7 +220,7 @@ model Poll {
   id        String    @id @default(uuid())
   groupId   String
   title     String
-  question  String
+  description  String?
   createdAt DateTime  @default(now())
   expiresAt DateTime?
   authorId  String
