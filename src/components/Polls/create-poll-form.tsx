@@ -25,6 +25,7 @@ import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, TrashIcon } from 'lucide-react';
+import { trpc } from '@/app/_trpc/client';
 
 const pollFormSchema = z.object({
   title: z.string().min(2, {
@@ -83,6 +84,7 @@ const CreatePollForm = ({ user, setPollFormOpen, groupId }: CreatePollFormProps)
     const formData = {
       ...data,
       groupId,
+      dueDate: data.dueDate.toString(),
     };
 
     addPoll.mutate(formData, {
@@ -94,10 +96,11 @@ const CreatePollForm = ({ user, setPollFormOpen, groupId }: CreatePollFormProps)
         setPollFormOpen(false);
       },
       onError: (error: any) => {
+        console.error(error);
         toast({
           title: 'Oops, Something went wrong!',
           description: 'Try reloading the page and try again.',
-          
+          variant: 'destructive'
         })
       },
     
@@ -210,6 +213,7 @@ const CreatePollForm = ({ user, setPollFormOpen, groupId }: CreatePollFormProps)
                     <PopoverContent className='w-auto p-0' align='start'>
                       <Calendar
                         mode='single'
+                        selected={field.value}
                         onSelect={field.onChange}
                         disabled={(date) => date < new Date()}
                         initialFocus

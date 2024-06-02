@@ -265,7 +265,6 @@ model PollVote {
 
 model PollComment {
   id        String   @id @default(uuid())
-  postId    String
   pollId    String
   authorId  String
   content   String

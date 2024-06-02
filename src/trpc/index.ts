@@ -373,7 +373,6 @@ export const appRouter = router({
             imageURL: input.files.downloadURL,
           },
         });
-
       }
       return { success: true };
     }),
@@ -968,7 +967,9 @@ export const appRouter = router({
           feeAmount: input.fee + feeServiceCharge,
           feeDescription: input.feeDescription,
           feeServiceCharge: feeServiceCharge,
-          recurringEndDate: input.recurringEndDate ? new Date(input.recurringEndDate) : null,
+          recurringEndDate: input.recurringEndDate
+            ? new Date(input.recurringEndDate)
+            : null,
           reminders: input.reminders,
           repeatFrequency: input.repeatFrequency?.join(','),
           group: {
@@ -978,7 +979,7 @@ export const appRouter = router({
           },
         },
       });
-  
+
       if (input.invitees && input.invitees.length > 0) {
         for (const invitee of input.invitees) {
           await db.participant.create({
@@ -995,15 +996,14 @@ export const appRouter = router({
               resourceId: event.id,
               message: `You've been invited to ${event.title}.`,
               read: false,
-            }
-          })
+            },
+          });
         }
       }
-  
 
       return { success: true };
     }),
-    getGroups: privateProcedure
+  getGroups: privateProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
       const { userId, user } = ctx;
@@ -1022,27 +1022,29 @@ export const appRouter = router({
             groupsAsMember: true,
           },
         });
-      
+
         if (!dbUser) {
           return [];
         }
         const groups = [...dbUser.groupsAsCoach, ...dbUser.groupsAsMember];
-      
-        
-      
+
         return groups;
       } catch (error: any) {
         console.error(error);
         return error;
       }
     }),
-    updateParticipantStatus: privateProcedure.input(z.object({
-      userId: z.string(),
-      eventId: z.string(),
-      status: z.string(),
-    })).mutation(async ({ctx, input}) => {
+  updateParticipantStatus: privateProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        eventId: z.string(),
+        status: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { userId, user } = ctx;
-      
+
       if (!userId || !user) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
@@ -1051,7 +1053,7 @@ export const appRouter = router({
         where: {
           userId: input.userId,
           eventId: input.eventId,
-        }
+        },
       });
 
       if (!participant) {
@@ -1061,34 +1063,55 @@ export const appRouter = router({
       await db.participant.update({
         where: {
           userId_eventId: {
-          userId: input.userId,
-          eventId: input.eventId,
-          }
+            userId: input.userId,
+            eventId: input.eventId,
+          },
         },
         data: {
           status: input.status,
-        }
+        },
       });
 
       return { success: true };
     }),
-    createPoll: privateProcedure.input(z.object({
-      title: z.string(),
-      description: z.string().optional(),
-      options: z.array(
-        z.object({
-          option: z.string(),
-        })
-      ),
-      hideVotes: z.boolean().optional(),
-      dueDate: z.string(),
-      allowComments: z.boolean().optional(),
-      groupId: z.string(),
-    })).mutation(async ({ctx, input}) => {
+  createPoll: privateProcedure
+    .input(
+      z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        options: z.array(
+          z.object({
+            option: z.string(),
+          })
+        ),
+        hideVotes: z.boolean().optional(),
+        dueDate: z.string(),
+        allowComments: z.boolean().optional(),
+        groupId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { userId, user } = ctx;
-      
+
       if (!userId || !user) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const dbUser = await db.user.findFirst({
+        where: {
+          id: user.id,
+        },
+        include: {
+          groupsAsCoach: true,
+        },
+      });
+
+      if (!dbUser) {
+        return new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      if (dbUser.groupsAsCoach.every((group) => group.id !== input.groupId)) {
+        return new TRPCError({ code: 'FORBIDDEN' });
       }
 
       const poll = await db.poll.create({
@@ -1101,17 +1124,159 @@ export const appRouter = router({
             })),
           },
           hideVotes: input.hideVotes,
-          dueDate: new Date(input.dueDate),
+          expiresAt: new Date(input.dueDate),
           allowComments: input.allowComments,
           group: {
             connect: {
               id: input.groupId,
-            }
-          }
-        }
+            },
+          },
+          author: {
+            connect: {
+              id: user.id,
+            },
+          },
+        },
       });
 
       return poll;
+    }),
+  createVote: privateProcedure
+    .input(
+      z.object({
+        pollId: z.string(),
+        optionId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const dbUser = await db.user.findFirst({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!dbUser) {
+        return new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      const poll = await db.poll.findFirst({
+        where: {
+          id: input.pollId,
+        },
+      });
+
+      if (!poll) {
+        return new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      const option = await db.pollOption.findFirst({
+        where: {
+          id: input.optionId,
+        },
+      });
+
+      if (!option) {
+        return new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      const vote = await db.pollVote.create({
+        data: {
+          Poll: {
+            connect: {
+              id: input.pollId,
+            },
+          },
+          option: {
+            connect: {
+              id: input.optionId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+        },
+      });
+
+      return vote;
+    }),
+  createPollComment: privateProcedure
+    .input(
+      z.object({
+        pollId: z.string(),
+        comment: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const dbUser = await db.user.findFirst({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!dbUser) {
+        return new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      const poll = await db.poll.findFirst({
+        where: {
+          id: input.pollId,
+        },
+      });
+
+      if (!poll) {
+        return new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      const comment = await db.pollComment.create({
+        data: {
+          pollId: input.pollId,
+          authorId: user.id,
+          content: input.comment,
+        },
+      });
+
+      return comment;
+    }),
+  getPollComments: privateProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        const comments = await db.pollComment.findMany({
+          where: {
+            pollId: input,
+          },
+          include: {
+            author: true,
+          },
+          orderBy: {
+            timestamp: 'desc',
+          },
+        });
+        return { comments: comments };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
     }),
     
 });

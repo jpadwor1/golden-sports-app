@@ -5,12 +5,12 @@ import { Separator } from '../ui/separator'
 import MiniEventCard from '../Dashboard/Events/MiniEventCard'
 import MiniNewsCard from '../Dashboard/MiniNewsCard'
 import { Plus } from 'lucide-react'
-import { ExtendedPoll, ExtendedUser } from '@/types/types'
+import { ExtendedPoll, ExtendedPolls, ExtendedUser } from '@/types/types'
 import CreatePollForm from './create-poll-form'
 
 interface PollPageProps {
   user: ExtendedUser;
-  polls: ExtendedPoll;
+  polls: ExtendedPolls;
   groupId: string;
 }
 const PollPage = ({user, polls, groupId}: PollPageProps) => {
@@ -38,9 +38,10 @@ const PollPage = ({user, polls, groupId}: PollPageProps) => {
           {pollFormOpen && (
             <CreatePollForm setPollFormOpen={setPollFormOpen} user={user} groupId={groupId} />
           )}
-        <PollCard />
-        <PollCard />
-        <PollCard />
+
+          {polls.map(poll => (
+            <PollCard key={poll.id} poll={poll as ExtendedPoll} user={user} />
+          ))}
       </div>
       </div>
 

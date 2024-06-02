@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { Group, Participant, Payment, Event } from '@prisma/client';
 import HorizontalNavbar from '@/components/Navigation/horizontal-navbar';
 import Image from 'next/image';
+import { timeStamp } from 'console';
 
 export type ExtendedEvent = Event & {
   invitees: Participant[];
@@ -18,7 +19,7 @@ interface PageProps {
   };
 }
 
-const Page = async ({params}: PageProps) => {
+const Page = async ({ params }: PageProps) => {
   const groupId = params.groupId;
   const { getUser } = getKindeServerSession();
   const user = await getUser();
@@ -78,27 +79,45 @@ const Page = async ({params}: PageProps) => {
 
   const polls = await db.poll.findMany({
     where: {
-      groupId: groupId
+      groupId: groupId,
     },
     include: {
-      options: true,
+      options: {
+        include: {
+          votes: true,
+        },
+      },
       votes: true,
-      PollComment:true
-    }
-  })
+      PollComment: {
+        include: {
+          author: true,
+        },
+        orderBy: {
+          timestamp: 'desc',
+        }
+      },
+      author: true,
+    },
+  });
 
   return (
     <>
-    <div className='w-full h-[300px] overflow-hidden mb-0'>
-              <Image
-                src='/flex-ui-assets/images/blog-content/content-photo1.jpg'
-                alt='Team Banner'
-                layout='responsive'
-                width={500}
-                height={300}
-              />
-            </div>
-    <HorizontalNavbar polls={polls} posts={dbPosts} groupId={groupId} events={dbEvents} user={dbUser}/>
+      <div className='w-full h-[300px] overflow-hidden mb-0'>
+        <Image
+          src='/flex-ui-assets/images/blog-content/content-photo1.jpg'
+          alt='Team Banner'
+          layout='responsive'
+          width={500}
+          height={300}
+        />
+      </div>
+      <HorizontalNavbar
+        polls={polls}
+        posts={dbPosts}
+        groupId={groupId}
+        events={dbEvents}
+        user={dbUser}
+      />
     </>
   );
 };

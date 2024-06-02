@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import Events from '@/components/Dashboard/Events/Events';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ExtendedEvent } from '@/app/dashboard/group/[groupId]/page';
-import {ExtendedPoll, ExtendedUser } from '@/types/types';
+import { ExtendedPolls, ExtendedUser } from '@/types/types';
 import { Post } from '@/lib/utils';
 import Dashboard from '@/app/dashboard/Dashboard';
 import PollPage from '../Polls/poll-page';
@@ -20,7 +20,7 @@ interface HorizontalNavbarProps {
   user: ExtendedUser;
   events: ExtendedEvent[];
   posts: Post[];
-  polls: ExtendedPoll
+  polls: ExtendedPolls;
 }
 
 export default function HorizontalNavbar({
