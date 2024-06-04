@@ -1,12 +1,7 @@
 import React from 'react';
 import { AvatarImage, AvatarFallback, Avatar } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { CalendarIcon, Loader2, MapPin, User2 } from 'lucide-react';
 import Image from 'next/image';
-
 import { db } from '@/db';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { redirect } from 'next/navigation';
@@ -16,7 +11,7 @@ import ParticipationButtons from '@/components/Dashboard/Events/participationBut
 import EventComment from '@/components/Dashboard/Events/EventComment';
 import MessageDialog from '@/components/Dashboard/Events/MessageDialog';
 import ParticipationDialog from '@/components/Dashboard/Events/participation-status-dialog';
-
+import EventButtons from '@/components/Dashboard/Events/event-buttons';
 
 interface PageProps {
   params: {
@@ -41,6 +36,9 @@ const Page = async ({ params }: PageProps) => {
       Children: true,
     },
   });
+
+  if (!dbUser) redirect('/auth-callback?origin=dashboard');
+  
   const group = await db.group.findFirst({
     where: {
       id: groupId,
@@ -60,6 +58,8 @@ const Page = async ({ params }: PageProps) => {
     include: {
       invitees: true,
       eventComments: true,
+      payments: true,
+      group: true,
     },
   });
 
@@ -129,6 +129,9 @@ const Page = async ({ params }: PageProps) => {
             width='768'
           />
         </div>
+        <div className='flex flex-row justify-end'>
+          <EventButtons user={dbUser} event={event} />
+        </div>
         <div className='mb-4'>
           <h1 className='text-2xl font-bold'>{event.title}</h1>
           <p className='text-sm text-gray-500'>{}</p>
@@ -181,7 +184,12 @@ const Page = async ({ params }: PageProps) => {
         </div>
         <div className='flex justify-between items-center mb-4'>
           <MessageDialog />
-          <ParticipationDialog eventId={eventId} attending={attending} declined={declined} unanswered={unanswered} />
+          <ParticipationDialog
+            eventId={eventId}
+            attending={attending}
+            declined={declined}
+            unanswered={unanswered}
+          />
         </div>
         <EventComment
           userId={dbUser?.id}
