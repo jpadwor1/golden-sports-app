@@ -1278,6 +1278,30 @@ export const appRouter = router({
         return error;
       }
     }),
+    getParticipants: privateProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        const participants = await db.participant.findMany({
+          where: {
+            eventId: input,
+          },
+          include: {
+            user: true,
+          }
+        });
+        return { participants: participants };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
     
 });
 

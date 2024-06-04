@@ -92,6 +92,7 @@
 .scrollbar-track-blue-lighter::-webkit-scrollbar-track {
   --bg-opacity: 0.5;
   background-color: #FFFFFF;
+  border-radius: 16px;
 }
 
 .scrollbar-thumb-blue::-webkit-scrollbar-thumb {

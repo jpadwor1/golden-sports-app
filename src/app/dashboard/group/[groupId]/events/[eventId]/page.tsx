@@ -15,6 +15,8 @@ import Link from 'next/link';
 import ParticipationButtons from '@/components/Dashboard/Events/participationButtons';
 import EventComment from '@/components/Dashboard/Events/EventComment';
 import MessageDialog from '@/components/Dashboard/Events/MessageDialog';
+import ParticipationDialog from '@/components/Dashboard/Events/participation-status-dialog';
+
 
 interface PageProps {
   params: {
@@ -111,8 +113,6 @@ const Page = async ({ params }: PageProps) => {
     return invitee.status === 'UNANSWERED';
   });
 
-  
-
   return (
     <div className='max-w-4xl mx-auto p-4 bg-white rounded-lg shadow'>
       <div className='flex flex-col'>
@@ -149,8 +149,11 @@ const Page = async ({ params }: PageProps) => {
               </p>
             </div>
           </div>
-          <ParticipationButtons participation={participationStatus} userId={dbUser?.id} eventId={event.id} />
-
+          <ParticipationButtons
+            participation={participationStatus}
+            userId={dbUser?.id}
+            eventId={event.id}
+          />
         </div>
         <div className='flex flex-col mb-4'>
           <div className='flex items-center mb-2'>
@@ -178,17 +181,13 @@ const Page = async ({ params }: PageProps) => {
         </div>
         <div className='flex justify-between items-center mb-4'>
           <MessageDialog />
-          <div className='flex'>
-            <Badge className='mr-2' variant='secondary'>
-              {attending.length} attending
-            </Badge>
-            <Badge className='mr-2' variant='secondary'>
-              {unanswered.length} unanswered
-            </Badge>
-            <Badge variant='secondary'>{declined.length} declined</Badge>
-          </div>
+          <ParticipationDialog eventId={eventId} attending={attending} declined={declined} unanswered={unanswered} />
         </div>
-        <EventComment userId={dbUser?.id} eventId={event.id} comments={event.eventComments} />
+        <EventComment
+          userId={dbUser?.id}
+          eventId={event.id}
+          comments={event.eventComments}
+        />
       </div>
     </div>
   );
