@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import { Reply } from '@/lib/utils';
+import { Reply as ReplyType } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { User, ThumbsUp } from 'lucide-react';
@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { truncateText } from '@/lib/utils';
 
 interface ReplyProps {
-  reply: Reply;
+  reply: ReplyType;
 }
 
 const Reply = ({ reply }: ReplyProps) => {
@@ -37,7 +37,7 @@ const Reply = ({ reply }: ReplyProps) => {
           </div>
         ) : (
           <AvatarFallback className='bg-gray-200'>
-            <span className='sr-only'>{reply.author.name}</span>
+            <span className='sr-only'>{reply.author.firstName[0] + ' ' + reply.author.lastName[0]}</span>
             <User className='h-4 w-4 text-gray-900' />
           </AvatarFallback>
         )}
@@ -45,7 +45,7 @@ const Reply = ({ reply }: ReplyProps) => {
       <div className='flex flex-col'>
         <div className='flex flex-col w-full items-start justify-between px-2 bg-gray-100 mx-2 mb-0.5 rounded-br-lg rounded-tr-lg rounded-bl-lg relative'>
           <h1 className='text-sm text-gray-900 tracking-wide'>
-            {reply.author.name}
+            {reply.author.firstName + ' ' + reply.author.lastName}
           </h1>
           <p className='text-xs font-normal text-gray-500 mb-2'>
             {format(

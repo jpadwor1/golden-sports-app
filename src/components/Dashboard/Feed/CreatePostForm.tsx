@@ -191,7 +191,7 @@ const CreatePostForm = ({ user }: PostFormProps) => {
             alt='profile pic'
           />
           <AvatarFallback>
-            {user.name.split(' ').map((name) => name[0])}
+            {user.firstName[0] + user.lastName[0]}
           </AvatarFallback>
         </Avatar>
         <Select

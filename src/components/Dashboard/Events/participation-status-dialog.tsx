@@ -124,11 +124,11 @@ export default function ParticipationDialog({
               {attendingParticipants.map((user: Participant) => (
                 <div key={user.user.id} className='flex items-center gap-4'>
                   <Avatar>
-                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.name} />
-                    <AvatarFallback>{user.user.name.split(' ')[0][0] + user.user.name.split(' ')[1][0]}</AvatarFallback>
+                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.firstName} />
+                    <AvatarFallback>{user.user.firstName[0] + user.user.lastName[0]}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className='font-medium'>{user.user.name}</p>
+                    <p className='font-medium'>{user.user.firstName + user.user.lastName}</p>
                   </div>
                 </div>
               ))}
@@ -138,11 +138,11 @@ export default function ParticipationDialog({
               {unansweredParticipants.map((user: Participant) => (
                 <div key={user.user.id} className='flex items-center gap-4'>
                   <Avatar>
-                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.name} />
-                    <AvatarFallback>{user.user.name.split(' ')[0][0] + user.user.name.split(' ')[1][0]}</AvatarFallback>
+                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.firstName} />
+                    <AvatarFallback>{user.user.firstName[0] + user.user.lastName[0]}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className='font-medium'>{user.user.name}</p>
+                    <p className='font-medium'>{user.user.firstName + user.user.lastName}</p>
                   </div>
                 </div>
               ))}
@@ -152,11 +152,11 @@ export default function ParticipationDialog({
             {declinedParticipants.map((user: Participant) => (
                 <div key={user.user.id} className='flex items-center gap-4 mb-2'>
                   <Avatar>
-                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.name} />
-                    <AvatarFallback>{user.user.name.split(' ')[0][0] + user.user.name.split(' ')[1][0]}</AvatarFallback>
+                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.firstName} />
+                    <AvatarFallback>{user.user.firstName[0] + user.user.lastName[0]}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className='font-medium'>{user.user.name}</p>
+                    <p className='font-medium'>{user.user.firstName + user.user.lastName}</p>
                   </div>
                 </div>
               ))} 
@@ -167,11 +167,11 @@ export default function ParticipationDialog({
               {data?.participants.map((user: Participant) => (
                 <div key={user.user.id} className='flex items-center gap-4 mb-2'>
                   <Avatar>
-                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.name} />
-                    <AvatarFallback>{user.user.name.split(' ')[0][0] + user.user.name.split(' ')[1][0]}</AvatarFallback>
+                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.firstName} />
+                    <AvatarFallback>{user.user.firstName[0] + user.user.lastName[0]}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className='font-medium'>{user.user.name}</p>
+                    <p className='font-medium'>{user.user.firstName + user.user.lastName}</p>
                   </div>
                 </div>
                 
@@ -179,39 +179,16 @@ export default function ParticipationDialog({
 {data?.participants.map((user: Participant) => (
                 <div key={user.user.id} className='flex items-center gap-4 mb-2'>
                   <Avatar>
-                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.name} />
-                    <AvatarFallback>{user.user.name.split(' ')[0][0] + user.user.name.split(' ')[1][0]}</AvatarFallback>
+                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.firstName} />
+                    <AvatarFallback>{user.user.firstName[0] + user.user.lastName[0]}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className='font-medium'>{user.user.name}</p>
+                    <p className='font-medium'>{user.user.firstName + user.user.lastName}</p>
                   </div>
                 </div>
                 
               ))}
-              {data?.participants.map((user: Participant) => (
-                <div key={user.user.id} className='flex items-center gap-4 mb-2'>
-                  <Avatar>
-                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.name} />
-                    <AvatarFallback>{user.user.name.split(' ')[0][0] + user.user.name.split(' ')[1][0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className='font-medium'>{user.user.name}</p>
-                  </div>
-                </div>
-                
-              ))}
-              {data?.participants.map((user: Participant) => (
-                <div key={user.user.id} className='flex items-center gap-4 mb-2'>
-                  <Avatar>
-                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.name} />
-                    <AvatarFallback>{user.user.name.split(' ')[0][0] + user.user.name.split(' ')[1][0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className='font-medium'>{user.user.name}</p>
-                  </div>
-                </div>
-                
-              ))}
+              
             </TabsContent>
           </Tabs>
         </DialogContent>

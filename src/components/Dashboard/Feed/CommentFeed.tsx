@@ -1,24 +1,13 @@
 import React from 'react';
 import Comment from './Comment';
-import { Post } from '@/lib/utils';
-import { Like, User, UserRole } from '@prisma/client';
+import { Like, User } from '@prisma/client';
 import { trpc } from '@/app/_trpc/client';
 import { Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CommentFeedProps {
   postId: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    role: UserRole;
-    imageURL: string | null;
-    createdAt: Date;
-    isProfileComplete: boolean;
-    parentId: string | null;
-  } | null;
+  user: User;
 }
 
 type Comment = {

@@ -25,7 +25,15 @@ import { Upload } from 'lucide-react';
 import UploadDropzone from '@/components/UploadDropzone';
 
 const profileFormSchema = z.object({
-  fullName: z
+  firstName: z
+    .string()
+    .min(2, {
+      message: 'Name must be at least 2 characters.',
+    })
+    .max(30, {
+      message: 'Name must not be longer than 40 characters.',
+    }),
+  lastName: z
     .string()
     .min(2, {
       message: 'Name must be at least 2 characters.',
@@ -66,7 +74,8 @@ interface FileData {
 export function ProfileForm({ user }: ProfileFormProps) {
   const router = useRouter();
   const defaultValues: Partial<ProfileFormValues> = {
-    fullName: user?.name,
+    firstName: user?.firstName,
+    lastName: user?.lastName,
     email: user?.email,
     phone: user?.phone,
     children: user?.Children,
@@ -147,14 +156,28 @@ export function ProfileForm({ user }: ProfileFormProps) {
       >
         <FormField
           control={form.control}
-          name='fullName'
+          name='firstName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>First Name</FormLabel>
               <FormControl>
-                <Input placeholder={user?.name} {...field} />
+                <Input placeholder={user?.firstName} {...field} />
               </FormControl>
-              <FormDescription>This should be your full name.</FormDescription>
+              <FormDescription>This should be your first name.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='lastName'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Last Name</FormLabel>
+              <FormControl>
+                <Input placeholder={user?.lastName} {...field} />
+              </FormControl>
+              <FormDescription>This should be your last name.</FormDescription>
               <FormMessage />
             </FormItem>
           )}

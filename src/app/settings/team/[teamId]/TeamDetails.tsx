@@ -92,7 +92,7 @@ const TeamDetails = ({ team, coach, members }: TeamDetailsProps) => {
             <h1 className='text-2xl tex-gray-900 font-semibold tracking-wide'>
               {team?.name}
             </h1>
-            <h2 className='text-md text-gray-600'>Coach {coach?.name}</h2>
+            <h2 className='text-md text-gray-600'>Coach {coach?.lastName}</h2>
             <h2 className='text-md text-gray-600'>{team?.description}</h2>
           </div>
         </div>
@@ -208,12 +208,12 @@ const TeamDetails = ({ team, coach, members }: TeamDetailsProps) => {
                               </div>
                             ) : (
                               <AvatarFallback>
-                                <span className='sr-only'>{member.name}</span>
+                                <span className='sr-only'>{member.firstName + member.lastName}</span>
                                 <UserIcon className='h-4 w-4 text-gray-900' />
                               </AvatarFallback>
                             )}
                           </Avatar>
-                          <p>{member.name}</p>
+                          <p>{member.firstName + ' ' + member.lastName}</p>
                         </div>
                       </TableCell>
                       <TableCell className=''>

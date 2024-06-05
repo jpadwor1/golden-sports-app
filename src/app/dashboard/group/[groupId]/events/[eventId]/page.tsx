@@ -12,7 +12,6 @@ import EventComment from '@/components/Dashboard/Events/EventComment';
 import MessageDialog from '@/components/Dashboard/Events/MessageDialog';
 import ParticipationDialog from '@/components/Dashboard/Events/participation-status-dialog';
 import EventButtons from '@/components/Dashboard/Events/event-buttons';
-import { Separator } from '@/components/ui/separator';
 
 interface PageProps {
   params: {
@@ -84,10 +83,10 @@ const Page = async ({ params }: PageProps) => {
   const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=12&size=600x300&maptype=roadmap&markers=color:green%7Clabel:A%7C${encodedAddress}&key=${apiKey}`;
   const eventStartDate = format(
     new Date(event.startDateTime),
-    "EEEE mm, yyyy 'at' hh:mm a"
+    "EEEE, MMM dd  'at' hh:mm a"
   );
   const eventEndDate = event.endDateTime
-    ? format(new Date(event.endDateTime), 'hh:mm a')
+    ? format(new Date(event.endDateTime), "EEEE, MMM dd 'at' hh:mm a")
     : null;
   let initials = '';
   if (
@@ -113,7 +112,7 @@ const Page = async ({ params }: PageProps) => {
   const unanswered = event.invitees.filter((invitee) => {
     return invitee.status === 'UNANSWERED';
   });
-  console.log(event);
+
   return (
     <div className='max-w-4xl mx-auto p-4 bg-white rounded-lg shadow'>
       <div className='flex flex-col'>
@@ -169,7 +168,7 @@ const Page = async ({ params }: PageProps) => {
           <div className='flex items-center mb-2'>
             <CalendarIcon className='text-gray-800 mr-2' />
             <p className='text-sm tracking-wide'>
-              {eventStartDate} - {eventEndDate}
+              {eventStartDate} {eventEndDate ? ' - ' + eventEndDate : ''}
             </p>
           </div>
           <div className='flex items-center mb-2'>

@@ -56,6 +56,9 @@ const Page = async ({ params }: PageProps) => {
       invitees: true,
       group: true,
     },
+    orderBy: {
+      startDateTime: 'asc',
+    },
   });
 
   const dbPosts = await db.post.findMany({

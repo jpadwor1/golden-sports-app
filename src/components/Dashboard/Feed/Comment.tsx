@@ -1,20 +1,13 @@
 import React from 'react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  User as UserIcon,
-  ThumbsUp,
-  MessageSquareMore,
-  Send,
-  Divide,
-} from 'lucide-react';
-import { format, set } from 'date-fns';
+import { User as UserIcon, ThumbsUp } from 'lucide-react';
+import { format } from 'date-fns';
 import { truncateText, Reply } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ReplyFeed from './ReplyFeed';
-import { Comment as CommentType, Like, User, UserRole } from '@prisma/client';
+import { Like, User } from '@prisma/client';
 import { trpc } from '@/app/_trpc/client';
-import AddCommentInput from './AddCommentInput';
 import AddReplyInput from './AddReplyInput';
 
 interface CommentProps {
@@ -29,17 +22,7 @@ interface CommentProps {
     author: User;
     likes: Like[];
   };
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    role: UserRole;
-    imageURL: string | null;
-    createdAt: Date;
-    isProfileComplete: boolean;
-    parentId: string | null;
-  } | null;
+  user: User;
 }
 
 const Comment = ({ comment, user }: CommentProps) => {
@@ -99,14 +82,18 @@ const Comment = ({ comment, user }: CommentProps) => {
           </div>
         ) : (
           <AvatarFallback className='bg-gray-200'>
-            <span className='sr-only'>{author.name}</span>
+            <span className='sr-only'>
+              {author.firstName + ' ' + author.lastName}
+            </span>
             <UserIcon className='h-4 w-4 text-gray-900' />
           </AvatarFallback>
         )}
       </Avatar>
       <div className='flex flex-col w-full'>
         <div className='flex flex-col w-full min-h-[100px] px-2 bg-gray-100 mx-2 mb-0.5 rounded-br-lg rounded-tr-lg rounded-bl-lg relative'>
-          <h1 className='text-sm text-gray-900 tracking-wide'>{author.name}</h1>
+          <h1 className='text-sm text-gray-900 tracking-wide'>
+            {author.firstName + ' ' + author.lastName}
+          </h1>
           <p className='text-xs font-normal text-gray-500 mb-2'>
             {format(
               new Date(comment.timestamp),

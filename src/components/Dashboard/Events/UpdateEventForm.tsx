@@ -263,12 +263,13 @@ const UpdateEventForm = ({
   React.useEffect(() => {
     if (members) {
       const newMembers: Option[] = members.map((member) => ({
-        label: member.name,
+        label: member.firstName + ' ' + member.lastName,
         value: member.id,
       }));
       const currentInvitees: Option[] = event.invitees.map((invitee) => ({
         label:
-          members.find((member) => member.id === invitee.userId)?.name || '',
+          members.find((member) => member.id === invitee.userId)?.firstName + ' ' +
+          members.find((member) => member.id === invitee.userId)?.lastName || '',
         value: invitee.userId,
       }));
       setTeamMembers(newMembers);

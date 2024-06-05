@@ -6,26 +6,14 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Post } from '@/lib/utils';
-import { UserRole } from '@prisma/client';
+import { User as UserType, UserRole } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
-import { set } from 'date-fns';
 import { trpc } from '@/app/_trpc/client';
-import { toast } from '@/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
 
 interface AddCommentInputProps {
   post: Post;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    role: UserRole;
-    createdAt: Date;
-    imageURL: string | null;
-    isProfileComplete: boolean;
-    parentId: string | null;
-  } | null;
+  user: UserType;
 }
 
 const AddCommentInput = ({ post, user }: AddCommentInputProps) => {
@@ -68,7 +56,7 @@ const AddCommentInput = ({ post, user }: AddCommentInputProps) => {
           </div>
         ) : (
           <AvatarFallback className='bg-gray-200'>
-            <span className='sr-only'>{user?.name}</span>
+            <span className='sr-only'>{user?.firstName + ' ' + user?.lastName}</span>
             <User className='h-4 w-4 text-gray-900' />
           </AvatarFallback>
         )}

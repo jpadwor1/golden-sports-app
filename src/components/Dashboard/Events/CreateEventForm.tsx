@@ -253,7 +253,7 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   React.useEffect(() => {
     if (members) {
       const newMembers: Option[] = members.map((member) => ({
-        label: member.name,
+        label: member.firstName + ' ' + member.lastName,
         value: member.id,
       }));
       setTeamMembers(newMembers);
@@ -309,11 +309,11 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
       repeatFrequency: repeatFrequency.map((frequency) => frequency.value),
       groupId: groupId,
     };
-    console.log('Form data:', newFormData);
 
     submitEvent.mutate(newFormData, {
       onSuccess: () => {
         setEventFormOpen(false);
+        router.refresh();
       },
       onError: (error) => {
         console.error('Error creating event:', error);
@@ -335,7 +335,7 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
                 alt='profile pic'
               />
               <AvatarFallback>
-                {user.name.split(' ').map((name) => name[0])}
+                {user.firstName.charAt(0) + user.lastName.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <Select

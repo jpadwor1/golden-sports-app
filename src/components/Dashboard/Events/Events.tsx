@@ -38,34 +38,6 @@ interface EventsPageProps {
   events: ExtendedEvent[];
 }
 
-const testEvent: ExtendedEvent = {
-  id: '1',
-  groupId: '1',
-  title: 'Test Event',
-  description: 'Test Event Description',
-  startDateTime: new Date(),
-  endDateTime: new Date(),
-  address: 'Test Location',
-  maxParticipants: 10,
-  invitees: [],
-  reminders: true,
-  payments: [],
-  group: {
-    id: '1',
-    name: 'Test Group',
-    description: 'Test Group Description',
-    coachId: '1',
-    createdAt: new Date(),
-    logoURL: null,
-  },
-  notificationDate: new Date(),
-  feeAmount: 0,
-  feeServiceCharge: 0,
-  feeDescription: 'Free Event',
-  repeatFrequency: 'none',
-  recurringEndDate: new Date(),
-  parentEventId: null,  
-};
 
 const Events = ({ user, events, groupId }: EventsPageProps) => {
   const [eventFormOpen, setEventFormOpen] = React.useState(false);

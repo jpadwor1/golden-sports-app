@@ -70,13 +70,9 @@ const Navbar = async () => {
                 </Link>
 
                 <UserAccountNav
-                  name={
-                    // !dbCustomer?.name ? 'Your Account' : `${dbCustomer?.name} `
-                    'Your Account'
-                  }
+                  name='Your Account'
                   imageUrl={dbUser?.imageURL ?? ''}
                   email={user.email ?? ''}
-                  // role={dbCustomer?.role ?? ''}
                   role='Customer'
                 />
               </>

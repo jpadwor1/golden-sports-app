@@ -9,7 +9,6 @@ import { truncateText } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { User } from '@prisma/client';
 import { ExtendedPollComment } from '@/types/types';
-import { Separator } from '../ui/separator';
 
 interface CommentProps {
   comment: ExtendedPollComment;
@@ -45,14 +44,14 @@ const PollComment = ({ comment, user }: CommentProps) => {
           </div>
         ) : (
           <AvatarFallback className='bg-gray-200'>
-            <span className='sr-only'>{author.name}</span>
+            <span className='sr-only'>{author.firstName}</span>
             <UserIcon className='h-4 w-4 text-gray-900' />
           </AvatarFallback>
         )}
       </Avatar>
       <div className='flex flex-col w-full'>
         <div className='flex flex-col w-full min-h-[100px] px-2 bg-gray-100 mx-2 mb-0.5 rounded-br-lg rounded-tr-lg rounded-bl-lg relative'>
-          <h1 className='text-sm text-gray-900 tracking-wide mt-2'>{author.name}</h1>
+          <h1 className='text-sm text-gray-900 tracking-wide mt-2'>{author.firstName + ' ' + author.lastName}</h1>
           <p className='text-xs font-normal text-gray-500 mb-2'>
             {format(
               new Date(comment.timestamp),

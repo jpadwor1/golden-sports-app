@@ -31,12 +31,8 @@ export const appRouter = router({
         data: {
           id: user.id,
           email: user.email,
-          name:
-            user.given_name && user.family_name
-              ? `${user.given_name} ${user.family_name}`
-              : user.given_name
-              ? user.given_name
-              : '',
+          firstName: user.given_name ? user.given_name : '',
+          lastName: user.family_name ? user.family_name : '',
           phone: '',
           imageURL: user.picture,
         },
@@ -57,12 +53,8 @@ export const appRouter = router({
           data: {
             id: user.id,
             email: user.email,
-            name:
-              user.given_name && user.family_name
-                ? `${user.given_name} ${user.family_name}`
-                : user.given_name
-                ? user.given_name
-                : '',
+            firstName: user.given_name ? user.given_name : '',
+            lastName: user.family_name ? user.family_name : '',
             imageURL: user.picture,
             phone: '',
           },
@@ -101,48 +93,6 @@ export const appRouter = router({
         },
       });
       return users;
-    }),
-
-  addCustomer: privateProcedure
-    .input(
-      z.object({
-        name: z.string(),
-        address: z.string(),
-        email: z.string(),
-        phone: z.string(),
-        nextServiceDate: z.string(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { userId, user } = ctx;
-
-      if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
-      }
-
-      const dbUser = await db.user.findFirst({
-        where: {
-          email: input.email,
-        },
-      });
-
-      if (dbUser) {
-        await db.user.update({
-          where: {
-            email: dbUser.email,
-          },
-          data: {
-            id: dbUser.id,
-            name: input.name,
-            email: dbUser.email,
-            phone: input.phone,
-          },
-        });
-
-        return dbUser;
-      }
-
-      throw new TRPCError({ code: 'NOT_FOUND' });
     }),
 
   createGroup: privateProcedure
@@ -291,7 +241,8 @@ export const appRouter = router({
   updateUserProfileSettings: privateProcedure
     .input(
       z.object({
-        fullName: z.string().optional(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
         email: z.string().optional(),
         phone: z.string().optional(),
         children: z
@@ -361,7 +312,8 @@ export const appRouter = router({
             id: user.id,
           },
           data: {
-            name: input.fullName,
+            firstName: input.firstName,
+            lastName: input.lastName,
             email: input.email,
             phone: input.phone,
             isProfileComplete: true,
@@ -403,14 +355,13 @@ export const appRouter = router({
             });
 
             if (dbUser) {
-              const [firstName, lastName] = member.name.split(' ');
-              const fullName = lastName
-                ? `${firstName} ${lastName}`
-                : firstName;
+              const [firstName, lastName]: string[] = member.name.split(' ');
+              
               await db.user.update({
                 where: { email: member.email },
                 data: {
-                  name: fullName,
+                  firstName: firstName,
+                  lastName: lastName,
                   phone: '',
                   imageURL: '',
                   groupsAsMember: {
@@ -430,7 +381,8 @@ export const appRouter = router({
 
                 await db.user.create({
                   data: {
-                    name: fullName,
+                    firstName: firstName,
+                  lastName: lastName,
                     email: member.email,
                     phone: '',
                     imageURL: '',
@@ -965,7 +917,8 @@ export const appRouter = router({
           address: input.address,
           startDateTime: new Date(input.startDateTime),
           endDateTime: input.endDateTime ? new Date(input.endDateTime) : null,
-          feeAmount: input.fee + feeServiceCharge,
+          totalFeeAmount: input.fee + feeServiceCharge,
+          feeAmount: input.fee,
           feeDescription: input.feeDescription,
           feeServiceCharge: feeServiceCharge,
           collectFeeServiceCharge: input.collectFeeServiceCharge,

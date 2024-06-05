@@ -5,8 +5,8 @@ import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Post, Reply } from '@/lib/utils';
-import { UserRole, User as UserType, Like } from '@prisma/client';
+import {  Reply } from '@/lib/utils';
+import {  User as UserType, Like } from '@prisma/client';
 import { trpc } from '@/app/_trpc/client';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
@@ -23,17 +23,7 @@ interface AddReplyInputProps {
     author: UserType;
     likes: Like[];
   };
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    role: UserRole;
-    imageURL: string | null;
-    createdAt: Date;
-    isProfileComplete: boolean;
-    parentId: string | null;
-  } | null;
+  user: UserType;
 }
 
 const AddReplyInput = ({ comment, user }: AddReplyInputProps) => {
@@ -86,7 +76,7 @@ const AddReplyInput = ({ comment, user }: AddReplyInputProps) => {
           </div>
         ) : (
           <AvatarFallback className='bg-gray-200'>
-            <span className='sr-only'>{user?.name}</span>
+            <span className='sr-only'>{user?.firstName + ' ' + user?.lastName}</span>
             <User className='h-4 w-4 text-gray-900' />
           </AvatarFallback>
         )}

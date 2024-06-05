@@ -34,7 +34,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import AddCommentInput from './AddCommentInput';
 import CommentFeed from './CommentFeed';
-import { File, UserRole } from '@prisma/client';
+import { File,User as UserType } from '@prisma/client';
 import { trpc } from '@/app/_trpc/client';
 import FullScreenImageViewer from './FullScreenImageViewer';
 import {
@@ -48,17 +48,7 @@ import {
 
 type SocialCardProps = {
   post: Post;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    role: UserRole;
-    imageURL: string | null;
-    createdAt: Date;
-    isProfileComplete: boolean;
-    parentId: string | null;
-  } | null;
+  user: UserType;
 };
 
 const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
@@ -155,14 +145,14 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
               </div>
             ) : (
               <AvatarFallback className='bg-white'>
-                <span className='sr-only'>{author.name}</span>
+                <span className='sr-only'>{author.firstName[0] + ' ' + author.lastName[0]}</span>
                 <User className='h-4 w-4 text-gray-900' />
               </AvatarFallback>
             )}
           </Avatar>
 
           <div className='flex flex-col items-start justify-start w-full '>
-            <p className='text-sm font-medium text-gray-900'>{author.name}</p>
+            <p className='text-sm font-medium text-gray-900'>{author.firstName + ' ' + author.lastName}</p>
             <p className='text-xs font-normal text-gray-500'>
               {format(
                 new Date(post.timestamp),

@@ -27,10 +27,7 @@ export default function PollCard({ user, poll }: PollCardProps) {
   const [comment, setComment] = React.useState('');
   const [commentsVisible, setCommentsVisible] = React.useState(false);
   const author = poll.author;
-  const authorInitials = author.name
-    .split(' ')
-    .map((name) => name[0])
-    .join('');
+  const authorInitials = author.firstName[0] + author.lastName[0];
   const userVoted = poll.votes.some((vote) => vote.userId === user.id);
   const userVote = poll.votes.find((vote) => vote.userId === user.id);
   const [hasVoted, setHasVoted] = React.useState(false);
@@ -112,13 +109,13 @@ export default function PollCard({ user, poll }: PollCardProps) {
         <div className='flex flex-row items-start gap-2'>
           <Avatar className='w-8 h-8 mt-1'>
             <AvatarImage
-              alt={author.name}
+              alt={author.firstName}
               src={user.imageURL ? user.imageURL : ''}
             />
             <AvatarFallback>{authorInitials}</AvatarFallback>
           </Avatar>
           <div className='text-sm'>
-            <div className='font-medium'>{author.name}</div>
+            <div className='font-medium'>{author.firstName + ' ' + author.lastName}</div>
             <div className='text-gray-500 dark:text-gray-400'>
               {formatDate(new Date(poll.createdAt))}
             </div>
@@ -227,7 +224,7 @@ export default function PollCard({ user, poll }: PollCardProps) {
                     </div>
                   ) : (
                     <AvatarFallback className='bg-gray-200'>
-                      <span className='sr-only'>{user?.name}</span>
+                      <span className='sr-only'>{user?.firstName}</span>
                       <User className='h-4 w-4 text-gray-900' />
                     </AvatarFallback>
                   )}

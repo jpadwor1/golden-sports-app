@@ -20,12 +20,36 @@ const ParticipationButtons = ({
   const [participationStatus, setParticipationStatus] =
     React.useState(participation);
   const updateParticipationStatus = trpc.updateParticipantStatus.useMutation();
+  const [clientSecret, setClientSecret] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
   const handleParticipation = async (status: string) => {
     const formData = {
       eventId: eventId,
       userId: userId as string,
       status: status,
     };
+
+    if (status === 'ATTENDING'){
+      try {
+        const response = await fetch('api/create-payment-intent', {
+          method: 'POST',
+          body: JSON.stringify({
+            ...formData,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            Signature: process.env.SECRET_TOKEN as string,
+          },
+        });
+          const clientSecret = await response.text();
+          setClientSecret(clientSecret);
+        
+  
+        setIsLoading(false);
+      } catch (e: any) {
+        console.error(e.message);
+      }
+    }
     updateParticipationStatus.mutate(formData, {
       onSuccess: () => {
         setParticipationStatus(status);

@@ -89,34 +89,7 @@ export default function HorizontalNavbar({
           <PollPage user={user} polls={polls} groupId={groupId}  />
       </TabsContent>
       <TabsContent className='p-4' value='payments'>
-        <div className='prose prose-sm dark:prose-invert'>
-          <h2>Get in Touch</h2>
-          <p>
-            Have a question or want to learn more? Don&apos;t hesitate to reach
-            out to us.
-          </p>
-          <form className='grid gap-4'>
-            <div className='grid gap-1'>
-              <Label htmlFor='name'>Name</Label>
-              <Input id='name' placeholder='Enter your name' type='text' />
-            </div>
-            <div className='grid gap-1'>
-              <Label htmlFor='email'>Email</Label>
-              <Input id='email' placeholder='Enter your email' type='email' />
-            </div>
-            <div className='grid gap-1'>
-              <Label htmlFor='message'>Message</Label>
-              <Textarea
-                id='message'
-                placeholder='Enter your message'
-                rows={4}
-              />
-            </div>
-            <Button className='justify-self-end' type='submit'>
-              Submit
-            </Button>
-          </form>
-        </div>
+       
       </TabsContent>
     </Tabs>
   );
