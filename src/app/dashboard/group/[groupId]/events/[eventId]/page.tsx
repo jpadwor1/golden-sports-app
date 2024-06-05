@@ -1,6 +1,6 @@
 import React from 'react';
 import { AvatarImage, AvatarFallback, Avatar } from '@/components/ui/avatar';
-import { CalendarIcon, Loader2, MapPin, User2 } from 'lucide-react';
+import { CalendarIcon, DollarSign, Loader2, MapPin, User2 } from 'lucide-react';
 import Image from 'next/image';
 import { db } from '@/db';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
@@ -12,6 +12,7 @@ import EventComment from '@/components/Dashboard/Events/EventComment';
 import MessageDialog from '@/components/Dashboard/Events/MessageDialog';
 import ParticipationDialog from '@/components/Dashboard/Events/participation-status-dialog';
 import EventButtons from '@/components/Dashboard/Events/event-buttons';
+import { Separator } from '@/components/ui/separator';
 
 interface PageProps {
   params: {
@@ -38,7 +39,7 @@ const Page = async ({ params }: PageProps) => {
   });
 
   if (!dbUser) redirect('/auth-callback?origin=dashboard');
-  
+
   const group = await db.group.findFirst({
     where: {
       id: groupId,
@@ -112,7 +113,7 @@ const Page = async ({ params }: PageProps) => {
   const unanswered = event.invitees.filter((invitee) => {
     return invitee.status === 'UNANSWERED';
   });
-
+  console.log(event);
   return (
     <div className='max-w-4xl mx-auto p-4 bg-white rounded-lg shadow'>
       <div className='flex flex-col'>
@@ -140,15 +141,21 @@ const Page = async ({ params }: PageProps) => {
           <div className='flex items-center'>
             <Avatar>
               <AvatarImage
-                alt='Sylas Padworski'
-                src='/placeholder.svg?height=40&width=40'
+                alt={
+                  dbUser.Children[0].name
+                    ? dbUser.Children[0].name
+                    : dbUser.name
+                }
+                src={dbUser.imageURL ? dbUser.imageURL : ''}
               />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className='ml-2'>
               <p className='font-semibold'>Answering on behalf of</p>
               <p className='font-semibold text-indigo-600'>
-                {dbUser?.Children[0].name}
+                {dbUser?.Children[0].name
+                  ? dbUser.Children[0].name
+                  : dbUser.name}
               </p>
             </div>
           </div>
@@ -160,26 +167,36 @@ const Page = async ({ params }: PageProps) => {
         </div>
         <div className='flex flex-col mb-4'>
           <div className='flex items-center mb-2'>
-            <CalendarIcon className='text-gray-500 mr-2' />
-            <p>
+            <CalendarIcon className='text-gray-800 mr-2' />
+            <p className='text-sm tracking-wide'>
               {eventStartDate} - {eventEndDate}
             </p>
           </div>
           <div className='flex items-center mb-2'>
-            <MapPin className='text-gray-500 mr-2' />
+            <MapPin className='text-gray-800 mr-2' />
             <Link
               href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`}
               target='_blank'
             >
-              <p>{event.address}</p>
+              <p className='text-sm tracking-wide'>{event.address}</p>
             </Link>
           </div>
-          <div className='flex items-center'>
-            <User2 className='text-gray-500 mr-2' />
-            <p>{group.name + ' ' + group.description}</p>
+          <div className='flex items-center mb-2'>
+            <User2 className='text-gray-800 mr-2' />
+            <p className='text-sm tracking-wide'>
+              {group.name + ' ' + group.description}
+            </p>
           </div>
+          {event.totalFeeAmount !== null && (
+            <div className='flex items-center'>
+              <DollarSign className='text-gray-800 mr-2' />
+              <p className='text-md tracking-wide'>
+               {event.totalFeeAmount.toFixed(2)}
+              </p>
+            </div>
+          )}
         </div>
-        <div className='mb-4'>
+        <div className='mt-4 mb-8 px-4 py-4'>
           <p>{event.description}</p>
         </div>
         <div className='flex justify-between items-center mb-4'>

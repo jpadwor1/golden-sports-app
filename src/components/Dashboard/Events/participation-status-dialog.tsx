@@ -124,7 +124,7 @@ export default function ParticipationDialog({
               {attendingParticipants.map((user: Participant) => (
                 <div key={user.user.id} className='flex items-center gap-4'>
                   <Avatar>
-                    <AvatarImage src='/placeholder.svg' alt={user.user.name} />
+                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.name} />
                     <AvatarFallback>{user.user.name.split(' ')[0][0] + user.user.name.split(' ')[1][0]}</AvatarFallback>
                   </Avatar>
                   <div>
@@ -138,7 +138,7 @@ export default function ParticipationDialog({
               {unansweredParticipants.map((user: Participant) => (
                 <div key={user.user.id} className='flex items-center gap-4'>
                   <Avatar>
-                    <AvatarImage src='/placeholder.svg' alt={user.user.name} />
+                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.name} />
                     <AvatarFallback>{user.user.name.split(' ')[0][0] + user.user.name.split(' ')[1][0]}</AvatarFallback>
                   </Avatar>
                   <div>

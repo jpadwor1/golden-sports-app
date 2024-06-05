@@ -936,7 +936,8 @@ export const appRouter = router({
         groupId: z.string(),
         fee: z.number(),
         feeDescription: z.string(),
-        feeServiceCharge: boolean(),
+        feeServiceCharge: z.number(),
+        collectFeeServiceCharge: z.boolean(),
         notificationDate: z.string(),
         recurringEndDate: z.string().optional(),
         reminders: boolean(),
@@ -967,6 +968,7 @@ export const appRouter = router({
           feeAmount: input.fee + feeServiceCharge,
           feeDescription: input.feeDescription,
           feeServiceCharge: feeServiceCharge,
+          collectFeeServiceCharge: input.collectFeeServiceCharge,
           recurringEndDate: input.recurringEndDate
             ? new Date(input.recurringEndDate)
             : null,
@@ -995,6 +997,96 @@ export const appRouter = router({
               userId: invitee,
               resourceId: event.id,
               message: `You've been invited to ${event.title}.`,
+              read: false,
+            },
+          });
+        }
+      }
+
+      return { success: true };
+    }),
+    updateEvent: privateProcedure
+    .input(
+      z.object({
+        title: z.string(),
+        description: z.string(),
+        address: z.string(),
+        startDateTime: z.string(),
+        endDateTime: z.string().optional(),
+        groupId: z.string(),
+        fee: z.number(),
+        feeDescription: z.string(),
+        feeServiceCharge: z.number(),
+        collectFeeServiceCharge: z.boolean(),
+        notificationDate: z.string(),
+        recurringEndDate: z.string().optional(),
+        reminders: boolean(),
+        repeatFrequency: z.array(z.string()).optional(),
+        invitees: z.array(z.string()).optional(),
+        eventId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      let feeServiceCharge = 0;
+      console.log(input.fee)
+      if (input.feeServiceCharge) {
+        feeServiceCharge = input.fee * 0.029 + 0.3;
+      }
+
+      const event = await db.event.update({
+        where: {
+          id: input.eventId,
+        },
+        data: {
+          title: input.title,
+          description: input.description,
+          address: input.address,
+          startDateTime: new Date(input.startDateTime),
+          endDateTime: input.endDateTime ? new Date(input.endDateTime) : null,
+          feeAmount: input.fee,
+          totalFeeAmount: input.fee + feeServiceCharge,
+          feeDescription: input.feeDescription,
+          feeServiceCharge: feeServiceCharge,
+          collectFeeServiceCharge: input.collectFeeServiceCharge,
+          recurringEndDate: input.recurringEndDate
+            ? new Date(input.recurringEndDate)
+            : null,
+          reminders: input.reminders,
+          repeatFrequency: input.repeatFrequency?.join(','),
+          group: {
+            connect: {
+              id: input.groupId,
+            },
+          },
+        },
+      });
+
+      if (input.invitees && input.invitees.length > 0) {
+        for (const invitee of input.invitees) {
+          await db.participant.update({
+            where: {
+              userId_eventId: {
+                userId: invitee,
+                eventId: input.eventId,
+              },
+            },
+            data: {
+              userId: invitee,
+              status: 'UNANSWERED',
+            },
+          });
+
+          await db.notification.create({
+            data: {
+              userId: invitee,
+              resourceId: event.id,
+              message: `The Event "${event.title}" has been updated.`,
               read: false,
             },
           });

@@ -177,7 +177,8 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   const [feeData, setFeeData] = React.useState({
     fee: 0,
     feeDescription: '',
-    feeServiceCharge: false,
+    feeServiceCharge: 0,
+    collectFeeServiceCharge: false,
   });
 
   const [formData, setFormData] = React.useState({

@@ -72,28 +72,30 @@ model Group {
 }
 
 model Event {
-  id               String         @id @default(uuid())
-  title            String
-  groupId          String
-  description      String?
-  startDateTime    DateTime
-  endDateTime      DateTime?
-  address          String?
-  maxParticipants  Int?
-  recurringEndDate DateTime?
-  repeatFrequency  String?
-  reminders        Boolean
-  notificationDate DateTime?
-  parentEventId    String?
-  parentEvent      Event?         @relation("ChildEvents", fields: [parentEventId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  childEvents      Event[]        @relation("ChildEvents")
-  group            Group          @relation(fields: [groupId], references: [id])
-  invitees         Participant[]
-  feeAmount        Float?
-  feeDescription   String?
-  feeServiceCharge Float?
-  payments         Payment[]
-  eventComments    eventComment[]
+  id                      String         @id @default(uuid())
+  title                   String
+  groupId                 String
+  description             String?
+  startDateTime           DateTime
+  endDateTime             DateTime?
+  address                 String?
+  maxParticipants         Int?
+  recurringEndDate        DateTime?
+  repeatFrequency         String?
+  reminders               Boolean
+  notificationDate        DateTime?
+  parentEventId           String?
+  parentEvent             Event?         @relation("ChildEvents", fields: [parentEventId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  childEvents             Event[]        @relation("ChildEvents")
+  group                   Group          @relation(fields: [groupId], references: [id])
+  invitees                Participant[]
+  feeAmount               Float?
+  totalFeeAmount          Float?
+  feeDescription          String?
+  feeServiceCharge        Float?
+  collectFeeServiceCharge Boolean?
+  payments                Payment[]
+  eventComments           eventComment[]
 
   @@index([groupId])
   @@index([parentEventId])
@@ -217,13 +219,13 @@ model Notification {
 }
 
 model Poll {
-  id        String    @id @default(uuid())
-  groupId   String
-  title     String
-  description  String?
-  createdAt DateTime  @default(now())
-  expiresAt DateTime?
-  authorId  String
+  id          String    @id @default(uuid())
+  groupId     String
+  title       String
+  description String?
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+  authorId    String
 
   author        User          @relation(fields: [authorId], references: [id])
   group         Group         @relation(fields: [groupId], references: [id])

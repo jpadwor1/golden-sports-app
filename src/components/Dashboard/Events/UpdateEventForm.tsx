@@ -32,8 +32,11 @@ import { CheckedState } from '@radix-ui/react-checkbox';
 import PaymentDialog from './PaymentDialog';
 import EventFeeDialog from './EventFeeDialog';
 import { User, Children } from '@prisma/client';
+import { ExtendedEvent } from './Events';
+import { toast } from '@/components/ui/use-toast';
 
 interface CreateEventFormProps {
+  event: ExtendedEvent;
   groupId: string;
   user: User & {
     Children: Children[];
@@ -134,8 +137,9 @@ const repeatFrequencyOptions: Option[] = [
   { label: 'Monthly', value: 'monthly' },
 ];
 
-const CreateEventForm = ({
+const UpdateEventForm = ({
   groupId,
+  event,
   user,
   setEventFormOpen,
 }: CreateEventFormProps) => {
@@ -143,18 +147,28 @@ const CreateEventForm = ({
   const [loading, setLoading] = React.useState(false);
   const [inputOpen, setInputOpen] = React.useState(false);
   const [endTimeInput, setEndTimeInput] = React.useState(false);
+
   const [invitees, setInvitees] = React.useState<Option[]>([]);
   const [teamMembers, setTeamMembers] = React.useState<Option[]>([]);
   const [fetchTeamMembers, setFetchTeamMembers] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [paymentDialogOpen, setPaymentDialogOpen] = React.useState(false);
-  const [repeatFrequency, setRepeatFrequency] = React.useState<Option[]>([]);
+
+  const repeatOptions: Option[] = event.repeatFrequency
+    ? event.repeatFrequency.split(' ').map((frequency) => ({
+        label: frequency.charAt(0).toUpperCase() + frequency.slice(1),
+        value: frequency,
+      }))
+    : [];
+  const [repeatFrequency, setRepeatFrequency] =
+    React.useState<Option[]>(repeatOptions);
   const [feeDialogOpen, setFeeDialogOpen] = React.useState(false);
   const [files, setFiles] = React.useState<File[]>([]);
   const [feeData, setFeeData] = React.useState({
-    fee: 0,
-    feeDescription: '',
-    feeServiceCharge: false,
+    fee: event.feeAmount || 0,
+    feeDescription: event.feeDescription || '',
+    feeServiceCharge: event.feeServiceCharge || 0,
+    collectFeeServiceCharge: !!event.feeServiceCharge || false,
   });
 
   const [formData, setFormData] = React.useState({
@@ -163,24 +177,45 @@ const CreateEventForm = ({
   });
   const ref = React.useRef<HTMLDivElement>(null);
   const TextAreaRef = React.useRef<HTMLTextAreaElement>(null);
-  const [recurring, setRecurring] = React.useState<CheckedState>();
+  const [recurring, setRecurring] = React.useState<CheckedState>(
+    event.recurringEndDate ? true : false
+  );
+
+  const defaultValues = {
+    title: event.title,
+    description: event.description || '',
+    address: event.address || '',
+    startDateTime: event.startDateTime
+      ? new Date(event.startDateTime).toISOString().substring(0, 16)
+      : '',
+    endDateTime: event.endDateTime
+      ? new Date(event.endDateTime).toISOString().substring(0, 16)
+      : '',
+    notificationDate: event.notificationDate
+      ? new Date(event.notificationDate).toISOString().substring(0, 10)
+      : '',
+    reminders: event.reminders || false,
+    recurringEndDate: event.recurringEndDate
+      ? new Date(event.recurringEndDate).toISOString().substring(0, 10)
+      : '',
+    repeatFrequency: repeatOptions || [],
+  };
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     mode: 'onChange',
+    defaultValues: defaultValues,
   });
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = form;
-
   const { data: members, isLoading } = trpc.getTeamMembers.useQuery(
     { groupId: groupId },
     {
       enabled: fetchTeamMembers,
     }
   );
-
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       // Check if the clicked area is outside the ref and not part of the select component
@@ -231,9 +266,15 @@ const CreateEventForm = ({
         label: member.name,
         value: member.id,
       }));
+      const currentInvitees: Option[] = event.invitees.map((invitee) => ({
+        label:
+          members.find((member) => member.id === invitee.userId)?.name || '',
+        value: invitee.userId,
+      }));
       setTeamMembers(newMembers);
+      setInvitees(currentInvitees);
     }
-  }, [members]);
+  }, [members, event.invitees]);
 
   const handleAttachments = () => {
     fileInputRef.current?.click();
@@ -249,7 +290,6 @@ const CreateEventForm = ({
       setFiles((prevFiles) => [...prevFiles, ...newFiles]);
     }
   };
-
   const handlePayments = () => {
     if (!user.stripeAccountComplete) {
       setPaymentDialogOpen(true);
@@ -275,7 +315,7 @@ const CreateEventForm = ({
     }
   };
 
-  const submitEvent = trpc.createEvent.useMutation();
+  const submitEvent = trpc.updateEvent.useMutation();
   const onSubmit = (data: EventFormValues) => {
     const newFormData = {
       ...data,
@@ -283,12 +323,16 @@ const CreateEventForm = ({
       invitees: invitees.map((invitee) => invitee.value),
       repeatFrequency: repeatFrequency.map((frequency) => frequency.value),
       groupId: groupId,
+      eventId: event.id,
     };
-    console.log('Form data:', newFormData);
-
     submitEvent.mutate(newFormData, {
       onSuccess: () => {
+        toast({
+          title: 'Event updated',
+          description: 'Your event has been updated successfully.',
+        });
         setEventFormOpen(false);
+        router.refresh();
       },
       onError: (error) => {
         console.error('Error creating event:', error);
@@ -382,7 +426,7 @@ const CreateEventForm = ({
                 )}
               />
 
-              {!endTimeInput && (
+              {!event.endDateTime && (
                 <div
                   onClick={() => setEndTimeInput(true)}
                   className='flex flex-row items-center mb-3 ml-2'
@@ -392,7 +436,7 @@ const CreateEventForm = ({
                 </div>
               )}
 
-              {endTimeInput && (
+              {event.endDateTime && (
                 <FormField
                   control={form.control}
                   name='endDateTime'
@@ -415,7 +459,7 @@ const CreateEventForm = ({
             </div>
 
             <div className='flex flex-row items-center space-x-3 space-y-0 mt-6'>
-              <Checkbox onCheckedChange={setRecurring} />
+              <Checkbox checked={recurring} onCheckedChange={setRecurring} />
               <div className='space-y-1 leading-none'>
                 <FormLabel>Is this a recurring event?</FormLabel>
                 <FormDescription>
@@ -500,7 +544,6 @@ const CreateEventForm = ({
                       className='flex h-10 w-full rounded-md border border-gray-200 bg-white px-0.5 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300'
                       type='datetime-local'
                       placeholder='Immediately'
-                      defaultValue='immediately'
                       {...field}
                     />
                   </FormControl>
@@ -595,7 +638,7 @@ const CreateEventForm = ({
                 size='xs'
                 className='rounded-full bg-blue-600 disabled:bg-gray-200 hover:bg-blue-400 disabled:text-gray-600'
               >
-                Post
+                Update
               </Button>
               <Button
                 variant='outline'
@@ -613,4 +656,4 @@ const CreateEventForm = ({
   );
 };
 
-export default CreateEventForm;
+export default UpdateEventForm;

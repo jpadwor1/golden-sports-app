@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Bell, Pen, UserPlus } from 'lucide-react';
 import { ExtendedEvent } from './Events';
 import {
@@ -13,6 +13,7 @@ import {
   } from '@/components/ui/dialog';
 import UpdateEventForm from './UpdateEventForm';
 import { Children, User } from '@prisma/client';
+import { cn } from '@/lib/utils';
 
 
 interface EventButtonProps {
@@ -43,16 +44,14 @@ const EventButtons = ({ event, user }: EventButtonProps) => {
         <UserPlus className='mr-2 h-4 w-4' /> Add
       </Button>
       
-      <Dialog>
-        <DialogTrigger>
-        <Button
-        size='xs'
-        variant='secondary'
-      >
+      <Dialog open={eventFormOpen} onOpenChange={setEventFormOpen}>
+        <DialogTrigger className={cn(buttonVariants({
+          size: 'xs',
+          variant: 'secondary',
+        }))}>
         <Pen className='mr-2 h-4 w-4' /> Edit
-      </Button>
         </DialogTrigger>
-      <DialogContent className=''>
+      <DialogContent className='overflow-y-auto max-h-screen'>
           <DialogHeader className=''>
             <DialogTitle>Event Responses</DialogTitle>
             <DialogDescription>
@@ -60,7 +59,7 @@ const EventButtons = ({ event, user }: EventButtonProps) => {
               event.
             </DialogDescription>
           </DialogHeader>
-          <UpdateEventForm user={user} groupId={event.groupId} setEventFormOpen={setEventFormOpen} />
+          <UpdateEventForm event={event} user={user} groupId={event.groupId} setEventFormOpen={setEventFormOpen} />
         </DialogContent>
       </Dialog>
     </>

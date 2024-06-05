@@ -22,7 +22,8 @@ interface PaymentDialogProps {
   feeData: {
     fee: number;
     feeDescription: string;
-    feeServiceCharge: boolean;
+    feeServiceCharge: number;
+    collectFeeServiceCharge: boolean;
   };
 }
 
@@ -44,8 +45,13 @@ const PaymentDialog = ({
           <CircleDollarSign className='h-6 w-6 text-green-700' />
           {feeData.fee === 0 ? (
             <p>Registration Fee</p>
+          ) : feeData.feeServiceCharge === 0 ? (
+            <p>Registration Fee: ${feeData.fee} </p>
           ) : (
-            <p>Registration Fee: ${feeData.fee}</p>
+            <p>
+              Registration Fee: ${feeData.fee} + $
+              {feeData.feeServiceCharge.toFixed(2)} service fee
+            </p>
           )}
         </div>
       </DialogTrigger>

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import React from 'react';
-import { IconCircleX,IconCircleCheck  } from '@tabler/icons-react';
+import { IconCircleX, IconCircleCheck } from '@tabler/icons-react';
 interface ParticipationButtonProps {
   userId: string | undefined;
   eventId: string;
@@ -41,27 +41,32 @@ const ParticipationButtons = ({
   };
   return (
     <div className='flex'>
-     
-        <Button
-          onClick={() => handleParticipation('ATTENDING')}
-          className={cn(participationStatus === 'ATTENDING' ? 'bg-green-700 text-white' : 'bg-gray-300', 'mr-2')}
-          variant='secondary'
-        >
-          <IconCircleCheck size={18} className='mr-1' stroke={2} />
-          {participationStatus === 'ATTENDING' ? 'Attending' : 'Attend'}
-        </Button>
-      
+      <Button
+        onClick={() => handleParticipation('ATTENDING')}
+        className={cn(
+          participationStatus === 'ATTENDING'
+            ? 'bg-green-700 text-white'
+            : 'bg-gray-300',
+          'mr-2'
+        )}
+        variant='secondary'
+      >
+        <IconCircleCheck size={18} className='mr-1' stroke={2} />
+        {participationStatus === 'ATTENDING' ? 'Attending' : 'Attend'}
+      </Button>
 
-      
-        <Button
-          onClick={() => handleParticipation('DECLINED')}
-          variant='destructive'
-          className={cn(participationStatus === 'DECLINED' ? 'bg-red-500' : 'bg-gray-300 text-white')}
-        >
-          <IconCircleX size={18} className='mr-1' stroke={2} />
-          {participationStatus === 'DECLINED' ? 'Declined' : 'Decline'}
-        </Button>
-      
+      <Button
+        onClick={() => handleParticipation('DECLINED')}
+        variant='destructive'
+        className={cn(
+          participationStatus === 'DECLINED'
+            ? 'bg-red-500 text-white'
+            : 'bg-gray-300 text-black'
+        )}
+      >
+        <IconCircleX size={18} className='mr-1' stroke={2} />
+        {participationStatus === 'DECLINED' ? 'Declined' : 'Decline'}
+      </Button>
     </div>
   );
 };

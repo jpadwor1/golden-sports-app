@@ -24,13 +24,15 @@ interface EventFeeDialogProps {
     React.SetStateAction<{
       fee: number;
       feeDescription: string;
-      feeServiceCharge: boolean;
+      feeServiceCharge: number;
+      collectFeeServiceCharge: boolean;
     }>
   >;
   feeData: {
     fee: number;
     feeDescription: string;
-    feeServiceCharge: boolean;
+    collectFeeServiceCharge: boolean;
+    feeServiceCharge: number;
   };
 }
 const EventFeeDialog = ({
@@ -38,20 +40,25 @@ const EventFeeDialog = ({
   setFeeDialogOpen,
   loading,
   setFeeData,
-  feeData
+  feeData,
 }: EventFeeDialogProps) => {
   const [fee, setFee] = React.useState<number>(feeData.fee || 0);
-  const [feeDescription, setFeeDescription] = React.useState<string>(feeData.feeDescription || '');
-  const [feeServiceCharge, setFeeServiceCharge] =
-    React.useState<boolean>(feeData.feeServiceCharge || false);
-
+  const [feeDescription, setFeeDescription] = React.useState<string>(
+    feeData.feeDescription || ''
+  );
+  const [collectFeeServiceCharge, setCollectFeeServiceCharge] =
+    React.useState<boolean>(feeData.collectFeeServiceCharge || false);
+  const [feeServiceCharge, setFeeServiceCharge] = React.useState<number>(
+    feeData.feeServiceCharge || 0
+  );
   const setEventFee = () => {
-    setFeeData({
+    
+      setFeeData({
       fee,
       feeDescription,
+      collectFeeServiceCharge,
       feeServiceCharge,
     });
-    console.log(feeData);
     setFeeDialogOpen(false);
   };
 
@@ -82,17 +89,25 @@ const EventFeeDialog = ({
             name='fee'
             placeholder='$100.50'
             defaultValue={fee}
-            onChange={(e) => setFee(parseFloat(e.target.value))}
+            onChange={(e) => {
+              setFee(parseFloat(e.target.value))
+              if(collectFeeServiceCharge) {
+                setFeeServiceCharge(parseFloat(e.target.value) * 0.029 + 0.3)
+              }else{
+                setFeeServiceCharge(0)
+              }
+            }}
           />
           <div className='flex items-center space-x-2'>
             <Checkbox
-              name='feeServiceCharge'
-              checked={feeServiceCharge}
-              onCheckedChange={(checked) =>
-                setFeeServiceCharge(
+              name='collectFeeServiceCharge'
+              checked={collectFeeServiceCharge}
+              onCheckedChange={(checked) =>{
+                setCollectFeeServiceCharge(
                   checked === true || checked === false ? checked : false
                 )
-              }
+                setFeeServiceCharge(checked === true ? fee * 0.029 + 0.3 : 0)
+              }}
             />
             <Label htmlFor='feeServiceCharge'>
               Check if you would you like to charge the attendee the service
@@ -101,10 +116,10 @@ const EventFeeDialog = ({
           </div>
         </form>
         <DialogFooter className='mt-10'>
-          <DialogClose>
+          <DialogClose className=''>
             <div
               onClick={() => setFeeDialogOpen(false)}
-              className={cn(buttonVariants({ variant: 'ghost' }), 'mr-10')}
+              className={cn(buttonVariants({ variant: 'ghost' }), 'md:mr-10 mt-6 md:mt-0 md:w-fit w-full')}
             >
               Cancel
             </div>
