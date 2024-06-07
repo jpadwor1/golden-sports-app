@@ -971,11 +971,7 @@ export const appRouter = router({
         feeDescription: z.string(),
         feeServiceCharge: z.number(),
         collectFeeServiceCharge: z.boolean(),
-        notificationDate: z.string(),
-        recurringEndDate: z.string().optional(),
         reminders: boolean(),
-        repeatFrequency: z.array(z.string()).optional(),
-        invitees: z.array(z.string()).optional(),
         eventId: z.string(),
       })
     )
@@ -987,7 +983,7 @@ export const appRouter = router({
       }
 
       let feeServiceCharge = 0;
-      console.log(input.fee)
+
       if (input.feeServiceCharge) {
         feeServiceCharge = input.fee * 0.029 + 0.3;
       }
@@ -1007,11 +1003,7 @@ export const appRouter = router({
           feeDescription: input.feeDescription,
           feeServiceCharge: feeServiceCharge,
           collectFeeServiceCharge: input.collectFeeServiceCharge,
-          recurringEndDate: input.recurringEndDate
-            ? new Date(input.recurringEndDate)
-            : null,
           reminders: input.reminders,
-          repeatFrequency: input.repeatFrequency?.join(','),
           group: {
             connect: {
               id: input.groupId,
@@ -1019,32 +1011,6 @@ export const appRouter = router({
           },
         },
       });
-
-      if (input.invitees && input.invitees.length > 0) {
-        for (const invitee of input.invitees) {
-          await db.participant.update({
-            where: {
-              userId_eventId: {
-                userId: invitee,
-                eventId: input.eventId,
-              },
-            },
-            data: {
-              userId: invitee,
-              status: 'UNANSWERED',
-            },
-          });
-
-          await db.notification.create({
-            data: {
-              userId: invitee,
-              resourceId: event.id,
-              message: `The Event "${event.title}" has been updated.`,
-              read: false,
-            },
-          });
-        }
-      }
 
       return { success: true };
     }),

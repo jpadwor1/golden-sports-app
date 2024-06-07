@@ -321,8 +321,6 @@ const UpdateEventForm = ({
     const newFormData = {
       ...data,
       ...feeData,
-      invitees: invitees.map((invitee) => invitee.value),
-      repeatFrequency: repeatFrequency.map((frequency) => frequency.value),
       groupId: groupId,
       eventId: event.id,
     };
@@ -459,99 +457,6 @@ const UpdateEventForm = ({
               )}
             </div>
 
-            <div className='flex flex-row items-center space-x-3 space-y-0 mt-6'>
-              <Checkbox checked={recurring} onCheckedChange={setRecurring} />
-              <div className='space-y-1 leading-none'>
-                <FormLabel>Is this a recurring event?</FormLabel>
-                <FormDescription>
-                  Notifications will be sent automatically.
-                </FormDescription>
-              </div>
-            </div>
-
-            {recurring && (
-              <div className='grid grid-cols-2 gap-4 justify-between'>
-                <FormField
-                  control={form.control}
-                  name='repeatFrequency'
-                  render={({ field }) => (
-                    <FormItem className='mt-4'>
-                      <FormLabel>Repeat</FormLabel>
-                      <FormControl>
-                        <MultiSelect
-                          className='w-full'
-                          options={repeatFrequencyOptions}
-                          value={repeatFrequency}
-                          onChange={setRepeatFrequency}
-                          labelledBy='Select Frequency'
-                          disableSearch={true}
-                          closeOnChangedValue={true}
-                          hasSelectAll={false}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name='recurringEndDate'
-                  render={({ field }) => (
-                    <FormItem className='mt-4'>
-                      <FormLabel>Stop Repeating</FormLabel>
-                      <FormControl>
-                        <Input type='date' placeholder='End Date' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-
-            <FormField
-              control={form.control}
-              name='invitees'
-              render={({ field }) => (
-                <FormItem className='mt-8'>
-                  <FormLabel>Invitees</FormLabel>
-                  <FormControl>
-                    <MultiSelect
-                      className='w-full'
-                      options={teamMembers}
-                      value={invitees}
-                      onChange={setInvitees}
-                      labelledBy='Select Members'
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    By default event will be visible to all team members. Select
-                    invitees to change visibility.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='notificationDate'
-              render={({ field }) => (
-                <FormItem className='mt-8'>
-                  <FormLabel>Send Invite</FormLabel>
-                  <FormControl>
-                    <input
-                      className='flex h-10 w-full rounded-md border border-gray-200 bg-white px-0.5 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300'
-                      type='datetime-local'
-                      placeholder='Immediately'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}
