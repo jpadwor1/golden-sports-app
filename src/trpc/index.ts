@@ -1045,6 +1045,35 @@ export const appRouter = router({
         return error;
       }
     }),
+    getGroup: privateProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+       const group = await db.group.findFirst({
+          where: {
+            id: input,
+          },
+          include: {
+            members: true,
+          }
+       })
+
+       if (!group) {
+         return new TRPCError({ code: 'NOT_FOUND' });
+        }
+
+        return group;
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
   updateParticipantStatus: privateProcedure
     .input(
       z.object({

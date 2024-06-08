@@ -7,11 +7,11 @@ import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { redirect } from 'next/navigation';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import ParticipationButtons from '@/components/Dashboard/Events/participationButtons';
+import ParticipationButtons from '@/components/Dashboard/Events/buttons/participationButtons';
 import EventComment from '@/components/Dashboard/Events/EventComment';
 import MessageDialog from '@/components/Dashboard/Events/MessageDialog';
 import ParticipationDialog from '@/components/Dashboard/Events/participation-status-dialog';
-import EventButtons from '@/components/Dashboard/Events/event-buttons';
+import EventButtons from '@/components/Dashboard/Events/buttons/event-buttons';
 
 interface PageProps {
   params: {
@@ -132,9 +132,8 @@ const Page = async ({ params }: PageProps) => {
         <div className='flex flex-row justify-end'>
           <EventButtons user={dbUser} event={event} />
         </div>
-        <div className='mb-4'>
+        <div className='mt-4 mb-6'>
           <h1 className='text-2xl font-bold'>{event.title}</h1>
-          <p className='text-sm text-gray-500'>{}</p>
         </div>
         <div className='flex justify-between items-start mb-4'>
           <div className='flex items-center'>
@@ -143,7 +142,7 @@ const Page = async ({ params }: PageProps) => {
                 alt={
                   dbUser.Children[0].name
                     ? dbUser.Children[0].name
-                    : dbUser.name
+                    : dbUser.firstName + ' ' + dbUser.lastName
                 }
                 src={dbUser.imageURL ? dbUser.imageURL : ''}
               />
@@ -154,7 +153,7 @@ const Page = async ({ params }: PageProps) => {
               <p className='font-semibold text-indigo-600'>
                 {dbUser?.Children[0].name
                   ? dbUser.Children[0].name
-                  : dbUser.name}
+                  : dbUser.firstName + ' ' + dbUser.lastName}
               </p>
             </div>
           </div>

@@ -1,8 +1,8 @@
 'use client';
 import React from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Bell, Pen, UserPlus } from 'lucide-react';
-import { ExtendedEvent } from './Events';
+import { Bell, Pen} from 'lucide-react';
+import { ExtendedEvent } from '../Events';
 import {
     Dialog,
     DialogTrigger,
@@ -11,9 +11,10 @@ import {
     DialogTitle,
     DialogDescription,
   } from '@/components/ui/dialog';
-import UpdateEventForm from './UpdateEventForm';
+import UpdateEventForm from '../UpdateEventForm';
 import { Children, User } from '@prisma/client';
 import { cn } from '@/lib/utils';
+import InviteUserButton from './invite-user-button';
 
 
 interface EventButtonProps {
@@ -30,19 +31,13 @@ const EventButtons = ({ event, user }: EventButtonProps) => {
     console.log('send reminder');
   }
 
-  const addInvitees = () => {
-    console.log('add invitees');
-  }
-
 
   return (
     <>
       <Button onClick={sendReminder} size='xs' variant='secondary' className='mr-2'>
         <Bell className='mr-2 h-4 w-4' /> Send reminder to unanswered
       </Button>
-      <Button size='xs' variant='secondary' className='mr-2'>
-        <UserPlus className='mr-2 h-4 w-4' /> Add
-      </Button>
+      <InviteUserButton event={event} />
       
       <Dialog open={eventFormOpen} onOpenChange={setEventFormOpen}>
         <DialogTrigger className={cn(buttonVariants({
