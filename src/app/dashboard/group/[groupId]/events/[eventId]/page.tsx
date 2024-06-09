@@ -164,7 +164,7 @@ const Page = async ({ params }: PageProps) => {
           <ParticipationButtons
             participation={participationStatus}
             userId={dbUser?.id}
-            eventId={event.id}
+            event={event}
           />
         </div>
         <div className='flex flex-col mb-4'>
