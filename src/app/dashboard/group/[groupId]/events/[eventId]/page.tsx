@@ -1,6 +1,6 @@
 import React from 'react';
 import { AvatarImage, AvatarFallback, Avatar } from '@/components/ui/avatar';
-import { CalendarIcon, DollarSign, Loader2, MapPin, User2 } from 'lucide-react';
+import { CalendarIcon, DollarSign, Loader2, MapPin, Send, User, User2 } from 'lucide-react';
 import Image from 'next/image';
 import { db } from '@/db';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
@@ -12,6 +12,10 @@ import EventComment from '@/components/Dashboard/Events/EventComment';
 import MessageDialog from '@/components/Dashboard/Events/MessageDialog';
 import ParticipationDialog from '@/components/Dashboard/Events/participation-status-dialog';
 import EventButtons from '@/components/Dashboard/Events/buttons/event-buttons';
+import EventCommentFeed from '@/components/Dashboard/Events/comments/event-comment-feed';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
+import EventCommentInput from '@/components/Dashboard/Events/comments/event-comment-input';
 
 interface PageProps {
   params: {
@@ -206,11 +210,7 @@ const Page = async ({ params }: PageProps) => {
             unanswered={unanswered}
           />
         </div>
-        <EventComment
-          userId={dbUser?.id}
-          eventId={event.id}
-          comments={event.eventComments}
-        />
+        <EventCommentInput dbUser={dbUser} eventId={event.id} />
       </div>
     </div>
   );

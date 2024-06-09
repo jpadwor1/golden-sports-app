@@ -677,6 +677,34 @@ export const appRouter = router({
         return error;
       }
     }),
+  getEventComments: privateProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        const comments = await db.eventComment.findMany({
+          where: {
+            eventId: input,
+          },
+          include: {
+            author: true,
+            },
+          orderBy: {
+            timestamp: 'desc',
+          },
+        });
+        
+        return { comments: comments };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
 
   createComment: privateProcedure
     .input(
@@ -716,6 +744,44 @@ export const appRouter = router({
         return error;
       }
     }),
+  createEventComment: privateProcedure
+    .input(
+      z.object({
+        authorId: z.string(),
+        eventId: z.string(),
+        content: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        const comment = await db.eventComment.create({
+          data: {
+            content: input.content,
+            event: {
+              connect: {
+                id: input.eventId,
+              },
+            },
+            author: {
+              connect: {
+                id: input.authorId,
+              },
+            },
+          },
+        });
+        return { success: true };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
+
 
   createLike: privateProcedure
     .input(
