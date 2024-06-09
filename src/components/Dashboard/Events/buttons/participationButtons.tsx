@@ -6,6 +6,7 @@ import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import React from 'react';
 import { IconCircleX, IconCircleCheck } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 interface ParticipationButtonProps {
   userId: string | undefined;
   eventId: string;
@@ -17,6 +18,7 @@ const ParticipationButtons = ({
   eventId,
   participation,
 }: ParticipationButtonProps) => {
+  const router = useRouter();
   const [participationStatus, setParticipationStatus] =
     React.useState(participation);
   const updateParticipationStatus = trpc.updateParticipantStatus.useMutation();
@@ -53,6 +55,7 @@ const ParticipationButtons = ({
     updateParticipationStatus.mutate(formData, {
       onSuccess: () => {
         setParticipationStatus(status);
+        router.refresh();
       },
       onError: (error) => {
         console.error(error);

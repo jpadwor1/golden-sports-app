@@ -122,7 +122,7 @@ export default function ParticipationDialog({
             <TabsContent value='attending' className='p-4 max-h-[300px] min-h-[300px] overflow-y-auto justify-start self-start'>
               {isLoading && <p>Loading...</p>}
               {attendingParticipants.map((user: Participant) => (
-                <div key={user.user.id} className='flex items-center gap-4'>
+                <div key={user.user.id} className='flex items-center gap-4 mb-2'>
                   <Avatar>
                     <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.firstName} />
                     <AvatarFallback>{user.user.firstName[0] + user.user.lastName[0]}</AvatarFallback>
@@ -136,7 +136,7 @@ export default function ParticipationDialog({
             <TabsContent value='unanswered' className='p-4 max-h-[300px] min-h-[300px] overflow-y-auto justify-start self-start'>
             {isLoading && <p>Loading...</p>}
               {unansweredParticipants.map((user: Participant) => (
-                <div key={user.user.id} className='flex items-center gap-4'>
+                <div key={user.user.id} className='flex items-center gap-4 mb-2'>
                   <Avatar>
                     <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.firstName} />
                     <AvatarFallback>{user.user.firstName[0] + user.user.lastName[0]}</AvatarFallback>
@@ -165,18 +165,6 @@ export default function ParticipationDialog({
 
             {isLoading && <p>Loading...</p>}
               {data?.participants.map((user: Participant) => (
-                <div key={user.user.id} className='flex items-center gap-4 mb-2'>
-                  <Avatar>
-                    <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.firstName} />
-                    <AvatarFallback>{user.user.firstName[0] + user.user.lastName[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className='font-medium'>{user.user.firstName + user.user.lastName}</p>
-                  </div>
-                </div>
-                
-              ))}
-{data?.participants.map((user: Participant) => (
                 <div key={user.user.id} className='flex items-center gap-4 mb-2'>
                   <Avatar>
                     <AvatarImage src={user.user.imageURL ? user.user.imageURL : ''} alt={user.user.firstName} />

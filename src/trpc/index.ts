@@ -1342,6 +1342,46 @@ export const appRouter = router({
         return error;
       }
     }),
+    addInvitees: privateProcedure
+    .input(
+      z.object({
+        eventId: z.string(),
+        invitees: z.array(z.string()),
+      })
+    ).mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        for (const invitee of input.invitees) {
+          await db.participant.create({
+            data: {
+              userId: invitee,
+              eventId: input.eventId,
+              status: 'UNANSWERED',
+            },
+          });
+
+          await db.notification.create({
+            data: {
+              userId: invitee,
+              resourceId: input.eventId,
+              message: `You've been invited to an event.`,
+              read: false,
+            },
+          });
+        }
+
+        return { success: true };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
+    
     
 });
 

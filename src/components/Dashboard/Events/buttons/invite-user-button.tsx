@@ -18,6 +18,8 @@ import { Group, User } from '@prisma/client';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from '@/components/ui/use-toast';
+import { useRouter } from 'next/navigation';
 
 type GroupType = Group & {
   members: User[];
@@ -26,11 +28,13 @@ interface InviteUserButtonProps {
   event: ExtendedEvent;
 }
 const InviteUserButton = ({ event }: InviteUserButtonProps) => {
+  const router = useRouter();
   const groupId = event.groupId;
   const [memberSelectOpen, setMemberSelectOpen] = React.useState(false);
   const [selectedUsers, setSelectedUsers] = React.useState<User[]>([]);
   const { data, isLoading } = trpc.getGroup.useQuery(groupId);
-
+  const addInvitees = trpc.addInvitees.useMutation();
+  
   const handleUserSelect = (member: User) => {
     if (selectedUsers.some((selected) => selected.id === member.id)) {
       setSelectedUsers(
@@ -40,6 +44,31 @@ const InviteUserButton = ({ event }: InviteUserButtonProps) => {
       setSelectedUsers([...selectedUsers, member]);
     }
   };
+
+  const handleSubmit = () => {
+    addInvitees.mutate(
+      {
+        eventId: event.id,
+        invitees: selectedUsers.map((user) => user.id),
+      },
+      {
+        onSuccess: () => {
+          setMemberSelectOpen(false);
+          router.refresh();
+        },
+        onError: (error: any) => {
+          toast({
+            title: 'Oops! Something went wrong.',
+            description:
+              "We couldn't add the invitees. Please try again later.",
+            variant: 'destructive',
+          });
+          console.error(error);
+        },
+      }
+    );
+  };
+
   if (isLoading) {
     return (
       <Button size='xs' variant='secondary' className='mr-2'>
@@ -48,6 +77,10 @@ const InviteUserButton = ({ event }: InviteUserButtonProps) => {
     );
   }
   const group = data as GroupType;
+  
+  const members = group.members.filter(member =>
+    !event.invitees.some(invitee => invitee.userId === member.id)
+  );
   return (
     <>
       <Button
@@ -81,13 +114,15 @@ const InviteUserButton = ({ event }: InviteUserButtonProps) => {
             <div className='w-full min-h-[400px] border flex flex-row justify-between overflow-y-auto'>
               <ScrollArea className='w-1/2'>
                 <ul className='flex flex-col space-y-1 p-1 mr-1'>
-                {group?.members.map((member) => (
+                  {members.map((member) => (
                     <li
                       key={member.id}
                       className={`flex items-center gap-3 p-2 w-full rounded-lg cursor-pointer transition-colors ${
-                        selectedUsers.some((selected) => selected.id === member.id)
-                          ? "bg-blue-50 dark:bg-gray-800"
-                          : "hover:bg-blue-50 dark:hover:bg-gray-800"
+                        selectedUsers.some(
+                          (selected) => selected.id === member.id
+                        )
+                          ? 'bg-blue-50 dark:bg-gray-800'
+                          : 'hover:bg-blue-50 dark:hover:bg-gray-800'
                       }`}
                       onClick={() => handleUserSelect(member)}
                     >
@@ -111,10 +146,8 @@ const InviteUserButton = ({ event }: InviteUserButtonProps) => {
                         <div className='bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center'>
                           <CheckIcon className='w-4 h-4' />
                         </div>
-                      ):
-                      (
-                        <div className='bg-white border rounded-full w-5 h-5 flex items-center justify-center'>
-                        </div>
+                      ) : (
+                        <div className='bg-white border rounded-full w-5 h-5 flex items-center justify-center'></div>
                       )}
                     </li>
                   ))}
@@ -139,16 +172,9 @@ const InviteUserButton = ({ event }: InviteUserButtonProps) => {
               </div>
             </div>
             <DialogFooter>
-                <Button
-                    onClick={() => {
-                    console.log('Invite users');
-                    setMemberSelectOpen(false);
-                    }}
-                    size='sm'
-                    className='bg-green-700'
-                >
-                    Invite
-                </Button>
+              <Button type='button' onClick={handleSubmit} size='sm' className='bg-green-700'>
+                Invite
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
