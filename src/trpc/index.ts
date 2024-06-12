@@ -7,8 +7,10 @@ import { randomUUID } from 'crypto';
 import { stripe } from '@/lib/stripe';
 import { absoluteUrl } from '@/lib/utils';
 import sgMail from '@sendgrid/mail';
-import { addUser } from '@/lib/actions';
+import { addUser, deleteStorageFile, startFileUpload } from '@/lib/actions';
 import { create } from 'domain';
+import { Event } from '@prisma/client';
+import { IconInputAi } from '@tabler/icons-react';
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -132,7 +134,6 @@ export const appRouter = router({
                 fileName: input.files.fileName,
                 url: input.files.downloadURL,
                 fileType: input.files.fileType,
-                uploadStatus: 'SUCCESS',
                 uploadDate: new Date(),
               },
             },
@@ -356,7 +357,7 @@ export const appRouter = router({
 
             if (dbUser) {
               const [firstName, lastName]: string[] = member.name.split(' ');
-              
+
               await db.user.update({
                 where: { email: member.email },
                 data: {
@@ -382,7 +383,7 @@ export const appRouter = router({
                 await db.user.create({
                   data: {
                     firstName: firstName,
-                  lastName: lastName,
+                    lastName: lastName,
                     email: member.email,
                     phone: '',
                     imageURL: '',
@@ -551,30 +552,11 @@ export const appRouter = router({
           fileName: input.fileName,
           url: input.downloadURL,
           fileType: input.fileType,
-          uploadStatus: 'PROCESSING',
           groupId: input.groupId,
         },
       });
 
       if (!createdFile) throw new TRPCError({ code: 'NOT_FOUND' });
-
-      try {
-        const response = await fetch(input.downloadURL);
-
-        await db.file.update({
-          where: { id: createdFile.id },
-          data: {
-            uploadStatus: 'SUCCESS',
-          },
-        });
-      } catch (err) {
-        await db.file.update({
-          where: { id: createdFile.id },
-          data: {
-            uploadStatus: 'FAILED',
-          },
-        });
-      }
 
       return createdFile;
     }),
@@ -693,12 +675,12 @@ export const appRouter = router({
           },
           include: {
             author: true,
-            },
+          },
           orderBy: {
             timestamp: 'desc',
           },
         });
-        
+
         return { comments: comments };
       } catch (error: any) {
         console.error(error);
@@ -781,7 +763,6 @@ export const appRouter = router({
         return error;
       }
     }),
-
 
   createLike: privateProcedure
     .input(
@@ -958,9 +939,20 @@ export const appRouter = router({
         collectFeeServiceCharge: z.boolean(),
         notificationDate: z.string(),
         recurringEndDate: z.string().optional(),
-        reminders: boolean(),
+        reminders: z.boolean(),
         repeatFrequency: z.array(z.string()).optional(),
         invitees: z.array(z.string()).optional(),
+        files: z
+          .array(
+            z.object({
+              downloadURL: z.string(),
+              fileName: z.string(),
+              fileType: z.string(),
+              key: z.string(),
+              uploadDate: z.string(),
+            })
+          )
+          .optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -969,62 +961,91 @@ export const appRouter = router({
       if (!userId || !user) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
-
       let feeServiceCharge = 0;
-
       if (input.feeServiceCharge) {
         feeServiceCharge = input.fee * 0.029 + 0.3;
       }
 
-      const event = await db.event.create({
-        data: {
+      try {
+        const eventData: any = {
           title: input.title,
           description: input.description,
           address: input.address,
           startDateTime: new Date(input.startDateTime),
           endDateTime: input.endDateTime ? new Date(input.endDateTime) : null,
-          totalFeeAmount: input.fee + feeServiceCharge,
-          feeAmount: input.fee,
-          feeDescription: input.feeDescription,
-          feeServiceCharge: feeServiceCharge,
-          collectFeeServiceCharge: input.collectFeeServiceCharge,
+
           recurringEndDate: input.recurringEndDate
             ? new Date(input.recurringEndDate)
             : null,
           reminders: input.reminders,
-          repeatFrequency: input.repeatFrequency?.join(','),
+          repeatFrequency: input.repeatFrequency
+            ? input.repeatFrequency?.join(',')
+            : null,
           group: {
             connect: {
               id: input.groupId,
             },
           },
-        },
-      });
+        };
 
-      if (input.invitees && input.invitees.length > 0) {
-        for (const invitee of input.invitees) {
-          await db.participant.create({
-            data: {
-              userId: invitee,
-              eventId: event.id,
-              status: 'UNANSWERED',
-            },
-          });
-
-          await db.notification.create({
-            data: {
-              userId: invitee,
-              resourceId: event.id,
-              message: `You've been invited to ${event.title}.`,
-              read: false,
-            },
-          });
+        if (input.files && input.files.length > 0) {
+          eventData['File'] = {
+            create: input.files.map((file: any) => ({
+              key: file.key,
+              fileName: file.fileName,
+              url: file.downloadURL,
+              fileType: file.fileType,
+              group: {
+                connect: {
+                  id: input.groupId,
+                },
+              },
+            })),
+          };
         }
-      }
 
-      return { success: true };
+        if (input.fee > 0) {
+          eventData['feeAmount'] = input.fee;
+          eventData['totalFeeAmount'] = input.fee + feeServiceCharge;
+          eventData['feeDescription'] = input.feeDescription;
+          eventData['feeServiceCharge'] = feeServiceCharge;
+          eventData['collectFeeServiceCharge'] = input.collectFeeServiceCharge;
+        }
+
+        const event = await db.event.create({
+          data: eventData,
+        });
+
+        if (input.invitees && input.invitees.length > 0) {
+          for (const invitee of input.invitees) {
+            await db.participant.create({
+              data: {
+                userId: invitee,
+                eventId: event.id,
+                status: 'UNANSWERED',
+              },
+            });
+
+            await db.notification.create({
+              data: {
+                userId: invitee,
+                resourceId: event.id,
+                message: `You've been invited to ${event.title}.`,
+                read: false,
+              },
+            });
+          }
+        }
+
+        return { success: true };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message,
+        });
+      }
     }),
-    updateEvent: privateProcedure
+  updateEvent: privateProcedure
     .input(
       z.object({
         title: z.string(),
@@ -1080,6 +1101,62 @@ export const appRouter = router({
 
       return { success: true };
     }),
+  deleteEvent: privateProcedure
+    .input(z.object({ eventId: z.string(), groupId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+      try {
+        const coach = await db.user.findFirst({
+          where: {
+            id: user.id,
+          },
+          include: {
+            groupsAsCoach: true,
+          },
+        });
+
+        if (!coach?.groupsAsCoach.some((group) => group.id === input.groupId)) {
+          return new TRPCError({ code: 'NOT_FOUND' });
+        }
+
+        const event = await db.event.findFirst({
+          where: {
+            id: input.eventId,
+          },
+          include: {
+            File: true,
+          },
+        });
+
+        if (!event) return new TRPCError({ code: 'NOT_FOUND' });
+        if (event.File.length > 0) {
+          try {
+            await Promise.all(
+              event.File.map(async (file) => {
+                const deleteResult = await deleteStorageFile(file.fileName);
+              })
+            );
+          } catch (error: any) {
+            console.error('Could not delete files', error);
+          }
+        }
+
+        await db.event.delete({
+          where: {
+            id: input.eventId,
+          },
+        });
+
+        return { success: true };
+      } catch (error: any) {
+        console.error(error);
+        return new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      }
+    }),
   getGroups: privateProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
@@ -1111,35 +1188,33 @@ export const appRouter = router({
         return error;
       }
     }),
-    getGroup: privateProcedure
-    .input(z.string())
-    .query(async ({ ctx, input }) => {
-      const { userId, user } = ctx;
+  getGroup: privateProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    const { userId, user } = ctx;
 
-      if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+    if (!userId || !user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED' });
+    }
+
+    try {
+      const group = await db.group.findFirst({
+        where: {
+          id: input,
+        },
+        include: {
+          members: true,
+        },
+      });
+
+      if (!group) {
+        return new TRPCError({ code: 'NOT_FOUND' });
       }
 
-      try {
-       const group = await db.group.findFirst({
-          where: {
-            id: input,
-          },
-          include: {
-            members: true,
-          }
-       })
-
-       if (!group) {
-         return new TRPCError({ code: 'NOT_FOUND' });
-        }
-
-        return group;
-      } catch (error: any) {
-        console.error(error);
-        return error;
-      }
-    }),
+      return group;
+    } catch (error: any) {
+      console.error(error);
+      return error;
+    }
+  }),
   updateParticipantStatus: privateProcedure
     .input(
       z.object({
@@ -1384,7 +1459,7 @@ export const appRouter = router({
         return error;
       }
     }),
-    getParticipants: privateProcedure
+  getParticipants: privateProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
       const { userId, user } = ctx;
@@ -1400,7 +1475,7 @@ export const appRouter = router({
           },
           include: {
             user: true,
-          }
+          },
         });
         return { participants: participants };
       } catch (error: any) {
@@ -1408,13 +1483,14 @@ export const appRouter = router({
         return error;
       }
     }),
-    addInvitees: privateProcedure
+  addInvitees: privateProcedure
     .input(
       z.object({
         eventId: z.string(),
         invitees: z.array(z.string()),
       })
-    ).mutation(async ({ ctx, input }) => {
+    )
+    .mutation(async ({ ctx, input }) => {
       const { userId, user } = ctx;
 
       if (!userId || !user) {
@@ -1447,8 +1523,6 @@ export const appRouter = router({
         return error;
       }
     }),
-    
-    
 });
 
 export type AppRouter = typeof appRouter;

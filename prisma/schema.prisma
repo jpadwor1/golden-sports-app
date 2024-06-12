@@ -13,8 +13,8 @@ generator client {
 
 model User {
   id                    String         @id @default(uuid())
-  firstName             String        @default("")
-  lastName              String      @default("")
+  firstName             String         @default("")
+  lastName              String         @default("")
   email                 String         @unique
   phone                 String
   role                  UserRole       @default(PLAYER)
@@ -97,6 +97,7 @@ model Event {
   collectFeeServiceCharge Boolean?
   payments                Payment[]
   eventComments           eventComment[]
+  File                    File[]
 
   @@index([groupId])
   @@index([parentEventId])
@@ -108,7 +109,7 @@ model Participant {
   status  String
 
   user  User  @relation(fields: [userId], references: [id])
-  event Event @relation(fields: [eventId], references: [id])
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@id([userId, eventId])
   @@index([userId])
@@ -187,7 +188,7 @@ model eventComment {
   content   String
   timestamp DateTime @default(now())
 
-  event  Event @relation(fields: [eventId], references: [id])
+  event  Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   author User  @relation(fields: [authorId], references: [id])
 
   @@index([eventId])
@@ -286,16 +287,18 @@ model File {
   fileName     String
   fileType     String
   uploadDate   DateTime     @default(now())
-  uploadStatus UploadStatus @default(PENDING)
 
-  url    String
-  key    String
-  group  Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  Post   Post?   @relation(fields: [postId], references: [id])
-  postId String?
+  url     String
+  key     String
+  group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  Post    Post?   @relation(fields: [postId], references: [id])
+  postId  String?
+  Event   Event?  @relation(fields: [eventId], references: [id])
+  eventId String?
 
   @@index([groupId])
   @@index([postId])
+  @@index([eventId])
 }
 
 enum UploadStatus {

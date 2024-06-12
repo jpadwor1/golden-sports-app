@@ -1,6 +1,6 @@
 import React from 'react';
 import { AvatarImage, AvatarFallback, Avatar } from '@/components/ui/avatar';
-import { CalendarIcon, DollarSign, Loader2, MapPin, Send, User, User2 } from 'lucide-react';
+import { CalendarIcon, DollarSign, Loader2, MapPin, User2 } from 'lucide-react';
 import Image from 'next/image';
 import { db } from '@/db';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
@@ -8,14 +8,13 @@ import { redirect } from 'next/navigation';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import ParticipationButtons from '@/components/Dashboard/Events/buttons/participationButtons';
-import EventComment from '@/components/Dashboard/Events/EventComment';
 import MessageDialog from '@/components/Dashboard/Events/MessageDialog';
 import ParticipationDialog from '@/components/Dashboard/Events/participation-status-dialog';
 import EventButtons from '@/components/Dashboard/Events/buttons/event-buttons';
-import EventCommentFeed from '@/components/Dashboard/Events/comments/event-comment-feed';
-import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import EventCommentInput from '@/components/Dashboard/Events/comments/event-comment-input';
+import { getFileIcon } from '@/hooks/getIcon';
+import { ExtendedEvent } from '@/types/types';
 
 interface PageProps {
   params: {
@@ -64,6 +63,7 @@ const Page = async ({ params }: PageProps) => {
       eventComments: true,
       payments: true,
       group: true,
+      File: true,
     },
   });
 
@@ -78,6 +78,8 @@ const Page = async ({ params }: PageProps) => {
       </div>
     );
   }
+
+  const files = event.File.length > 0 ? event.File : [];
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const encodedAddress = encodeURIComponent(
@@ -193,7 +195,7 @@ const Page = async ({ params }: PageProps) => {
             <div className='flex items-center'>
               <DollarSign className='text-gray-800 mr-2' />
               <p className='text-md tracking-wide'>
-               {event.totalFeeAmount.toFixed(2)}
+                {event.totalFeeAmount.toFixed(2)}
               </p>
             </div>
           )}
@@ -201,6 +203,32 @@ const Page = async ({ params }: PageProps) => {
         <div className='mt-4 mb-8 px-4 py-4'>
           <p>{event.description}</p>
         </div>
+
+        {files.length > 0 && (
+          <>
+            <Separator />
+            <div className='mb-8'>
+              <h3 className='text-lg font-medium my-2'>Attachments</h3>
+              <Separator className='mb-2' />
+
+              <div className='grid grid-cols-2 gap-2'>
+                {files.map((file, index) => (
+                  <Link
+                    href={file.url}
+                    target='_blank'
+                    key={index}
+                    className='flex flex-row items-start border rounded-md p-2 my-2'
+                  >
+                    {getFileIcon(file.fileName)}
+                    <p className='text-sm text-gray-500 truncate max-w-[200px]'>
+                      {file.fileName}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
         <div className='flex justify-between items-center mb-4'>
           <MessageDialog />
           <ParticipationDialog

@@ -50,23 +50,8 @@ const CreateTeamForm = () => {
   const { handleSubmit, control } = form;
   const mutation = trpc.createGroup.useMutation();
 
-  const { mutate: startPolling } = trpc.getFile.useMutation({
-    onSuccess: (data) => {},
-    retry: true,
-    retryDelay: 500,
-  });
-  const { mutate: createFile } = trpc.getCreateFile.useMutation({
-    onSuccess: (data) => {
-      setFileData((prevData) => ({
-        ...prevData,
-        downloadURL: data?.key || '',
-        fileName: data?.fileName || '',
-        id: data?.id || '',
-        fileType: data?.fileType || '',
-        uploadDate: new Date(data?.uploadDate || new Date()),
-      }));
-    },
-  });
+ //ADD file upload here
+
 
   const onSubmit = (data: TeamFormValues) => {
     const formData = {

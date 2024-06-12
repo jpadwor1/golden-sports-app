@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import React from 'react';
 import { IconCircleX, IconCircleCheck } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-import { ExtendedEvent } from '../Events';
 import EventPaymentDialog from '../payment/event-payment-dialog';
 import {
   Dialog,
@@ -15,6 +14,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { ExtendedEvent } from '@/types/types';
 import { X } from 'lucide-react';
 
 interface ParticipationButtonProps {
@@ -51,7 +51,7 @@ const ParticipationButtons = ({
       returnUrl: `${window.location.href}?session_id={CHECKOUT_SESSION_ID}`,
       coachId: event.group.coachId,
     };
-    if (event.feeAmount && status === 'ATTENDING') {
+    if (event.feeAmount && event.feeAmount > 0 && status === 'ATTENDING') {
       try {
         const response = await fetch(
           '/api/event-payments/create-payment-intent',
@@ -97,7 +97,6 @@ const ParticipationButtons = ({
       userId: userId as string,
       status: status,
     };
-    console.log('handling participation');
     updateParticipationStatus.mutate(formData, {
       onSuccess: () => {
         setParticipationStatus(status);
@@ -114,7 +113,8 @@ const ParticipationButtons = ({
   };
   return (
     <div className='flex'>
-      <Dialog>
+      {(event.feeAmount && event.feeAmount > 0) ? (
+        <Dialog>
         <DialogTrigger asChild>
           <Button
             disabled={participationStatus === 'ATTENDING' || isLoading}
@@ -145,6 +145,23 @@ const ParticipationButtons = ({
           />
         </DialogContent>
       </Dialog>
+      ): (
+        <Button
+            disabled={participationStatus === 'ATTENDING' || isLoading}
+            onClick={() => handleParticipation('ATTENDING')}
+            className={cn(
+              participationStatus === 'ATTENDING'
+                ? 'bg-green-700 text-white'
+                : 'bg-gray-300',
+              'mr-2'
+            )}
+            variant='secondary'
+          >
+            <IconCircleCheck size={18} className='mr-1' stroke={2} />
+            {participationStatus === 'ATTENDING' ? 'Attending' : 'Attend'}
+          </Button>
+      )}
+      
 
       <Button
         disabled={participationStatus === 'DECLINED' || isLoading}

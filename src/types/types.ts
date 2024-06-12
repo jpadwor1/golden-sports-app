@@ -1,4 +1,15 @@
-import { Poll, PollComment, PollOption, PollVote, User } from '@prisma/client';
+import {
+  Group,
+  Participant,
+  Payment,
+  Poll,
+  PollComment,
+  PollOption,
+  PollVote,
+  User,
+  Event,
+  File,
+} from '@prisma/client';
 
 export type ExtendedPollComment = PollComment & {
   author: User;
@@ -36,3 +47,18 @@ export type ExtendedUser = {
     logoURL: string | null;
   }[];
 } & User;
+
+export type ExtendedEvent = Event & {
+  invitees: Participant[];
+  group: Group;
+  payments: Payment[];
+  File: File[];
+};
+
+export type FileType = {
+  key: string;
+  fileName: string;
+  fileType: string;
+  uploadDate: string;
+  downloadURL: string;
+}[];

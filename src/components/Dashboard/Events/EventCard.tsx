@@ -31,7 +31,6 @@ interface EventCardProps {
 
 const EventCard = ({ event, user, groupId }: EventCardProps) => {
   const hasAnswered = event.invitees.some((p) => p.userId === user.id);
-  console.log('event', event);
   const date = new Date(event.startDateTime);
   const months = [
     'January',

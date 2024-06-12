@@ -1,8 +1,8 @@
 'use client';
 import React from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Bell, Pen} from 'lucide-react';
-import { ExtendedEvent } from '../Events';
+import { Bell, Pen, Trash2} from 'lucide-react';
+import { ExtendedEvent } from '@/types/types';
 import {
     Dialog,
     DialogTrigger,
@@ -15,8 +15,17 @@ import UpdateEventForm from '../UpdateEventForm';
 import { Children, User } from '@prisma/client';
 import { cn } from '@/lib/utils';
 import InviteUserButton from './invite-user-button';
-
-
+import { IconDotsVertical } from '@tabler/icons-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useRouter } from 'next/navigation';
+import { trpc } from '@/app/_trpc/client';
+import { toast } from '@/components/ui/use-toast';
 interface EventButtonProps {
     user: User & {
         Children: Children[];
@@ -25,10 +34,32 @@ interface EventButtonProps {
 }
 
 const EventButtons = ({ event, user }: EventButtonProps) => {
+  const router = useRouter();
   const [eventFormOpen, setEventFormOpen] = React.useState(false);
 
   const sendReminder = () => {
-    console.log('send reminder');
+  }
+
+  const deleteEvent = trpc.deleteEvent.useMutation();
+
+  const handleDeleteEvent = () => {
+    const formData = {
+      eventId: event.id,
+      groupId: event.groupId
+    }
+
+    deleteEvent.mutate(formData,{
+      onSuccess: () => {
+        router.push(`/dashboard/group/${event.groupId}`, {scroll: false})
+      },
+      onError: (error) => {
+        console.error(error)
+        toast({
+          title: 'Oops, something went wrong',
+          description: "The event wasn't IconGitBranchDeleted. Reload the page and try again."
+        })
+      }
+    })
   }
 
 
@@ -57,6 +88,20 @@ const EventButtons = ({ event, user }: EventButtonProps) => {
           <UpdateEventForm event={event} user={user} groupId={event.groupId} setEventFormOpen={setEventFormOpen} />
         </DialogContent>
       </Dialog>
+      
+  <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="outline" className="h-6 w-6 ml-2">
+                  <IconDotsVertical className="h-5 w-5" />
+                  <span className="sr-only">More</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleDeleteEvent()}>
+                  <Trash2 className='h-4 w-4 text-red-400 mr-2' /> Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
     </>
   );
 };

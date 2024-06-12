@@ -109,7 +109,6 @@ const SocialCard: React.FC<SocialCardProps> = ({ post, user }) => {
       { ...likeData },
       {
         onSuccess: () => {
-          console.log('like added');
           setLikes([
             ...likes,
             {

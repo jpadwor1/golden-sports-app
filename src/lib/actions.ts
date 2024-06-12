@@ -1,4 +1,4 @@
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref, uploadBytes, getDownloadURL,deleteObject  } from 'firebase/storage';
 import { app } from '@/config/firebase';
 
 export const startFileUpload = async ({ file }: { file: File | null }) => {
@@ -8,7 +8,7 @@ export const startFileUpload = async ({ file }: { file: File | null }) => {
   }
 
   const storage = getStorage(app);
-  const storageRef = ref(storage, '/files/' + file.name);
+  const storageRef = ref(storage,file.name);
 
   try {
     const snapshot = await uploadBytes(storageRef, file);
@@ -20,6 +20,25 @@ export const startFileUpload = async ({ file }: { file: File | null }) => {
   } catch (error) {
     console.error('Error uploading file:', error);
     return null; // Indicating an error occurred
+  }
+};
+
+export const deleteStorageFile = async (fileName: string) => {
+  if (!fileName) {
+    alert('No file name');
+    return null;
+  }
+
+  const storage = getStorage(app);
+  const storageRef = ref(storage,fileName);
+
+  try {
+    deleteObject(storageRef).then(()=> {
+      console.log('File deleted successfully')
+    })
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    return null; 
   }
 };
 

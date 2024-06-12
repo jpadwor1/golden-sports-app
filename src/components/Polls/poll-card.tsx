@@ -68,7 +68,6 @@ export default function PollCard({ user, poll }: PollCardProps) {
     addVote.mutate(voteData, {
       onSuccess: () => {
         setHasVoted(true);
-        console.log('Vote added');
       },
       onError: (error: any) => {
         console.error(error);
@@ -89,7 +88,6 @@ export default function PollCard({ user, poll }: PollCardProps) {
     };
     addPollComment.mutate(commentData, {
       onSuccess: () => {
-        console.log('Comment added');
         setComment('');
         utils.getPollComments.invalidate(poll.id);
       },

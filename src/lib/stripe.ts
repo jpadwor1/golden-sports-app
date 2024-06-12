@@ -10,7 +10,6 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
 });
 
 export async function createStripeAccount(userId: string) {
-console.log('Creating a Stripe account for user:', userId);
   if (userId) {
     redirect('/sign-in');
   }

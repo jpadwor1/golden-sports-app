@@ -66,7 +66,6 @@ const Reply = ({ reply }: ReplyProps) => {
         </div>
         <div className='flex flex-row items-center'>
           <Button
-            onClick={() => console.log('Like')}
             variant='ghost'
             className='text-xs px-2 py-0 my-0 ml-2 max-w-fit h-6 '
           >

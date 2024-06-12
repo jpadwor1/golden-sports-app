@@ -50,7 +50,6 @@ const Polls = ({ user, polls }: PollsPageProps) => {
           <h2 className='text-2xl font-bold tracking-wide '>Polls</h2>
           {!pollFormOpen && (
             <button
-              onClick={() => console.log('clicked')}
               className='flex flex-row items-center justify-center space-x-1 hover:bg-gray-200 hover:cursor-pointer px-2 py-1 rounded-full'
             >
               <Plus className='h-3 w-3 text-blue-500' />

@@ -311,7 +311,6 @@ const UpdateEventForm = ({
 
     if (response.ok) {
       const url = await response.text();
-      console.log('Redirecting to:', url);
       window.location.href = url;
     }
   };

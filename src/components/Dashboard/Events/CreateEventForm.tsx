@@ -1,6 +1,6 @@
 import { trpc } from '@/app/_trpc/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -21,46 +21,23 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { User } from '@prisma/client';
 import {
-  CircleDollarSign,
-  File,
   Link2,
-  Loader2,
   Plus,
   Trash,
-  X,
 } from 'lucide-react';
 import { MultiSelect } from 'react-multi-select-component';
-import { redirect, useRouter } from 'next/navigation';
-import React, { FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
-import Link from 'next/link';
 import { CheckedState } from '@radix-ui/react-checkbox';
-import {
-  Dialog as FSDialog,
-  DialogContent as FSDialogContent,
-  DialogDescription as FSDialogDescription,
-  DialogHeader as FSDialogHeader,
-  DialogTitle as FSDialogTitle,
-  DialogTrigger as FSDialogTrigger,
-} from '@/components/ui/fullscreen-dialog';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import StepperForm from './Stepper';
 import PaymentDialog from './PaymentDialog';
 import EventFeeDialog from './EventFeeDialog';
-import { ExtendedUser } from '@/types/types';
+import { ExtendedUser, FileType } from '@/types/types';
+import { deleteStorageFile, startFileUpload } from '@/lib/actions';
+import { getFileIcon } from '@/hooks/getIcon';
 
 interface CreateEventFormProps {
   user: ExtendedUser;
@@ -275,6 +252,8 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
     }
   };
 
+  
+
   const handlePayments = () => {
     if (!user.stripeAccountComplete) {
       setPaymentDialogOpen(true);
@@ -295,19 +274,38 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
 
     if (response.ok) {
       const url = await response.text();
-      console.log('Redirecting to:', url);
       window.location.href = url;
     }
   };
 
   const submitEvent = trpc.createEvent.useMutation();
-  const onSubmit = (data: EventFormValues) => {
+  const onSubmit = async (data: EventFormValues) => {
+    let uploadedFilesData: FileType = [];
+    if (files && files.length > 0) {
+          uploadedFilesData = await Promise.all(
+            files.map(async (file) => {
+              const uploadResult = await startFileUpload({ file });
+              if (!uploadResult) {
+                throw new Error('Upload failed');
+              }
+              const { downloadURL } = uploadResult;
+              return {
+                key: downloadURL,
+                fileName: file.name,
+                fileType: file.type,
+                uploadDate: new Date().toDateString(),
+                downloadURL: downloadURL,
+              };
+            })
+          );
+        }
     const newFormData = {
       ...data,
       ...feeData,
       invitees: invitees.map((invitee) => invitee.value),
       repeatFrequency: repeatFrequency.map((frequency) => frequency.value),
       groupId: groupId,
+      files: uploadedFilesData,
     };
 
     submitEvent.mutate(newFormData, {
@@ -315,12 +313,21 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
         setEventFormOpen(false);
         router.refresh();
       },
-      onError: (error) => {
+      onError: async (error) => {
         console.error('Error creating event:', error);
+        if (files && files.length > 0) {
+          await Promise.all(
+            files.map(async (file) => {
+              const deleteResult = await deleteStorageFile( file.name );
+              if (!deleteResult) {
+                throw new Error('delete failed');
+              }
+            })
+          );
+        }
       },
     });
   };
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -631,7 +638,7 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
                     key={index}
                     className='flex flex-row items-start border rounded-md p-2 my-2'
                   >
-                    <File className='h-6 w-6 text-blue-600 mr-2' />
+                    {getFileIcon(file.name)}
                     <p className='text-sm text-gray-500'>{file.name}</p>
                     <Trash
                       className='h-4 w-4 text-red-500 ml-auto hover:cursor-pointer self-center'
