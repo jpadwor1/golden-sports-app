@@ -22,9 +22,11 @@ export function NotificationBell({ user}: NotificationBellProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent align='end' className='w-[350px] p-0'>
-        {/* {user.notifications.map((notification) => (
+        {user.notifications && user.notifications.length > 0 ? user.notifications.map((notification) => (
           <NotificationCard key={notification.id} notification={notification} />
-        ))} */}
+        )): (
+          <NotificationCard />
+        )}
       </PopoverContent>
     </Popover>
   );
