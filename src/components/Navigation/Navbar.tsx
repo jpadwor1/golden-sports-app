@@ -14,6 +14,8 @@ import UserAccountNav from './UserAccountNav';
 import NavbarMenu from './NavbarMenu';
 import { db } from '@/db';
 import { NotificationBell } from '../notifications/notificationbell';
+import { redirect } from 'next/navigation';
+
 
 const Navbar = async () => {
   const { getUser } = getKindeServerSession();
@@ -24,7 +26,14 @@ const Navbar = async () => {
       where: {
         id: user?.id,
       },
+      include: {
+        notifications: true,
+      }
     })
+  }
+
+  if (!dbUser) {
+    redirect('/auth-callback?origin=dashboard');
   }
   
 
@@ -75,7 +84,7 @@ const Navbar = async () => {
                   email={user.email ?? ''}
                   role='Customer'
                 />
-                <NotificationBell />
+                <NotificationBell user={dbUser} />
               </>
             )}
           </div>

@@ -17,13 +17,18 @@ export default async function GroupLayout({ children }: GroupLayoutProps) {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
 
-  if (!user || !user.id) redirect('/auth-callback?origin=dashboard');
+  if (!user || !user.id) redirect('/auth-callback?origin=dashboard/group');
 
   const dbUser = await db.user.findUnique({
     where: {
       id: user.id,
     },
+    include:{
+      notifications: true,
+    }
   });
+
+  if (!dbUser || !dbUser.id) redirect('/auth-callback?origin=dashboard/group');
 
   return (
     <div className='flex'>

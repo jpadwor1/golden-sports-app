@@ -19,7 +19,6 @@ interface HeaderProps {
 const Header = ({ user }: HeaderProps) => {
   const scrolled = useScroll(5);
   const selectedLayout = useSelectedLayoutSegment();
-
   return (
     <div
       className={cn(

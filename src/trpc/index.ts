@@ -146,6 +146,14 @@ export const appRouter = router({
           },
         });
 
+        await db.user.update({
+          where: {
+            id: user.id
+          },
+          data: {
+            role: 'COACH',
+          }
+        })
         return group;
       }
 
@@ -1032,6 +1040,8 @@ export const appRouter = router({
                 resourceId: event.id,
                 message: `You've been invited to ${event.title}.`,
                 read: false,
+                fromId: userId,
+                type: 'event'
               },
             });
           }
@@ -1513,6 +1523,8 @@ export const appRouter = router({
               resourceId: input.eventId,
               message: `You've been invited to an event.`,
               read: false,
+              fromId: userId,
+              type: 'event'
             },
           });
         }

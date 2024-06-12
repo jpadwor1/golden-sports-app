@@ -2,16 +2,9 @@ import React from 'react';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { db } from '@/db';
 import { redirect } from 'next/navigation';
-import { Group, Participant, Payment, Event } from '@prisma/client';
 import HorizontalNavbar from '@/components/Navigation/horizontal-navbar';
 import Image from 'next/image';
-import { timeStamp } from 'console';
-
-export type ExtendedEvent = Event & {
-  invitees: Participant[];
-  group: Group;
-  payments: Payment[];
-};
+import { ExtendedEvent } from '@/types/types';
 
 interface PageProps {
   params: {
@@ -55,6 +48,7 @@ const Page = async ({ params }: PageProps) => {
       payments: true,
       invitees: true,
       group: true,
+      File: true,
     },
     orderBy: {
       startDateTime: 'asc',
@@ -97,7 +91,7 @@ const Page = async ({ params }: PageProps) => {
         },
         orderBy: {
           timestamp: 'desc',
-        }
+        },
       },
       author: true,
     },

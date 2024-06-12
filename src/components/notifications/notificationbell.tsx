@@ -4,29 +4,31 @@ import {
   PopoverContent,
   Popover,
 } from '@/components/ui/popover';
-import NotificationCard from './notification-card';
+import NotificationList from './notification-list';
 import { UserWithNotifications } from '@/types/types';
 
 interface NotificationBellProps {
   user: UserWithNotifications;
 }
-export function NotificationBell({ user}: NotificationBellProps) {
+export function NotificationBell({ user }: NotificationBellProps) {
+  const notifications = user.notifications;
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button className='relative' size='icon' variant='ghost'>
           <BellIcon className='w-5 h-5' />
-          <span className='absolute top-0.5 right-0.5 inline-flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white'>
-            {/* {user.notifications.filter((n) => !n.read).length} */}
-          </span>
+          {notifications && notifications.length > 0 && (
+            <span className='absolute top-0.5 right-0.5 inline-flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white'>
+              {notifications.filter((n) => !n.read).length}
+            </span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent align='end' className='w-[350px] p-0'>
-        {user.notifications && user.notifications.length > 0 ? user.notifications.map((notification) => (
-          <NotificationCard key={notification.id} notification={notification} />
-        )): (
-          <NotificationCard />
-        )}
+        
+        
+          <NotificationList />
+        
       </PopoverContent>
     </Popover>
   );
