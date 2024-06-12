@@ -13,7 +13,8 @@ import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { Trash } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const Page = async () => {
   const { getUser } = getKindeServerSession();
@@ -102,7 +103,18 @@ const Page = async () => {
           )
         )}
       </div>
-      {dbUser.groupsAsCoach.length === 0 && <CreateTeamForm />}
+      {dbUser.groupsAsCoach.length === 0 ? (
+        <CreateTeamForm />
+      ): (
+        <div className='flex justify-center'>
+          <Link
+            href='/settings/team/create'
+            className={cn(buttonVariants({}),'flex items-center space-x-2')}
+          >
+            <span>Create a new team</span>
+          </Link>
+        </div>
+      ) }
     </div>
   );
 };

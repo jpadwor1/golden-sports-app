@@ -2,15 +2,9 @@
 
 import React from 'react';
 import { TabsTrigger, TabsList, TabsContent, Tabs } from '@/components/ui/tabs';
-import Link from 'next/link';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import Events from '@/components/Dashboard/Events/Events';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ExtendedEvent } from '@/app/dashboard/group/[groupId]/page';
-import { ExtendedPolls, ExtendedUser } from '@/types/types';
+import { ExtendedPolls, ExtendedUser, ExtendedEvent} from '@/types/types';
 import { Post } from '@/lib/utils';
 import Dashboard from '@/app/dashboard/Dashboard';
 import PollPage from '../Polls/poll-page';

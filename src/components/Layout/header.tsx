@@ -9,13 +9,14 @@ import useScroll from '@/hooks/use-scroll';
 import { cn } from '@/lib/utils';
 import UserAccountNav from '../Navigation/UserAccountNav';
 import NavbarMenu from '../Navigation/NavbarMenu';
+import { NotificationBell } from '../notifications/notificationbell';
+import { UserWithNotifications } from '@/types/types';
 
 interface HeaderProps {
-  imageURL: string;
-  email: string;
+  user: UserWithNotifications;
 }
 
-const Header = ({ imageURL, email }: HeaderProps) => {
+const Header = ({ user }: HeaderProps) => {
   const scrolled = useScroll(5);
   const selectedLayout = useSelectedLayoutSegment();
 
@@ -39,14 +40,15 @@ const Header = ({ imageURL, email }: HeaderProps) => {
           </Link>
         </div>
 
-        <div className='hidden md:flex flex-row items-center md:mr-20'>
+        <div className='hidden md:flex flex-row items-center md:mr-10 md:space-x-4'>
           <NavbarMenu />
           <UserAccountNav
             name='Your Account'
             role='Customer'
-            imageUrl={imageURL}
-            email={email}
+            imageUrl={user.imageURL ? user.imageURL : ''}
+            email={user.email}
           />
+          <NotificationBell user={user} />
         </div>
       </div>
     </div>

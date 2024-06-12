@@ -9,6 +9,7 @@ import {
   User,
   Event,
   File,
+  Notification,
 } from '@prisma/client';
 
 export type ExtendedPollComment = PollComment & {
@@ -22,6 +23,7 @@ export type ExtendedPolls = Poll[] &
     PollComment: ExtendedPollComment[];
     author: User;
   }[];
+
 export type ExtendedPoll = Poll & {
   options: PollOption[];
   votes: PollVote[];
@@ -47,6 +49,10 @@ export type ExtendedUser = {
     logoURL: string | null;
   }[];
 } & User;
+
+export type UserWithNotifications = User & {
+  notifications: Notification[];
+}
 
 export type ExtendedEvent = Event & {
   invitees: Participant[];

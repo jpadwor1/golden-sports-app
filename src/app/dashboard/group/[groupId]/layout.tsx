@@ -30,7 +30,7 @@ export default async function GroupLayout({ children }: GroupLayoutProps) {
       <SidebarNav userId={user.id} />
       <main className='flex-1'>
         <MarginWidthWrapper>
-          <Header imageURL={dbUser?.imageURL ?? ''} email={user.email ?? ''} />
+          <Header user={dbUser} />
           <HeaderMobile />
           <PageWrapper>
             

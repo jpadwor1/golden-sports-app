@@ -13,6 +13,7 @@ import MobileNav from './MobileNav';
 import UserAccountNav from './UserAccountNav';
 import NavbarMenu from './NavbarMenu';
 import { db } from '@/db';
+import { NotificationBell } from '../notifications/notificationbell';
 
 const Navbar = async () => {
   const { getUser } = getKindeServerSession();
@@ -68,13 +69,13 @@ const Navbar = async () => {
                    */}
                   Dashboard
                 </Link>
-
                 <UserAccountNav
                   name='Your Account'
                   imageUrl={dbUser?.imageURL ?? ''}
                   email={user.email ?? ''}
                   role='Customer'
                 />
+                <NotificationBell />
               </>
             )}
           </div>

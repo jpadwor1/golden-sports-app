@@ -37,6 +37,7 @@ model User {
   eventComment          eventComment[]
   Poll                  Poll[]
   PollComment           PollComment[]
+  notifications          Notification[]
 
   @@index([parentId])
 }
@@ -218,6 +219,11 @@ model Notification {
   read       Boolean
   timestamp  DateTime @default(now())
   resourceId String
+  fromId     String
+  type       String
+  User       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model Poll {
@@ -282,11 +288,11 @@ model PollComment {
 }
 
 model File {
-  id           String       @id @default(uuid())
-  groupId      String
-  fileName     String
-  fileType     String
-  uploadDate   DateTime     @default(now())
+  id         String   @id @default(uuid())
+  groupId    String
+  fileName   String
+  fileType   String
+  uploadDate DateTime @default(now())
 
   url     String
   key     String

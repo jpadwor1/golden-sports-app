@@ -82,7 +82,7 @@ const CreateTeamForm = () => {
                 </>
               ),
             });
-            router.push('/settings');
+            router.push('/settings/team');
           },
           onError: (error: any) => {
             toast({
