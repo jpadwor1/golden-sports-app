@@ -34,19 +34,27 @@ const NotificationCard = ({
     notification.type === 'comment' ||
     notification.type === 'post' ||
     notification.type === 'like'
-      ? 'post'
+      ? 'posts'
       : notification.type === 'event'
-      ? 'event'
+      ? 'events'
       : notification.type === 'message'
-      ? 'message'
-      : null;
+      ? 'messages'
+      : notification.type === 'poll' ?
+      'polls' : 
+      notification.type === 'payments' ?
+      'payments' : null
 
   const {data, isLoading} = trpc.getResource.useQuery({
     resourceId: notification.resourceId,
-    resourceType: type as 'post' | 'event' | 'message',
+    resourceType: type as 'posts' | 'events' | 'messages' | 'polls' | 'payments',
   })
-  
-  const url = `/dashboard/group/${type}/${notification.resourceId}`;
+  let url = ''
+  if(type === 'events') {
+    url = `/dashboard/group/${data}/${type}/${notification.resourceId}`;
+  } else if(type === 'posts') {
+    url = `/dashboard/group/${data}?tab=posts/`;
+  }
+
   return (
     <Link className='flex items-start gap-3' href={url}>
       <div className='flex-shrink-0'>

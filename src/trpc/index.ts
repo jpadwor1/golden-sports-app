@@ -627,6 +627,28 @@ export const appRouter = router({
           },
         });
 
+        const groupMembers = await db.user.findMany({
+          where: {
+            groupsAsMember: {
+              some: {
+                id: input.groupId,
+              },
+            },
+          },
+        });
+
+        await Promise.all((groupMembers || []).map(async (member) => {
+          await db.notification.create({
+            data: {
+              userId: member.id,
+              resourceId: post.id,
+              message: 'You have a new post.',
+              read: false,
+              fromId: userId,
+              type: 'post'
+            },
+          });
+        }));
         return post;
       }
 
@@ -1571,10 +1593,47 @@ export const appRouter = router({
       }
 
       try {
-        
+        const resource =
+        input.resourceType === 'comments' ||
+        input.resourceType === 'posts' ||
+        input.resourceType === 'likes'
+          ? await db.post.findFirst({
+              where: {
+                id: input.resourceId,
+              },
+          })
+          :input.resourceType === 'events'
+          ? await db.event.findFirst({
+            where: {
+              id: input.resourceId,
+            },
+        })
+          :input.resourceType  === 'messages'
+          ? await db.message.findFirst({
+            where: {
+              id: input.resourceId,
+            },
+        })
+          :input.resourceType  === 'polls'
+          ? await db.poll.findFirst({
+            where: {
+              id: input.resourceId,
+            },
+        }) : input.resourceType === 'payments' ?
+        await db.payment.findFirst({
+          where: {
+            id: input.resourceId,
+          },
+      }): undefined;
 
+        if (!resource) {
+          return new TRPCError({ code: 'NOT_FOUND' });
+        }
+
+        const groupId = resource?.groupId;
+          
         
-        return null;
+        return groupId;
       } catch (error: any) {
         console.error(error);
         return error;

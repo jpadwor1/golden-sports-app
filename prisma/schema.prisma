@@ -37,7 +37,7 @@ model User {
   eventComment          eventComment[]
   Poll                  Poll[]
   PollComment           PollComment[]
-  notifications          Notification[]
+  notifications         Notification[]
 
   @@index([parentId])
 }
@@ -66,9 +66,10 @@ model Group {
   messages    Message[]
   files       File[]
 
-  members User[] @relation("MemberGroups")
+  members User[]    @relation("MemberGroups")
   Post    Post[]
   Poll    Poll[]
+  Payment Payment[]
 
   @@index([coachId])
 }
@@ -124,12 +125,15 @@ model Payment {
   amount        Float
   paymentStatus String
   dueDate       DateTime?
+  groupId       String
 
   user  User   @relation(fields: [userId], references: [id])
   event Event? @relation(fields: [eventId], references: [id])
+  group Group  @relation(fields: [groupId], references: [id])
 
   @@index([userId])
   @@index([eventId])
+  @@index([groupId])
 }
 
 model Message {
