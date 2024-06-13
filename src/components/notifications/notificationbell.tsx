@@ -17,7 +17,7 @@ export function NotificationBell({ user }: NotificationBellProps) {
       <PopoverTrigger asChild>
         <Button className='relative' size='icon' variant='ghost'>
           <BellIcon className='w-6 h-6' />
-          {notifications && notifications.length > 0 && (
+          {notifications && notifications.filter((n)=> !n.read).length > 0 && (
             <span
               aria-hidden
               className='absolute top-0.5 right-0.5 inline-flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white'

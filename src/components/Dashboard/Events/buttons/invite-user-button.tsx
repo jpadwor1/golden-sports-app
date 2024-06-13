@@ -12,14 +12,14 @@ import {
 import { cn } from '@/lib/utils';
 import { CheckIcon, UserPlus } from 'lucide-react';
 import React from 'react';
-import { ExtendedEvent } from '../Events';
 import { trpc } from '@/app/_trpc/client';
-import { Group, User } from '@prisma/client';
+import { Group, Participant, User } from '@prisma/client';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
+import { ExtendedEvent } from '@/types/types';
 
 type GroupType = Group & {
   members: User[];
@@ -79,7 +79,7 @@ const InviteUserButton = ({ event }: InviteUserButtonProps) => {
   const group = data as GroupType;
   
   const members = group.members.filter(member =>
-    !event.invitees.some(invitee => invitee.userId === member.id)
+    !event.invitees.some((invitee: { userId: string; }) => invitee.userId === member.id)
   );
   return (
     <>

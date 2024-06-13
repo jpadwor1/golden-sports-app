@@ -1673,6 +1673,41 @@ export const appRouter = router({
       return error;
     }
   }),
+  sendInviteeEventReminder: privateProcedure
+  .input(z.array(z.object({
+    userId: z.string(),
+    eventId: z.string(),
+    status: z.string(),
+  }))).mutation(async ({ ctx, input }) => {
+    const { userId, user } = ctx;
+
+    if (!userId || !user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED' });
+    }
+
+    try {
+      
+      await Promise.all(input.map(async (invitee) => {
+        if(invitee.status === 'UNANSWERED') {
+          await db.notification.create({
+            data: {
+              userId: invitee.userId,
+              resourceId: invitee.eventId,
+              message: `You have an event coming up soon.`,
+              read: false,
+              fromId: userId,
+              type: 'event'
+            },
+          });
+        }
+      }));
+
+      return { success: true };
+    } catch (error: any) {
+      console.error(error);
+      return error;
+    }
+  }),
 });
 
 export type AppRouter = typeof appRouter;

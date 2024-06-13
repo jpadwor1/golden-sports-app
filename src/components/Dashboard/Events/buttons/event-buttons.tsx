@@ -37,7 +37,23 @@ const EventButtons = ({ event, user }: EventButtonProps) => {
   const router = useRouter();
   const [eventFormOpen, setEventFormOpen] = React.useState(false);
 
+  const sendInviteesReminder = trpc.sendInviteeEventReminder.useMutation();
   const sendReminder = () => {
+    sendInviteesReminder.mutate(event.invitees,{
+      onSuccess: () => {
+        toast({
+          title: 'Reminder sent',
+          description: 'The reminder was sent to all invitees who have not responded yet.'
+        })
+      },
+      onError: (error) => {
+        console.error(error)
+        toast({
+          title: 'Oops, something went wrong',
+          description: 'The reminder was not sent. Reload the page and try again.'
+        })
+      }
+    });
   }
 
   const deleteEvent = trpc.deleteEvent.useMutation();
