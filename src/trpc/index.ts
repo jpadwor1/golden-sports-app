@@ -1535,6 +1535,51 @@ export const appRouter = router({
         return error;
       }
     }),
+    getFromUser: privateProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        const dbUser = await db.user.findFirst({
+          where: {
+            id: input,
+          },
+        });
+
+        
+        return dbUser;
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
+    getResource: privateProcedure
+    .input(z.object({
+      resourceId: z.string(),
+      resourceType: z.string(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        
+
+        
+        return null;
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
 });
 
 export type AppRouter = typeof appRouter;

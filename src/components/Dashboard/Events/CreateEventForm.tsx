@@ -21,11 +21,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Link2,
-  Plus,
-  Trash,
-} from 'lucide-react';
+import { Link2, Plus, Trash } from 'lucide-react';
 import { MultiSelect } from 'react-multi-select-component';
 import { useRouter } from 'next/navigation';
 import React from 'react';
@@ -42,6 +38,7 @@ import { getFileIcon } from '@/hooks/getIcon';
 interface CreateEventFormProps {
   user: ExtendedUser;
   setEventFormOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  groupId: string;
 }
 
 const eventFormSchema = z.object({
@@ -137,12 +134,15 @@ const repeatFrequencyOptions: Option[] = [
   { label: 'Monthly', value: 'monthly' },
 ];
 
-const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
+const CreateEventForm = ({
+  user,
+  setEventFormOpen,
+  groupId,
+}: CreateEventFormProps) => {
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
   const [inputOpen, setInputOpen] = React.useState(false);
   const [endTimeInput, setEndTimeInput] = React.useState(false);
-  const [groupId, setGroupId] = React.useState('');
   const [invitees, setInvitees] = React.useState<Option[]>([]);
   const [teamMembers, setTeamMembers] = React.useState<Option[]>([]);
   const [fetchTeamMembers, setFetchTeamMembers] = React.useState(false);
@@ -165,6 +165,7 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   const ref = React.useRef<HTMLDivElement>(null);
   const TextAreaRef = React.useRef<HTMLTextAreaElement>(null);
   const userGroups = [...user.groupsAsCoach, ...user.groupsAsMember];
+  const group = userGroups.find((group) => group.id === groupId);
   const [recurring, setRecurring] = React.useState<CheckedState>();
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
@@ -252,8 +253,6 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
     }
   };
 
-  
-
   const handlePayments = () => {
     if (!user.stripeAccountComplete) {
       setPaymentDialogOpen(true);
@@ -282,23 +281,23 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   const onSubmit = async (data: EventFormValues) => {
     let uploadedFilesData: FileType = [];
     if (files && files.length > 0) {
-          uploadedFilesData = await Promise.all(
-            files.map(async (file) => {
-              const uploadResult = await startFileUpload({ file });
-              if (!uploadResult) {
-                throw new Error('Upload failed');
-              }
-              const { downloadURL } = uploadResult;
-              return {
-                key: downloadURL,
-                fileName: file.name,
-                fileType: file.type,
-                uploadDate: new Date().toDateString(),
-                downloadURL: downloadURL,
-              };
-            })
-          );
-        }
+      uploadedFilesData = await Promise.all(
+        files.map(async (file) => {
+          const uploadResult = await startFileUpload({ file });
+          if (!uploadResult) {
+            throw new Error('Upload failed');
+          }
+          const { downloadURL } = uploadResult;
+          return {
+            key: downloadURL,
+            fileName: file.name,
+            fileType: file.type,
+            uploadDate: new Date().toDateString(),
+            downloadURL: downloadURL,
+          };
+        })
+      );
+    }
     const newFormData = {
       ...data,
       ...feeData,
@@ -318,7 +317,7 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
         if (files && files.length > 0) {
           await Promise.all(
             files.map(async (file) => {
-              const deleteResult = await deleteStorageFile( file.name );
+              const deleteResult = await deleteStorageFile(file.name);
               if (!deleteResult) {
                 throw new Error('delete failed');
               }
@@ -345,30 +344,16 @@ const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
                 {user.firstName.charAt(0) + user.lastName.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <Select
-              onValueChange={(value) => setGroupId(value)}
-              className='select-class'
-            >
-              <SelectTrigger
-                className={cn(
-                  'w-[250px] text-xs ml-4 select-class focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none focus-visible:ring-offset-0 ring-0 ring-offset-0'
-                )}
-              >
-                <SelectValue placeholder='Pick a Team to Schedule Event' />
-              </SelectTrigger>
-              <SelectContent className='select-class focus-visible:ring-0'>
-                {userGroups.map((group) => (
-                  <SelectItem
-                    className='select-class focus-visible:ring-0'
-                    key={group.id}
-                    value={group.id}
-                    onChange={(value) => setGroupId(group.id)}
-                  >
-                    {group.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className='flex flex-col items-start ml-4'>
+              <p className='text-lg font-medium'>
+                {user.firstName} {user.lastName}
+              </p>
+              {group && (
+                <p className='text-xs'>
+                  Posting to {group.name} {group.description}{' '}
+                </p>
+              )}
+            </div>
           </div>
           <div
             className={cn(

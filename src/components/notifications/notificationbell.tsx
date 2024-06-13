@@ -27,7 +27,7 @@ export function NotificationBell({ user }: NotificationBellProps) {
       <PopoverContent align='end' className='w-[350px] p-0'>
         
         
-          <NotificationList />
+          <NotificationList notifications={notifications} />
         
       </PopoverContent>
     </Popover>

@@ -146,3 +146,26 @@ export const addUser = async ({
     throw error; 
   }
 };
+
+export  function formatDate(date: Date): string {
+  const now = new Date();
+  const inputDate = new Date(date);
+  const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
+
+  const diffTime = now.getTime() - inputDate.getTime();
+  const diffDays = Math.floor(diffTime / oneDayInMilliseconds);
+
+  if (diffDays === 0) {
+    return 'Today';
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else if (diffDays === 2) {
+    return '2 days ago';
+  } else {
+    return inputDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }
+}

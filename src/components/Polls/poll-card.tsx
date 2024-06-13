@@ -18,6 +18,7 @@ import { trpc } from '@/app/_trpc/client';
 import { Textarea } from '../ui/textarea';
 import PollCommentFeed from './poll-comment-feed';
 import Image from 'next/image';
+import { formatDate } from '@/lib/actions';
 
 interface PollCardProps {
   user: ExtendedUser;
@@ -35,28 +36,7 @@ export default function PollCard({ user, poll }: PollCardProps) {
   const utils = trpc.useUtils();
   const {data, isLoading} = trpc.getPollComments.useQuery(poll.id);
 
-  function formatDate(date: Date): string {
-    const now = new Date();
-    const inputDate = new Date(date);
-    const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
-
-    const diffTime = now.getTime() - inputDate.getTime();
-    const diffDays = Math.floor(diffTime / oneDayInMilliseconds);
-
-    if (diffDays === 0) {
-      return 'Today';
-    } else if (diffDays === 1) {
-      return 'Yesterday';
-    } else if (diffDays === 2) {
-      return '2 days ago';
-    } else {
-      return inputDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    }
-  }
+ 
   const totalVotes = poll.votes.length;
 
   const addVote = trpc.createVote.useMutation();

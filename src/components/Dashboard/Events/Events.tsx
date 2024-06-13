@@ -55,7 +55,7 @@ const Events = ({ user, events, groupId }: EventsPageProps) => {
         </div>
         <div className='flex flex-col min-h-[calc(100vh-20rem)] w-full'>
           {eventFormOpen && (
-            <CreateEventForm setEventFormOpen={setEventFormOpen} user={user} />
+            <CreateEventForm setEventFormOpen={setEventFormOpen} user={user} groupId={groupId}/>
           )}
           {events.map((event) => (
             <EventCard
