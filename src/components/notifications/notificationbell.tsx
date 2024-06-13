@@ -16,19 +16,17 @@ export function NotificationBell({ user }: NotificationBellProps) {
     <Popover>
       <PopoverTrigger asChild>
         <Button className='relative' size='icon' variant='ghost'>
-          <BellIcon className='w-5 h-5' />
+          <BellIcon className='w-6 h-6' />
           {notifications && notifications.length > 0 && (
-            <span className='absolute top-0.5 right-0.5 inline-flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white'>
-              {notifications.filter((n) => !n.read).length}
-            </span>
+            <span
+              aria-hidden
+              className='absolute top-0.5 right-0.5 inline-flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white'
+            ></span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent align='end' className='w-[350px] p-0'>
-        
-        
-          <NotificationList notifications={notifications} />
-        
+        <NotificationList notifications={notifications} />
       </PopoverContent>
     </Popover>
   );

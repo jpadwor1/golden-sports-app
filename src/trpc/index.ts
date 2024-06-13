@@ -1639,6 +1639,40 @@ export const appRouter = router({
         return error;
       }
     }),
+  updateNotificationReadStatus: privateProcedure
+  .input(z.string()).mutation(async ({ ctx, input }) => {
+    const { userId, user } = ctx;
+
+    if (!userId || !user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED' });
+    }
+
+    try {
+
+      const notification = await db.notification.findFirst({
+        where: {
+          id: input,
+        },
+      });
+      
+      if (!notification) return new TRPCError({ code: 'NOT_FOUND' });
+      if(notification?.read) return { success: true };
+
+      await db.notification.update({
+        where: {
+          id: input,
+        },
+        data: {
+          read: true,
+        },
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      console.error(error);
+      return error;
+    }
+  }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -55,8 +55,21 @@ const NotificationCard = ({
     url = `/dashboard/group/${data}?tab=posts/`;
   }
 
+  const updateNotificationReadStatus = trpc.updateNotificationReadStatus.useMutation();
+  const handleNotificationClick = () => {
+    updateNotificationReadStatus.mutate(notification.id, {
+      onSuccess: () => {
+        console.log('Notification read status updated');
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    
+    });
+  };
+
   return (
-    <Link className='flex items-start gap-3' href={url}>
+    <Link onClick={handleNotificationClick}className='flex items-start gap-3' href={url}>
       <div className='flex-shrink-0'>
         <Avatar>
           <AvatarImage

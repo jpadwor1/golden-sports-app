@@ -9,7 +9,6 @@ import {
 import { Notification } from '@prisma/client';
 import Image from 'next/image';
 import NotificationCard from './notification-card';
-import { db } from '@/db';
 import { trpc } from '@/app/_trpc/client';
 
 interface NotificationListProps {
