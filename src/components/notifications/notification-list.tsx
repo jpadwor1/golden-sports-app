@@ -21,7 +21,10 @@ const NotificationList = ({ notifications }: NotificationListProps) => {
       <Card className='shadow-none border-0'>
         <CardHeader className='border-b'>
           <CardTitle>Notifications</CardTitle>
+          {notifications && notifications.filter((n)=> !n.read).length > 0 && (
           <CardDescription>You have {notifications.filter((n)=> !n.read).length} unread messages.</CardDescription>
+
+          )}
         </CardHeader>
         <CardContent className='p-4 space-y-4'>
         

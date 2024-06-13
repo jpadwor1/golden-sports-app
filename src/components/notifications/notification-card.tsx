@@ -69,7 +69,7 @@ const NotificationCard = ({
   };
 
   return (
-    <Link onClick={handleNotificationClick}className='flex items-start gap-3' href={url}>
+    <Link onClick={handleNotificationClick}className='flex items-start gap-3 hover:bg-gray-100 p-2 rounded-md' href={url}>
       <div className='flex-shrink-0'>
         <Avatar>
           <AvatarImage
