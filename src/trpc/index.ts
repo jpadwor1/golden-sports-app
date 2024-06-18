@@ -1762,7 +1762,6 @@ export const appRouter = router({
                 groupId: input.groupId,
               },
             });
-            console.log(createdFile);
 
             return createdFile;
           })
@@ -1790,8 +1789,40 @@ export const appRouter = router({
             eventId: null,
           },
         });
-        console.log(files);
         return files;
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
+    deleteTeamFile: privateProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+
+        const file = await db.file.findUnique({
+          where: {
+            id: input,
+          },
+        });
+
+        if (!file) return new TRPCError({ code: 'NOT_FOUND' });
+
+        await deleteStorageFile(file.fileName);
+
+        await db.file.delete({
+          where: {
+            id: input,
+          },
+        });
+
+        return { success: true };
       } catch (error: any) {
         console.error(error);
         return error;

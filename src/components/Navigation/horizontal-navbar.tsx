@@ -103,7 +103,7 @@ export default function HorizontalNavbar({
       <TabsContent className='p-4' value='payments'></TabsContent>
       <TabsContent className='p-4' value='members'></TabsContent>
       <TabsContent className='p-4' value='files'>
-        <TeamFilePage />
+        <TeamFilePage user={user} />
       </TabsContent>
     </Tabs>
   );

@@ -10,16 +10,19 @@ import { getFileIcon } from '@/hooks/getIcon';
 import { startFileUpload } from '@/lib/actions';
 import { toast } from '@/components/ui/use-toast';
 import { File as DBFileType } from '@prisma/client';
-import { FileType } from '@/types/types';
+import { ExtendedUser, FileType } from '@/types/types';
 
-export function TeamFilePage() {
+interface TeamFilePageProps {
+  user: ExtendedUser;
+}
+export function TeamFilePage({user}: TeamFilePageProps) {
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const utils = trpc.useUtils();
   const { data, isLoading } = trpc.getTeamFiles.useQuery(groupId as string);
   const [files, setFiles] = React.useState<File[]>([]);
-
+  const isCoach = user.groupsAsCoach.some((group) => group.id === groupId);
   const addTeamFiles = trpc.uploadTeamFile.useMutation();
   const handleAttachments = () => {
     fileInputRef.current?.click();
@@ -146,7 +149,7 @@ export function TeamFilePage() {
       )}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
         {groupFiles && groupFiles.length > 0 ? (
-          groupFiles.map((file: DBFileType) => <TeamFileCard file={file} key={file.id} />)
+          groupFiles.map((file: DBFileType) => <TeamFileCard isCoach={isCoach} file={file} key={file.id} />)
         ) : (
           <div className='md:col-span-2 text-center mt-8'>
             <h1 className='text-2xl font-bold mb-2 '>No Files Found</h1>
