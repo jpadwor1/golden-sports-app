@@ -11,6 +11,7 @@ import { addUser, deleteStorageFile, startFileUpload } from '@/lib/actions';
 import { create } from 'domain';
 import { Event } from '@prisma/client';
 import { IconInputAi } from '@tabler/icons-react';
+import { group } from 'console';
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -148,12 +149,12 @@ export const appRouter = router({
 
         await db.user.update({
           where: {
-            id: user.id
+            id: user.id,
           },
           data: {
             role: 'COACH',
-          }
-        })
+          },
+        });
         return group;
       }
 
@@ -637,18 +638,20 @@ export const appRouter = router({
           },
         });
 
-        await Promise.all((groupMembers || []).map(async (member) => {
-          await db.notification.create({
-            data: {
-              userId: member.id,
-              resourceId: post.id,
-              message: 'You have a new post.',
-              read: false,
-              fromId: userId,
-              type: 'post'
-            },
-          });
-        }));
+        await Promise.all(
+          (groupMembers || []).map(async (member) => {
+            await db.notification.create({
+              data: {
+                userId: member.id,
+                resourceId: post.id,
+                message: 'You have a new post.',
+                read: false,
+                fromId: userId,
+                type: 'post',
+              },
+            });
+          })
+        );
         return post;
       }
 
@@ -1063,7 +1066,7 @@ export const appRouter = router({
                 message: `You've been invited to ${event.title}.`,
                 read: false,
                 fromId: userId,
-                type: 'event'
+                type: 'event',
               },
             });
           }
@@ -1546,7 +1549,7 @@ export const appRouter = router({
               message: `You've been invited to an event.`,
               read: false,
               fromId: userId,
-              type: 'event'
+              type: 'event',
             },
           });
         }
@@ -1557,7 +1560,7 @@ export const appRouter = router({
         return error;
       }
     }),
-    getFromUser: privateProcedure
+  getFromUser: privateProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
       const { userId, user } = ctx;
@@ -1573,18 +1576,19 @@ export const appRouter = router({
           },
         });
 
-        
         return dbUser;
       } catch (error: any) {
         console.error(error);
         return error;
       }
     }),
-    getResource: privateProcedure
-    .input(z.object({
-      resourceId: z.string(),
-      resourceType: z.string(),
-    }))
+  getResource: privateProcedure
+    .input(
+      z.object({
+        resourceId: z.string(),
+        resourceType: z.string(),
+      })
+    )
     .query(async ({ ctx, input }) => {
       const { userId, user } = ctx;
 
@@ -1594,45 +1598,46 @@ export const appRouter = router({
 
       try {
         const resource =
-        input.resourceType === 'comments' ||
-        input.resourceType === 'posts' ||
-        input.resourceType === 'likes'
-          ? await db.post.findFirst({
-              where: {
-                id: input.resourceId,
-              },
-          })
-          :input.resourceType === 'events'
-          ? await db.event.findFirst({
-            where: {
-              id: input.resourceId,
-            },
-        })
-          :input.resourceType  === 'messages'
-          ? await db.message.findFirst({
-            where: {
-              id: input.resourceId,
-            },
-        })
-          :input.resourceType  === 'polls'
-          ? await db.poll.findFirst({
-            where: {
-              id: input.resourceId,
-            },
-        }) : input.resourceType === 'payments' ?
-        await db.payment.findFirst({
-          where: {
-            id: input.resourceId,
-          },
-      }): undefined;
+          input.resourceType === 'comments' ||
+          input.resourceType === 'posts' ||
+          input.resourceType === 'likes'
+            ? await db.post.findFirst({
+                where: {
+                  id: input.resourceId,
+                },
+              })
+            : input.resourceType === 'events'
+            ? await db.event.findFirst({
+                where: {
+                  id: input.resourceId,
+                },
+              })
+            : input.resourceType === 'messages'
+            ? await db.message.findFirst({
+                where: {
+                  id: input.resourceId,
+                },
+              })
+            : input.resourceType === 'polls'
+            ? await db.poll.findFirst({
+                where: {
+                  id: input.resourceId,
+                },
+              })
+            : input.resourceType === 'payments'
+            ? await db.payment.findFirst({
+                where: {
+                  id: input.resourceId,
+                },
+              })
+            : undefined;
 
         if (!resource) {
           return new TRPCError({ code: 'NOT_FOUND' });
         }
 
         const groupId = resource?.groupId;
-          
-        
+
         return groupId;
       } catch (error: any) {
         console.error(error);
@@ -1640,74 +1645,158 @@ export const appRouter = router({
       }
     }),
   updateNotificationReadStatus: privateProcedure
-  .input(z.string()).mutation(async ({ ctx, input }) => {
-    const { userId, user } = ctx;
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
 
-    if (!userId || !user) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
 
-    try {
+      try {
+        const notification = await db.notification.findFirst({
+          where: {
+            id: input,
+          },
+        });
 
-      const notification = await db.notification.findFirst({
-        where: {
-          id: input,
-        },
-      });
-      
-      if (!notification) return new TRPCError({ code: 'NOT_FOUND' });
-      if(notification?.read) return { success: true };
+        if (!notification) return new TRPCError({ code: 'NOT_FOUND' });
+        if (notification?.read) return { success: true };
 
-      await db.notification.update({
-        where: {
-          id: input,
-        },
-        data: {
-          read: true,
-        },
-      });
+        await db.notification.update({
+          where: {
+            id: input,
+          },
+          data: {
+            read: true,
+          },
+        });
 
-      return { success: true };
-    } catch (error: any) {
-      console.error(error);
-      return error;
-    }
-  }),
+        return { success: true };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
   sendInviteeEventReminder: privateProcedure
-  .input(z.array(z.object({
-    userId: z.string(),
-    eventId: z.string(),
-    status: z.string(),
-  }))).mutation(async ({ ctx, input }) => {
-    const { userId, user } = ctx;
+    .input(
+      z.array(
+        z.object({
+          userId: z.string(),
+          eventId: z.string(),
+          status: z.string(),
+        })
+      )
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
 
-    if (!userId || !user) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
 
-    try {
-      
-      await Promise.all(input.map(async (invitee) => {
-        if(invitee.status === 'UNANSWERED') {
-          await db.notification.create({
-            data: {
-              userId: invitee.userId,
-              resourceId: invitee.eventId,
-              message: `You have an event coming up soon.`,
-              read: false,
-              fromId: userId,
-              type: 'event'
-            },
-          });
-        }
-      }));
+      try {
+        await Promise.all(
+          input.map(async (invitee) => {
+            if (invitee.status === 'UNANSWERED') {
+              await db.notification.create({
+                data: {
+                  userId: invitee.userId,
+                  resourceId: invitee.eventId,
+                  message: `You have an event coming up soon.`,
+                  read: false,
+                  fromId: userId,
+                  type: 'event',
+                },
+              });
+            }
+          })
+        );
 
-      return { success: true };
-    } catch (error: any) {
-      console.error(error);
-      return error;
-    }
-  }),
+        return { success: true };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
+  uploadTeamFile: privateProcedure
+    .input(
+      z.object({
+        files: z.array(
+          z.object({
+            downloadURL: z.string(),
+            fileName: z.string(),
+            fileType: z.string(),
+            key: z.string(),
+            uploadDate: z.string(),
+          })
+        ),
+        groupId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+
+        const files = await Promise.all(
+          input.files.map(async (file) => {
+            const doesFileExist = await db.file.findFirst({
+              where: {
+                key: file.key,
+              },
+            });
+
+            if (doesFileExist) return;
+
+            const createdFile = await db.file.create({
+              data: {
+                key: file.key,
+                fileName: file.fileName,
+                url: file.downloadURL,
+                fileType: file.fileType,
+                groupId: input.groupId,
+              },
+            });
+            console.log(createdFile);
+
+            return createdFile;
+          })
+        );
+        return { success: true };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
+  getTeamFiles: privateProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        const files = await db.file.findMany({
+          where: {
+            groupId: input,
+            postId: null,
+            eventId: null,
+          },
+        });
+        console.log(files);
+        return files;
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
 });
 
 export type AppRouter = typeof appRouter;

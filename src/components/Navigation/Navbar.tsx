@@ -14,7 +14,6 @@ import UserAccountNav from './UserAccountNav';
 import NavbarMenu from './NavbarMenu';
 import { db } from '@/db';
 import { NotificationBell } from '../notifications/notificationbell';
-import { redirect } from 'next/navigation';
 
 
 const Navbar = async () => {
@@ -30,10 +29,6 @@ const Navbar = async () => {
         notifications: true,
       }
     })
-  }
-
-  if (!dbUser) {
-    redirect('/auth-callback?origin=dashboard');
   }
   
 
@@ -55,7 +50,7 @@ const Navbar = async () => {
 
           <div className='hidden items-center space-x-4 sm:flex'>
             <NavbarMenu />
-            {!user ? (
+            {!user || !dbUser ? (
               <>
                 <LoginLink
                   className={buttonVariants({ variant: 'ghost', size: 'sm' })}
@@ -71,11 +66,9 @@ const Navbar = async () => {
               <>
                 <Link
                   href='/dashboard/group'
-                  // href={dbCustomer?.role === 'ADMIN' ? '/dashboard' : '/client'}
                   className={buttonVariants({ variant: 'ghost', size: 'sm' })}
                 >
-                  {/* {dbCustomer?.role === 'ADMIN' ? 'Dashboard' : 'Service History'}
-                   */}
+                 
                   Dashboard
                 </Link>
                 <UserAccountNav
@@ -84,7 +77,6 @@ const Navbar = async () => {
                   email={user.email ?? ''}
                   role='Customer'
                 />
-                <NotificationBell user={dbUser} />
               </>
             )}
           </div>

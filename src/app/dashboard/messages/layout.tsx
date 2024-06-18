@@ -12,7 +12,9 @@ interface MessagesLayoutProps {
   children: React.ReactNode;
 }
 
-export default async function MessagesLayout({ children }: MessagesLayoutProps) {
+export default async function MessagesLayout({
+  children,
+}: MessagesLayoutProps) {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
 
@@ -22,19 +24,19 @@ export default async function MessagesLayout({ children }: MessagesLayoutProps) 
     where: {
       id: user.id,
     },
+    include: {
+      notifications: true,
+    },
   });
-
+  if (!dbUser || !dbUser.id) redirect('/auth-callback?origin=dashboard/group');
   return (
     <div className='flex'>
       <SidebarNav userId={user.id} />
       <main className='flex-1'>
         <MarginWidthWrapper>
-          <Header imageURL={dbUser?.imageURL ?? ''} email={user.email ?? ''} />
+          <Header user={dbUser} />
           <HeaderMobile />
-          <PageWrapper>
-            
-            {children}
-          </PageWrapper>
+          <PageWrapper>{children}</PageWrapper>
         </MarginWidthWrapper>
       </main>
     </div>

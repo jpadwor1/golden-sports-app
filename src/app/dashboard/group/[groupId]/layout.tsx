@@ -7,7 +7,6 @@ import PageWrapper from '@/components/Layout/page-wrapper';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
-import Image from 'next/image';
 
 interface GroupLayoutProps {
   children: React.ReactNode;
@@ -23,26 +22,23 @@ export default async function GroupLayout({ children }: GroupLayoutProps) {
     where: {
       id: user.id,
     },
-    include:{
+    include: {
       notifications: true,
-    }
+    },
   });
 
   if (!dbUser || !dbUser.id) redirect('/auth-callback?origin=dashboard/group');
 
   return (
-    <div className='flex'>
+    <>
       <SidebarNav userId={user.id} />
       <main className='flex-1'>
         <MarginWidthWrapper>
           <Header user={dbUser} />
           <HeaderMobile />
-          <PageWrapper>
-            
-            {children}
-          </PageWrapper>
+          <PageWrapper>{children}</PageWrapper>
         </MarginWidthWrapper>
       </main>
-    </div>
+    </>
   );
 }

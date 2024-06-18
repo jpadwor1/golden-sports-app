@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { MapPin } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
-import { ExtendedEvent } from './Events';
+import { ExtendedEvent } from '@/types/types';
 
 interface EventCardProps {
   groupId: string;

@@ -1,6 +1,5 @@
 import { trpc } from '@/app/_trpc/client';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -11,20 +10,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { File, Link2, Plus, Trash, X } from 'lucide-react';
-import { MultiSelect } from 'react-multi-select-component';
+import { File, Link2, Plus, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { FormEvent } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -32,7 +23,7 @@ import { CheckedState } from '@radix-ui/react-checkbox';
 import PaymentDialog from './PaymentDialog';
 import EventFeeDialog from './EventFeeDialog';
 import { User, Children } from '@prisma/client';
-import { ExtendedEvent } from './Events';
+import { ExtendedEvent } from '@/types/types';
 import { toast } from '@/components/ui/use-toast';
 
 interface CreateEventFormProps {

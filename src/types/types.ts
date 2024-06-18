@@ -10,7 +10,12 @@ import {
   Event,
   File,
   Notification,
+  eventComment
 } from '@prisma/client';
+
+export type ExtendedEventComment = eventComment & {
+  author: User;
+};
 
 export type ExtendedPollComment = PollComment & {
   author: User;

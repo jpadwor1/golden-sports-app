@@ -8,6 +8,7 @@ import { ExtendedPolls, ExtendedUser, ExtendedEvent } from '@/types/types';
 import { Post } from '@/lib/utils';
 import Dashboard from '@/app/dashboard/Dashboard';
 import PollPage from '../Polls/poll-page';
+import { TeamFilePage } from '../Dashboard/Team/team-file-page';
 
 interface HorizontalNavbarProps {
   groupId: string;
@@ -101,7 +102,9 @@ export default function HorizontalNavbar({
       </TabsContent>
       <TabsContent className='p-4' value='payments'></TabsContent>
       <TabsContent className='p-4' value='members'></TabsContent>
-      <TabsContent className='p-4' value='files'></TabsContent>
+      <TabsContent className='p-4' value='files'>
+        <TeamFilePage />
+      </TabsContent>
     </Tabs>
   );
 }
