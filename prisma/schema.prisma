@@ -120,14 +120,15 @@ model Participant {
 
 model Payment {
   id            String    @id @default(uuid())
-  userId        String
+  userId        String?
   eventId       String?
   amount        Float
   paymentStatus String
+  description   String?
   dueDate       DateTime?
   groupId       String
 
-  user  User   @relation(fields: [userId], references: [id])
+  user  User?   @relation(fields: [userId], references: [id])
   event Event? @relation(fields: [eventId], references: [id])
   group Group  @relation(fields: [groupId], references: [id])
 

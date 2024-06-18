@@ -8,17 +8,22 @@ import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
 
+
 interface GroupLayoutProps {
   children: React.ReactNode;
 }
 
 export default async function GroupLayout({ children }: GroupLayoutProps) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  let user = null;
+  let dbUser = null;
 
-  if (!user || !user.id) redirect('/auth-callback?origin=dashboard/group');
+  try {
+    const { getUser } = getKindeServerSession();
+  user = await getUser();
 
-  const dbUser = await db.user.findUnique({
+  if (!user || !user.id) return new Error('User not found');
+
+  dbUser = await db.user.findUnique({
     where: {
       id: user.id,
     },
@@ -27,7 +32,14 @@ export default async function GroupLayout({ children }: GroupLayoutProps) {
     },
   });
 
-  if (!dbUser || !dbUser.id) redirect('/auth-callback?origin=dashboard/group');
+  if (!dbUser || !dbUser.id) return new Error('User not found');
+
+  } catch (error) {
+    console.error(error);
+    redirect('/auth-callback?origin=dashboard/group');
+  }
+  
+  
 
   return (
     <>

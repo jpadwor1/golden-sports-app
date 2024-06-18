@@ -9,6 +9,7 @@ import { Post } from '@/lib/utils';
 import Dashboard from '@/app/dashboard/Dashboard';
 import PollPage from '../Polls/poll-page';
 import { TeamFilePage } from '../Dashboard/Team/team-file-page';
+import PaymentPage from '../Payments/PaymentPage';
 
 interface HorizontalNavbarProps {
   groupId: string;
@@ -100,7 +101,9 @@ export default function HorizontalNavbar({
       <TabsContent className='p-4' value='polls'>
         <PollPage user={user} polls={polls} groupId={groupId} />
       </TabsContent>
-      <TabsContent className='p-4' value='payments'></TabsContent>
+      <TabsContent className='p-4' value='payments'>
+      <PaymentPage user={user} polls={polls} groupId={groupId} />
+      </TabsContent>
       <TabsContent className='p-4' value='members'></TabsContent>
       <TabsContent className='p-4' value='files'>
         <TeamFilePage user={user} />

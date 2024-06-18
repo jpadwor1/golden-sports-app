@@ -1891,6 +1891,86 @@ export const appRouter = router({
         return error;
       }
     }),
+    createPayment: privateProcedure
+    .input(
+      z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        basePrice: z.number(),
+        dueDate: z.string(),
+        groupId: z.string(),
+        invitees: z.array(z.string()),
+        totalPrice: z.number(),
+        addTransactionFee: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const dbUser = await db.user.findFirst({
+        where: {
+          id: user.id,
+        },
+        include: {
+          groupsAsCoach: true,
+        },
+      });
+
+      if (!dbUser) {
+        return new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      if (dbUser.groupsAsCoach.every((group) => group.id !== input.groupId)) {
+        return new TRPCError({ code: 'FORBIDDEN' });
+      }
+
+      try {
+        await Promise.all(
+          input.invitees.map(async (invitee) => {
+            
+            const payment = await db.payment.create({
+              data: {
+                amount: input.totalPrice,
+                description: input.description,
+                paymentStatus: 'UNPAID',
+                group: {
+                  connect: {
+                    id: input.groupId,
+                  },
+                },
+                user: {
+                  connect: {
+                    id: invitee,
+                  },
+                },
+              },
+            });
+      
+            await db.notification.create({
+              data: {
+                userId: invitee,
+                resourceId: payment.id,
+                message: `You've been invited to a payment.`,
+                read: false,
+                fromId: userId,
+                type: 'payment',
+              },
+            });
+          })
+        );
+        
+      } catch (error) {
+        console.error(error);
+        return error;
+      }
+
+      
+      return { success: true };
+    }),
 });
 
 export type AppRouter = typeof appRouter;
