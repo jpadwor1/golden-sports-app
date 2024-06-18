@@ -6,21 +6,27 @@ import {
 } from '@/components/ui/popover';
 import NotificationList from './notification-list';
 import { UserWithNotifications } from '@/types/types';
+import { trpc } from '@/app/_trpc/client';
+import { Notification } from '@prisma/client';
+import { cn } from '@/lib/utils';
 
 interface NotificationBellProps {
   user: UserWithNotifications;
+  className?: string;
 }
-export function NotificationBell({ user }: NotificationBellProps) {
-  const notifications = user.notifications;
+export function NotificationBell({ user, className }: NotificationBellProps) {
+  const {data} = trpc.getNotifications.useQuery(user.id)
+  
+  const notifications: Notification[] = data;
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button className='relative' size='icon' variant='ghost'>
+        <Button className={cn(className,'')} size='icon' variant='ghost'>
           <BellIcon className='w-6 h-6' />
           {notifications && notifications.filter((n)=> !n.read).length > 0 && (
             <span
               aria-hidden
-              className='absolute top-0.5 right-0.5 inline-flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white'
+              className='absolute top-1 right-2 inline-flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white'
             ></span>
           )}
         </Button>

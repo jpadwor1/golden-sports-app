@@ -35,7 +35,7 @@ export default async function GroupLayout({ children }: GroupLayoutProps) {
       <main className='flex-1'>
         <MarginWidthWrapper>
           <Header user={dbUser} />
-          <HeaderMobile />
+          <HeaderMobile user={dbUser}/>
           <PageWrapper>{children}</PageWrapper>
         </MarginWidthWrapper>
       </main>

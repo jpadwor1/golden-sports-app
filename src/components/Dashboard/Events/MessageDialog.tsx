@@ -21,7 +21,7 @@ const MessageDialog = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant='outline'>Send message to host</Button>
+        <Button variant='outline' className='bg-gray-100 hover:bg-gray-200'>Send message to host</Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>

@@ -1597,6 +1597,7 @@ export const appRouter = router({
       }
 
       try {
+
         const resource =
           input.resourceType === 'comments' ||
           input.resourceType === 'posts' ||
@@ -1763,9 +1764,46 @@ export const appRouter = router({
               },
             });
 
-            return createdFile;
           })
         );
+
+        const members = await db.user.findMany({
+          where: {
+            OR: [
+              {
+                groupsAsMember: {
+                  some: {
+                    id: input.groupId,
+                  },
+                },
+              },
+              {
+                groupsAsCoach: {
+                  some: {
+                    id: input.groupId,
+                  },
+                },
+              },
+            ],
+          },
+        });
+
+        await Promise.all(
+          members.map(async (member) => {
+            await db.notification.create({
+              data: {
+                userId: member.id,
+                resourceId: input.groupId,
+                message: 'You have a new file.',
+                read: false,
+                fromId: userId,
+                type: 'file',
+              },
+            });
+            console.log('notification sent', member.firstName)
+          })
+        );
+
         return { success: true };
       } catch (error: any) {
         console.error(error);
@@ -1823,6 +1861,31 @@ export const appRouter = router({
         });
 
         return { success: true };
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
+    getNotifications: privateProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        const notifications = await db.notification.findMany({
+          where: {
+            userId: input,
+          },
+          orderBy: {
+            timestamp: 'desc',
+          },
+        });
+
+        return notifications;
       } catch (error: any) {
         console.error(error);
         return error;

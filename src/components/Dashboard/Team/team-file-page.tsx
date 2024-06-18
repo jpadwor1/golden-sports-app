@@ -79,6 +79,7 @@ export function TeamFilePage({user}: TeamFilePageProps) {
       onSuccess: () => {
         setFiles([]);
         utils.getTeamFiles.invalidate();
+        utils.getNotifications.invalidate();
       },
       onError: (error) => {
         console.error(error);

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Notification, User } from '@prisma/client';
 import { formatDate } from '@/lib/actions';
 import { trpc } from '@/app/_trpc/client';
+import { cn } from '@/lib/utils';
 
 interface NotificationCardProps {
   notification: Notification;
@@ -28,7 +29,9 @@ const NotificationCard = ({
       <span className='text-gray-500 dark:text-gray-400'>
         sent you a message
       </span>
-    ) : null;
+    ) : notification.type === 'file' ?(
+      <span className='text-gray-500 dark:text-gray-400'>posted a new file.</span>
+    ) : null ;
 
   const type =
     notification.type === 'comment' ||
@@ -42,17 +45,20 @@ const NotificationCard = ({
       : notification.type === 'poll' ?
       'polls' : 
       notification.type === 'payments' ?
-      'payments' : null
+      'payments' : notification.type === 'file' ?
+      'file' : null;
 
   const {data, isLoading} = trpc.getResource.useQuery({
     resourceId: notification.resourceId,
-    resourceType: type as 'posts' | 'events' | 'messages' | 'polls' | 'payments',
+    resourceType: type as 'posts' | 'events' | 'messages' | 'polls' | 'payments' | 'file',
   })
   let url = ''
   if(type === 'events') {
     url = `/dashboard/group/${data}/${type}/${notification.resourceId}`;
   } else if(type === 'posts') {
-    url = `/dashboard/group/${data}?tab=posts/`;
+    url = `/dashboard/group/${data}?tab=posts`;
+  } else if (type === 'file') {
+    url = `/dashboard/group/${notification.resourceId}?tab=files`;
   }
 
   const updateNotificationReadStatus = trpc.updateNotificationReadStatus.useMutation();
@@ -69,7 +75,7 @@ const NotificationCard = ({
   };
 
   return (
-    <Link onClick={handleNotificationClick}className='flex items-start gap-3 hover:bg-gray-100 p-2 rounded-md' href={url}>
+    <Link onClick={handleNotificationClick} className={cn(!notification.read && 'bg-gray-100','flex items-start gap-3 hover:bg-gray-100 p-2 rounded-md')} href={url}>
       <div className='flex-shrink-0'>
         <Avatar>
           <AvatarImage

@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -18,6 +19,7 @@ import {
 } from '@tabler/icons-react';
 import { trpc } from '@/app/_trpc/client';
 import { Participant as ParticipantType, User } from '@prisma/client';
+import { X } from 'lucide-react';
 
 type Participant = ParticipantType & {
     user: User;
@@ -106,6 +108,9 @@ export default function ParticipationDialog({
       <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className='min-h-[500px] max-h-[500px]'>
           <DialogHeader className=''>
+            <DialogClose asChild>
+              <X className='w-6 h-6 hover:cursor-pointer hover:ring-1 hover:ring-gray-700 rounded-md' />
+            </DialogClose>
             <DialogTitle>Event Responses</DialogTitle>
             <DialogDescription>
               View who is attending, hasn&apos;t responded, and declined the

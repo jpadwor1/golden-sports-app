@@ -8,7 +8,9 @@ import { usePathname } from 'next/navigation';
 import { SIDENAV_ITEMS } from '@/lib/constants';
 import { SideNavItem } from '@/lib/types';
 import { motion, useCycle } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, User } from 'lucide-react';
+import { NotificationBell } from '../notifications/notificationbell';
+import { UserWithNotifications } from '@/types/types';
 
 type MenuItemWithSubMenuProps = {
   item: SideNavItem;
@@ -34,7 +36,10 @@ const sidebar = {
   },
 };
 
-const HeaderMobile = () => {
+interface HeaderMobileProps {
+  user: UserWithNotifications;
+}
+const HeaderMobile = ({ user }: HeaderMobileProps) => {
   const pathname = usePathname();
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
@@ -86,7 +91,9 @@ const HeaderMobile = () => {
           );
         })}
       </motion.ul>
-      <MenuToggle toggle={toggleOpen} />
+        <MenuToggle toggle={toggleOpen} />
+        <NotificationBell className='pointer-events-auto absolute right-14 top-[14px] z-30' user={user} />
+
     </motion.nav>
   );
 };
@@ -96,7 +103,7 @@ export default HeaderMobile;
 const MenuToggle = ({ toggle }: { toggle: any }) => (
   <button
     onClick={toggle}
-    className='pointer-events-auto absolute right-4 top-[14px] z-30'
+    className='pointer-events-auto absolute right-4 top-[23px] z-30'
   >
     <svg width='23' height='23' viewBox='0 0 23 23'>
       <Path
@@ -168,7 +175,7 @@ const MenuItemWithSubMenu: React.FC<MenuItemWithSubMenuProps> = ({
               {item.title}
             </span>
             <div className={`${subMenuOpen && 'rotate-180'}`}>
-              <ChevronDown className='w-4 h-4'/>
+              <ChevronDown className='w-4 h-4' />
             </div>
           </div>
         </button>

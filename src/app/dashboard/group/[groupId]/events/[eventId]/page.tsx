@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import EventCommentInput from '@/components/Dashboard/Events/comments/event-comment-input';
 import { getFileIcon } from '@/hooks/getIcon';
 import { ExtendedEvent } from '@/types/types';
+import MaxWidthWrapper from '@/components/Layout/MaxWidthWrapper';
 
 interface PageProps {
   params: {
@@ -120,127 +121,129 @@ const Page = async ({ params }: PageProps) => {
   });
 
   return (
-    <div className='max-w-4xl mx-auto p-4 bg-white rounded-lg shadow'>
-      <div className='flex flex-col'>
-        <div className='mb-4'>
-          <Image
-            alt='Map'
-            className='w-full h-[250px] object-cover rounded-t-lg'
-            height='300'
-            src={mapUrl}
-            style={{
-              aspectRatio: '768/300',
-              objectFit: 'cover',
-            }}
-            width='768'
-          />
-        </div>
-        <div className='flex flex-row justify-end'>
-          <EventButtons user={dbUser} event={event} />
-        </div>
-        <div className='mt-4 mb-6'>
-          <h1 className='text-2xl font-bold'>{event.title}</h1>
-        </div>
-        <div className='flex justify-between items-start mb-4'>
-          <div className='flex items-center'>
-            <Avatar>
-              <AvatarImage
-                alt={
-                  dbUser.Children[0].name
-                    ? dbUser.Children[0].name
-                    : dbUser.firstName + ' ' + dbUser.lastName
-                }
-                src={dbUser.imageURL ? dbUser.imageURL : ''}
-              />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <div className='ml-2'>
-              <p className='font-semibold'>Answering on behalf of</p>
-              <p className='font-semibold text-indigo-600'>
-                {dbUser?.Children[0].name
-                  ? dbUser.Children[0].name
-                  : dbUser.firstName + ' ' + dbUser.lastName}
-              </p>
-            </div>
+    <MaxWidthWrapper>
+      <div className='md:max-w-4xl max-w-screen mx-auto p-4 bg-white rounded-lg shadow'>
+        <div className='flex flex-col'>
+          <div className='mb-4'>
+            <Image
+              alt='Map'
+              className='w-full h-[250px] object-cover rounded-t-lg'
+              height='300'
+              src={mapUrl}
+              style={{
+                aspectRatio: '768/300',
+                objectFit: 'cover',
+              }}
+              width='768'
+            />
           </div>
-          <ParticipationButtons
-            participation={participationStatus}
-            userId={dbUser?.id}
-            event={event}
-          />
-        </div>
-        <div className='flex flex-col mb-4'>
-          <div className='flex items-center mb-2'>
-            <CalendarIcon className='text-gray-800 mr-2' />
-            <p className='text-sm tracking-wide'>
-              {eventStartDate} {eventEndDate ? ' - ' + eventEndDate : ''}
-            </p>
+          <div className='flex flex-row justify-end'>
+            <EventButtons user={dbUser} event={event} />
           </div>
-          <div className='flex items-center mb-2'>
-            <MapPin className='text-gray-800 mr-2' />
-            <Link
-              href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`}
-              target='_blank'
-            >
-              <p className='text-sm tracking-wide'>{event.address}</p>
-            </Link>
+          <div className='mt-4 mb-6'>
+            <h1 className='text-2xl font-bold'>{event.title}</h1>
           </div>
-          <div className='flex items-center mb-2'>
-            <User2 className='text-gray-800 mr-2' />
-            <p className='text-sm tracking-wide'>
-              {group.name + ' ' + group.description}
-            </p>
-          </div>
-          {event.totalFeeAmount !== null && (
+          <div className='flex justify-between items-start mb-4'>
             <div className='flex items-center'>
-              <DollarSign className='text-gray-800 mr-2' />
-              <p className='text-md tracking-wide'>
-                {event.totalFeeAmount.toFixed(2)}
-              </p>
-            </div>
-          )}
-        </div>
-        <div className='mt-4 mb-8 px-4 py-4'>
-          <p>{event.description}</p>
-        </div>
-
-        {files.length > 0 && (
-          <>
-            <Separator />
-            <div className='mb-8'>
-              <h3 className='text-lg font-medium my-2'>Attachments</h3>
-              <Separator className='mb-2' />
-
-              <div className='grid grid-cols-2 gap-2'>
-                {files.map((file, index) => (
-                  <Link
-                    href={file.url}
-                    target='_blank'
-                    key={index}
-                    className='flex flex-row items-start border rounded-md p-2 my-2'
-                  >
-                    {getFileIcon(file.fileName)}
-                    <p className='text-sm text-gray-500 truncate max-w-[200px]'>
-                      {file.fileName}
-                    </p>
-                  </Link>
-                ))}
+              <Avatar>
+                <AvatarImage
+                  alt={
+                    dbUser.Children[0].name
+                      ? dbUser.Children[0].name
+                      : dbUser.firstName + ' ' + dbUser.lastName
+                  }
+                  src={dbUser.imageURL ? dbUser.imageURL : ''}
+                />
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+              <div className='ml-2'>
+                <p className='font-semibold'>Answering on behalf of</p>
+                <p className='font-semibold text-indigo-600'>
+                  {dbUser?.Children[0].name
+                    ? dbUser.Children[0].name
+                    : dbUser.firstName + ' ' + dbUser.lastName}
+                </p>
               </div>
             </div>
-          </>
-        )}
-        <div className='flex justify-between items-center mb-4'>
-          <MessageDialog />
-          <ParticipationDialog
-            eventId={eventId}
-            attending={attending}
-            declined={declined}
-            unanswered={unanswered}
-          />
+            <ParticipationButtons
+              participation={participationStatus}
+              userId={dbUser?.id}
+              event={event}
+            />
+          </div>
+          <div className='flex flex-col mb-4'>
+            <div className='flex items-center mb-2'>
+              <CalendarIcon className='text-gray-800 mr-2' />
+              <p className='text-sm tracking-wide'>
+                {eventStartDate} {eventEndDate ? ' - ' + eventEndDate : ''}
+              </p>
+            </div>
+            <div className='flex items-center mb-2'>
+              <MapPin className='text-gray-800 mr-2' />
+              <Link
+                href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`}
+                target='_blank'
+              >
+                <p className='text-sm tracking-wide'>{event.address}</p>
+              </Link>
+            </div>
+            <div className='flex items-center mb-2'>
+              <User2 className='text-gray-800 mr-2' />
+              <p className='text-sm tracking-wide'>
+                {group.name + ' ' + group.description}
+              </p>
+            </div>
+            {event.totalFeeAmount !== null && (
+              <div className='flex items-center'>
+                <DollarSign className='text-gray-800 mr-2' />
+                <p className='text-md tracking-wide'>
+                  {event.totalFeeAmount.toFixed(2)}
+                </p>
+              </div>
+            )}
+          </div>
+          <div className='mt-4 mb-8 px-4 py-4'>
+            <p>{event.description}</p>
+          </div>
+
+          {files.length > 0 && (
+            <>
+              <Separator />
+              <div className='mb-8'>
+                <h3 className='text-lg font-medium my-2'>Attachments</h3>
+                <Separator className='mb-2' />
+
+                <div className='grid grid-cols-2 gap-2'>
+                  {files.map((file, index) => (
+                    <Link
+                      href={file.url}
+                      target='_blank'
+                      key={index}
+                      className='flex flex-row items-start border rounded-md p-2 my-2'
+                    >
+                      {getFileIcon(file.fileName)}
+                      <p className='text-sm text-gray-500 truncate max-w-[200px]'>
+                        {file.fileName}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+          <div className='flex md:flex-row flex-col space-y-10 justify-between items-center mb-4'>
+            <MessageDialog />
+            <ParticipationDialog
+              eventId={eventId}
+              attending={attending}
+              declined={declined}
+              unanswered={unanswered}
+            />
+          </div>
+          <EventCommentInput dbUser={dbUser} eventId={event.id} />
         </div>
-        <EventCommentInput dbUser={dbUser} eventId={event.id} />
       </div>
-    </div>
+    </MaxWidthWrapper>
   );
 };
 
