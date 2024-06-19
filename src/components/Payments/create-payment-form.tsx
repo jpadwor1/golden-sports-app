@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, set } from 'date-fns';
 import { CalendarIcon, TrashIcon, Info } from 'lucide-react';
 import { trpc } from '@/app/_trpc/client';
 import { MultiSelect } from 'react-multi-select-component';
@@ -42,13 +42,21 @@ const paymentFormSchema = z.object({
     required_error: 'A due date is required.',
   }),
   basePrice: z
-    .number()
-    .positive({
-      message: 'Base price must be a positive number.',
-    })
-    .gte(2, { message: 'Base price must be at least $2.' })
-    .lte(500, { message: 'Base price must be less than $500.' }),
-  addTransactionFee: z.boolean().default(false),
+  .string()
+  .refine((val) => !isNaN(parseFloat(val)), {
+    message: 'Base price must be a valid number.',
+  })
+  .transform((val) => parseFloat(val))
+  .refine((val) => val > 0, {
+    message: 'Base price must be a positive number.',
+  })
+  .refine((val) => val >= 2, {
+    message: 'Base price must be at least $2.',
+  })
+  .refine((val) => val <= 500, {
+    message: 'Base price must be less than $500.',
+  }),
+  addTransactionFee: z.boolean(),
 });
 
 type PaymentFormValues = z.infer<typeof paymentFormSchema>;
@@ -73,10 +81,11 @@ const CreatePaymentForm = ({
   const [formData, setFormData] = React.useState({
     postBody: '',
   });
+  const [transactionFeeDetails, setTransactionFeeDetails] = React.useState<boolean>(false)
   const [teamMembers, setTeamMembers] = React.useState<Option[]>([]);
   const [invitees, setInvitees] = React.useState<Option[]>([]);
   const [totalPrice, setTotalPrice] = React.useState<number>(0);
-  const { data } = trpc.getGroup.useQuery(groupId);
+  const { data, isLoading } = trpc.getGroup.useQuery(groupId);
   const group = data;
   const members = group?.members;
 
@@ -102,6 +111,15 @@ const CreatePaymentForm = ({
     formState: { errors },
   } = form;
 
+  const calculateTransactionFee = () => {
+    const basePrice = form.getValues('basePrice');
+    const addTransactionFee = form.getValues('addTransactionFee');
+    if (transactionFeeDetails) {
+      setTotalPrice(basePrice + (basePrice * 0.05) + 1);
+    } else {
+      setTotalPrice(basePrice);
+    }
+  };
   const addPayment = trpc.createPayment.useMutation();
   function onSubmit(data: PaymentFormValues) {
     const formData = {
@@ -128,6 +146,8 @@ const CreatePaymentForm = ({
       },
     });
   }
+
+  if(isLoading) return <div>Loading...</div>;
 
   return (
     <div className='max-w-xl p-6 bg-white rounded-lg shadow-sm mb-6'>
@@ -243,7 +263,7 @@ const CreatePaymentForm = ({
                 <FormItem className='mt-8'>
                   <FormLabel>Base Price</FormLabel>
                   <FormControl>
-                    <Input type='number' placeholder='Base Price' {...field} />
+                    <Input type='number' placeholder='Base Price' {...field}  />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -255,8 +275,11 @@ const CreatePaymentForm = ({
               render={({ field }) => (
                 <FormItem className='mt-8'>
                   <FormControl>
-                    <div className='flex items-center space-x-2'>
-                      <Checkbox id='hide-votes' />
+                    <div  className='flex items-center space-x-2'>
+                      <Checkbox onClick={() => {
+                        setTransactionFeeDetails(!transactionFeeDetails);
+                        calculateTransactionFee();
+                      }} id='hide-votes' />
                       <Label {...field} htmlFor='hide-votes'>
                         Add transaction fee to price
                       </Label>
@@ -284,6 +307,16 @@ const CreatePaymentForm = ({
                 </FormItem>
               )}
             />
+            {transactionFeeDetails && form.getValues('basePrice') ? (
+              <div className='flex items-center space-x-2'>
+                <Label>Base Price</Label>
+                <span>${form.getValues('basePrice')}</span>
+                <Label>Transaction Fee</Label>
+                <span>${form.getValues('basePrice') * 0.05 + 1}</span>
+                <Label>Total Price</Label>
+                <span>${totalPrice}</span>
+              </div>
+            ):null}
           </div>
           <div className='flex w-full items-end justify-end'>
             <Button className='mt-6 bg-green-900'>Create</Button>

@@ -20,9 +20,9 @@ export function NotificationBell({ user, className }: NotificationBellProps) {
   const notifications: Notification[] = data;
   return (
     <Popover>
-      <PopoverTrigger asChild>
+      <PopoverTrigger className='relative' asChild>
         <Button className={cn(className,'')} size='icon' variant='ghost'>
-          <BellIcon className='w-6 h-6' />
+          <BellIcon className='relative w-6 h-6' />
           {notifications && notifications.filter((n)=> !n.read).length > 0 && (
             <span
               aria-hidden
