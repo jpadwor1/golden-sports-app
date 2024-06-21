@@ -1,15 +1,5 @@
-import { ExtendedUser } from '@/types/types';
-import React from 'react';
+import { trpc } from '@/app/_trpc/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '../ui/label';
-import { Checkbox } from '../ui/checkbox';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Calendar } from '../ui/calendar';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
 import {
   Form,
   FormControl,
@@ -19,50 +9,45 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { toast } from '@/components/ui/use-toast';
-import { cn } from '@/lib/utils';
-import { format, set } from 'date-fns';
-import { CalendarIcon, TrashIcon, Info } from 'lucide-react';
-import { trpc } from '@/app/_trpc/client';
-import { MultiSelect } from 'react-multi-select-component';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { toast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
+import { ExtendedUser } from '@/types/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Info } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { MultiSelect } from 'react-multi-select-component';
+import * as z from 'zod';
+import { Calendar } from '../ui/calendar';
+import { Checkbox } from '../ui/checkbox';
+import { Label } from '../ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
 const paymentFormSchema = z.object({
   title: z.string().min(2, {
     message: 'Title must be at least 2 characters.',
   }),
   description: z.string().optional(),
-  invitees: z.array(z.string()),
   dueDate: z.date({
     required_error: 'A due date is required.',
   }),
-  basePrice: z
-  .string()
-  .refine((val) => !isNaN(parseFloat(val)), {
-    message: 'Base price must be a valid number.',
-  })
-  .transform((val) => parseFloat(val))
-  .refine((val) => val > 0, {
-    message: 'Base price must be a positive number.',
-  })
-  .refine((val) => val >= 2, {
-    message: 'Base price must be at least $2.',
-  })
-  .refine((val) => val <= 500, {
-    message: 'Base price must be less than $500.',
-  }),
-  addTransactionFee: z.boolean(),
+  basePrice: z.string(),
 });
 
 type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
 interface CreatePaymentFormProps {
-  setPollFormOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setPaymentFormOpen: React.Dispatch<React.SetStateAction<boolean>>;
   user: ExtendedUser;
   groupId: string;
 }
@@ -74,26 +59,28 @@ type Option = {
 
 const CreatePaymentForm = ({
   user,
-  setPollFormOpen,
+  setPaymentFormOpen,
   groupId,
 }: CreatePaymentFormProps) => {
-  const [inputOpen, setInputOpen] = React.useState(false);
-  const [formData, setFormData] = React.useState({
-    postBody: '',
-  });
-  const [transactionFeeDetails, setTransactionFeeDetails] = React.useState<boolean>(false)
+  const router = useRouter();
+  const [transactionFeeDetails, setTransactionFeeDetails] =
+    React.useState<boolean>(false);
   const [teamMembers, setTeamMembers] = React.useState<Option[]>([]);
   const [invitees, setInvitees] = React.useState<Option[]>([]);
   const [totalPrice, setTotalPrice] = React.useState<number>(0);
   const { data, isLoading } = trpc.getGroup.useQuery(groupId);
   const group = data;
   const members = group?.members;
-
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
     mode: 'onChange',
     defaultValues: {},
   });
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = form;
 
   React.useEffect(() => {
     if (members) {
@@ -105,36 +92,40 @@ const CreatePaymentForm = ({
     }
   }, [members]);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = form;
+  const basePrice = parseFloat(form.watch('basePrice'));
 
-  const calculateTransactionFee = () => {
-    const basePrice = form.getValues('basePrice');
-    const addTransactionFee = form.getValues('addTransactionFee');
-    if (transactionFeeDetails) {
-      setTotalPrice(basePrice + (basePrice * 0.05) + 1);
-    } else {
-      setTotalPrice(basePrice);
-    }
-  };
+  React.useEffect(() => {
+    const calculateTransactionFee = () => {
+      if (transactionFeeDetails) {
+        const fee = basePrice * 0.05 + 1;
+        setTotalPrice(basePrice + fee);
+      } else {
+        setTotalPrice(basePrice);
+      }
+    };
+    calculateTransactionFee();
+  }, [basePrice, transactionFeeDetails, form]);
+
+
   const addPayment = trpc.createPayment.useMutation();
   function onSubmit(data: PaymentFormValues) {
     const formData = {
       ...data,
       groupId,
       dueDate: data.dueDate.toString(),
+      totalPrice: totalPrice,
+      basePrice: parseFloat(data.basePrice),
+      invitees: invitees.map((invitee) => invitee.value),
+      addTransactionFee: transactionFeeDetails,
     };
-
     addPayment.mutate(formData, {
       onSuccess: () => {
         toast({
-          title: 'Poll created',
-          description: 'Your poll has been created successfully.',
+          title: 'Payment created',
+          description: 'Your payment has been created successfully.',
         });
-        setPollFormOpen(false);
+        setPaymentFormOpen(false);
+        router.refresh();
       },
       onError: (error: any) => {
         console.error(error);
@@ -147,14 +138,16 @@ const CreatePaymentForm = ({
     });
   }
 
-  if(isLoading) return <div>Loading...</div>;
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <div className='max-w-xl p-6 bg-white rounded-lg shadow-sm mb-6'>
       <div className='flex justify-between items-center mb-4'>
-        <h3 className='text-lg font-semibold'>Create payment in {group.name + ' ' + group.description}</h3>
+        <h3 className='text-lg font-semibold'>
+          Create payment in {group.name + ' ' + group.description}
+        </h3>
         <Button
-          onClick={() => setPollFormOpen(false)}
+          onClick={() => setPaymentFormOpen(false)}
           variant='ghost'
           className='text-sm'
         >
@@ -163,7 +156,7 @@ const CreatePaymentForm = ({
       </div>
       <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className='space-y-5'>
+          <div className='space-y-6'>
             <FormField
               control={form.control}
               name='title'
@@ -184,32 +177,27 @@ const CreatePaymentForm = ({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder='Tell more about the payment request (optional)' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='invitees'
-              render={({ field }) => (
-                <FormItem className='mt-8'>
-                  <FormLabel>Invitees</FormLabel>
-                  <FormControl>
-                    <MultiSelect
-                      className='w-full'
-                      options={teamMembers}
-                      value={invitees}
-                      onChange={setInvitees}
-                      labelledBy='Select Members'
+                    <Textarea
+                    className='mb-6'
+                      placeholder='Tell more about the payment request (optional)'
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            <div className='mt-6'>
+            <FormLabel>Attendees</FormLabel>
+            <MultiSelect
+              className='w-full'
+              options={teamMembers}
+              value={invitees}
+              onChange={setInvitees}
+              labelledBy='Select Members'
+            />
+            </div>
+            
 
             <FormField
               control={form.control}
@@ -263,24 +251,28 @@ const CreatePaymentForm = ({
                 <FormItem className='mt-8'>
                   <FormLabel>Base Price</FormLabel>
                   <FormControl>
-                    <Input type='number' placeholder='Base Price' {...field}  />
+                    <Input
+                      min={2}
+                      max={500}
+                      type='number'
+                      placeholder='Base Price'
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name='addTransactionFee'
-              render={({ field }) => (
-                <FormItem className='mt-8'>
-                  <FormControl>
-                    <div  className='flex items-center space-x-2'>
-                      <Checkbox onClick={() => {
-                        setTransactionFeeDetails(!transactionFeeDetails);
-                        calculateTransactionFee();
-                      }} id='hide-votes' />
-                      <Label {...field} htmlFor='hide-votes'>
+            
+                    <div className='flex items-center space-x-2'>
+                      <Checkbox
+                        onClick={() => {
+                          setTransactionFeeDetails(!transactionFeeDetails);
+                        }}
+                        id='hide-votes'
+                      />
+                      <Label htmlFor='hide-votes'>
                         Add transaction fee to price
                       </Label>
                       <TooltipProvider>
@@ -302,21 +294,32 @@ const CreatePaymentForm = ({
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                 
+          
             {transactionFeeDetails && form.getValues('basePrice') ? (
-              <div className='flex items-center space-x-2'>
-                <Label>Base Price</Label>
-                <span>${form.getValues('basePrice')}</span>
-                <Label>Transaction Fee</Label>
-                <span>${form.getValues('basePrice') * 0.05 + 1}</span>
-                <Label>Total Price</Label>
-                <span>${totalPrice}</span>
+              <div className='flex flex-col items-start space-y-2 border p-6'>
+                <div className='flex flex-row justify-between items-center w-full'>
+                  <Label className='font-normal'>You will receive</Label>
+                  <span>
+                    ${parseFloat(form.getValues('basePrice')).toFixed(2)}
+                  </span>
+                </div>
+                <div className='flex flex-row justify-between items-center w-full'>
+                  <Label className='font-normal'>Transaction Fee</Label>
+                  <span>
+                    $
+                    {(
+                      parseFloat(form.getValues('basePrice')) * 0.05 +
+                      1
+                    ).toFixed(2)}
+                  </span>
+                </div>
+                <div className='flex flex-row justify-between items-center w-full'>
+                  <Label className='font-medium'>Total Price</Label>
+                  <span className='font-medium'>${totalPrice.toFixed(2)}</span>
+                </div>
               </div>
-            ):null}
+            ) : null}
           </div>
           <div className='flex w-full items-end justify-end'>
             <Button className='mt-6 bg-green-900'>Create</Button>

@@ -1833,6 +1833,32 @@ export const appRouter = router({
         return error;
       }
     }),
+    getUser: privateProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      try {
+        const user = await db.user.findUnique({
+          where: {
+            id: input,
+          },
+        });
+
+        if (!user) {
+          return new TRPCError({ code: 'NOT_FOUND' });
+        }
+
+        return user;
+      } catch (error: any) {
+        console.error(error);
+        return error;
+      }
+    }),
     deleteTeamFile: privateProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
@@ -1906,7 +1932,6 @@ export const appRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { userId, user } = ctx;
-
       if (!userId || !user) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
@@ -1921,11 +1946,11 @@ export const appRouter = router({
       });
 
       if (!dbUser) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        throw new TRPCError({ code: 'NOT_FOUND' });
       }
 
       if (dbUser.groupsAsCoach.every((group) => group.id !== input.groupId)) {
-        return new TRPCError({ code: 'FORBIDDEN' });
+        throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
       try {
@@ -1934,9 +1959,12 @@ export const appRouter = router({
             
             const payment = await db.payment.create({
               data: {
+                title: input.title,
+                authorId: dbUser.id,
                 amount: input.totalPrice,
                 description: input.description,
                 paymentStatus: 'UNPAID',
+                dueDate: new Date(input.dueDate),
                 group: {
                   connect: {
                     id: input.groupId,
@@ -1949,7 +1977,6 @@ export const appRouter = router({
                 },
               },
             });
-      
             await db.notification.create({
               data: {
                 userId: invitee,
@@ -1962,6 +1989,58 @@ export const appRouter = router({
             });
           })
         );
+        
+      } catch (error) {
+        console.error(error);
+        return error;
+      }
+
+      
+      return { success: true };
+    }),
+    deletePayment: privateProcedure
+    .input(
+      z.string()
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId, user } = ctx;
+      if (!userId || !user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const payment = await db.payment.findUnique({
+        where: {
+          id: input,
+        },
+      })
+
+      if (!payment) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      const dbUser = await db.user.findFirst({
+        where: {
+          id: user.id,
+        },
+        include: {
+          groupsAsCoach: true,
+        },
+      });
+
+      if (!dbUser) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      if (dbUser.groupsAsCoach.every((group) => group.id !== payment.groupId)) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
+
+      try {
+        await db.payment.delete({
+          where: {
+            id: input,
+          },
+        });
         
       } catch (error) {
         console.error(error);

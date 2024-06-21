@@ -10,6 +10,7 @@ import Dashboard from '@/app/dashboard/Dashboard';
 import PollPage from '../Polls/poll-page';
 import { TeamFilePage } from '../Dashboard/Team/team-file-page';
 import PaymentPage from '../Payments/PaymentPage';
+import { Payment } from '@prisma/client';
 
 interface HorizontalNavbarProps {
   groupId: string;
@@ -17,6 +18,7 @@ interface HorizontalNavbarProps {
   events: ExtendedEvent[];
   posts: Post[];
   polls: ExtendedPolls;
+  payments: Payment[];
 }
 
 export default function HorizontalNavbar({
@@ -25,6 +27,7 @@ export default function HorizontalNavbar({
   events,
   posts,
   polls,
+  payments,
 }: HorizontalNavbarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -102,7 +105,7 @@ export default function HorizontalNavbar({
         <PollPage user={user} polls={polls} groupId={groupId} />
       </TabsContent>
       <TabsContent className='p-4' value='payments'>
-      <PaymentPage user={user} polls={polls} groupId={groupId} />
+      <PaymentPage user={user} payments={payments} groupId={groupId} />
       </TabsContent>
       <TabsContent className='p-4' value='members'></TabsContent>
       <TabsContent className='p-4' value='files'>

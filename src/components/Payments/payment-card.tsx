@@ -3,8 +3,7 @@ import { AvatarImage, AvatarFallback, Avatar } from '@/components/ui/avatar';
 import { CardHeader, CardContent, Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '../ui/separator';
-import { ExtendedPoll, ExtendedUser } from '@/types/types';
-import { format } from 'date-fns';
+import { ExtendedUser } from '@/types/types';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -12,74 +11,53 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { Trash2Icon, User } from 'lucide-react';
-import { toast } from '../ui/use-toast';
+import { Loader2, Trash2Icon } from 'lucide-react';
 import { trpc } from '@/app/_trpc/client';
-import { Textarea } from '../ui/textarea';
-import Image from 'next/image';
 import { formatDate } from '@/lib/actions';
+import { Payment } from '@prisma/client';
+import { toast } from '../ui/use-toast';
+import { useRouter } from 'next/navigation';
 
 interface PaymentCardProps {
   user: ExtendedUser;
-  poll: ExtendedPoll;
+  payment: Payment;
 }
-export default function PaymentCardCard({ user, poll }: PaymentCardProps) {
-  const [comment, setComment] = React.useState('');
-  const [commentsVisible, setCommentsVisible] = React.useState(false);
-  const author = poll.author;
-  const authorInitials = author.firstName[0] + author.lastName[0];
-  const userVoted = poll.votes.some((vote) => vote.userId === user.id);
-  const userVote = poll.votes.find((vote) => vote.userId === user.id);
-  const [hasVoted, setHasVoted] = React.useState(false);
-  const TextareaRef = React.useRef<HTMLTextAreaElement>(null);
+export default function PaymentCard({ user, payment }: PaymentCardProps) {
+  const router = useRouter();
   const utils = trpc.useUtils();
-  const {data, isLoading} = trpc.getPollComments.useQuery(poll.id);
+  const { data: author, isLoading } = trpc.getUser.useQuery(
+    payment.authorId as string
+  );
+  const deletePayment = trpc.deletePayment.useMutation();
+  if (!author || isLoading) {
+    return (
+      <div className='w-full mt-24 flex justify-center'>
+        <Loader2 className='h-8 w-8 animate-spin text-zinc-800' />
+      </div>
+    );
+  }
 
- 
-  const totalVotes = poll.votes.length;
+  const authorInitials = author.firstName[0] + author.lastName[0];
 
-  const addVote = trpc.createVote.useMutation();
-  const handleVote = (optionId: string) => {
-    const voteData = {
-      pollId: poll.id,
-      optionId,
-    };
-    addVote.mutate(voteData, {
+  const handleDeletePayment = () => {
+    deletePayment.mutate(payment.id, {
       onSuccess: () => {
-        setHasVoted(true);
-      },
-      onError: (error: any) => {
-        console.error(error);
         toast({
-          title: 'Oops, Sometihng went wrong',
-          description: 'Please try again later',
-        });
-      },
-    });
-  };
-
-  const addPollComment = trpc.createPollComment.useMutation();
-  const handleComment = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const commentData = {
-      pollId: poll.id,
-      comment,
-    };
-    addPollComment.mutate(commentData, {
-      onSuccess: () => {
-        setComment('');
-        utils.getPollComments.invalidate(poll.id);
+          title: 'Payment deleted',
+          description: 'The payment has been successfully deleted',
+          duration: 5000,
+        })
+        router.refresh();
       },
       onError: (error: any) => {
-        console.error(error);
         toast({
           title: 'Oops, Something went wrong',
           description: 'Please try again later',
         });
-      },
+        console.error(error);
+      }
     });
-  };
-
+  }
   return (
     <Card className='w-full max-w-lg mx-auto mb-6'>
       <CardHeader className='flex flex-row items-start justify-between px-4 py-3 bg-white dark:bg-gray-800'>
@@ -87,15 +65,15 @@ export default function PaymentCardCard({ user, poll }: PaymentCardProps) {
           <Avatar className='w-8 h-8 mt-1'>
             <AvatarImage
               alt={author.firstName}
-              src={user.imageURL ? user.imageURL : ''}
+              src={author.imageURL ? author.imageURL : ''}
             />
             <AvatarFallback>{authorInitials}</AvatarFallback>
           </Avatar>
           <div className='text-sm'>
-            <div className='font-medium'>{author.firstName + ' ' + author.lastName}</div>
-            <div className='text-gray-500 dark:text-gray-400'>
-              {formatDate(new Date(poll.createdAt))}
+            <div className='font-medium'>
+              {author.firstName + ' ' + author.lastName}
             </div>
+            <div className='text-gray-500 dark:text-gray-400'>{formatDate(payment.createdAt)}</div>
           </div>
         </div>
         <div>
@@ -108,7 +86,7 @@ export default function PaymentCardCard({ user, poll }: PaymentCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end'>
-                <DropdownMenuItem className='text-red-600 flex justify-between'>
+                <DropdownMenuItem onClick={handleDeletePayment} className='text-red-600 flex justify-between'>
                   Delete
                   <Trash2Icon className='mr-2 h-4 w-4' />
                 </DropdownMenuItem>
@@ -119,68 +97,18 @@ export default function PaymentCardCard({ user, poll }: PaymentCardProps) {
       </CardHeader>
       <Separator />
 
-      <CardContent className='px-6 py-8'>
-        <h3 className='text-2xl font-bold'>{poll.title}</h3>
+      <CardContent className='px-6 py-2'>
+        <h3 className='text-2xl font-bold'>{payment.title}</h3>
         <p className='text-gray-600 dark:text-gray-400 mb-6'>
-          {poll.description}
+          {payment.description ? payment.description : ''}
         </p>
-        <div className='grid gap-4'>
-          {hasVoted || userVoted
-            ? poll.options.map((option) => {
-                const voteCount = poll.votes.filter(
-                  (vote) => vote.optionId === option.id
-                ).length;
-                const votePercent =
-                  totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0;
-                return (
-                  <Button
-                    key={option.id}
-                    className='justify-start shadow-md relative w-full'
-                    variant='outline'
-                    disabled
-                    style={{
-                      background: `linear-gradient(to right, green ${votePercent}%, white ${votePercent}%)`,
-                    }}
-                  >
-                    {option.text}
-                    <span className='ml-2'>({voteCount} votes)</span>
-                  </Button>
-                );
-              })
-            : poll.options.map((option) => (
-                <Button
-                  key={option.id}
-                  onClick={() => handleVote(option.id)}
-                  className='justify-start shadow-md w-full'
-                  variant='outline'
-                >
-                  {option.text}
-                </Button>
-              ))}
-        </div>
 
-        <div className='text-center my-6'>
+        <div className=''>
           <p className='text-gray-600'>
             Due by:{' '}
-            {format(
-              poll.expiresAt ? poll.expiresAt : new Date(),
-              'eeee MMM dd, yyyy'
-            )}
+            {formatDate(payment.dueDate)}
           </p>
         </div>
-        <div
-          onClick={() => setCommentsVisible(!commentsVisible)}
-          className='hover:cursor-pointer hover:underline mt-1'
-        >
-          {poll.PollComment.length > 0 ? (
-            <div className='flex flex-row items-center justify-end space-x-1 mt-1 mb-4'>
-              <p className='text-xs text-gray-600 ml-1'>
-                {poll.PollComment.length} comments
-              </p>
-            </div>
-          ) : null}
-        </div>
-       
       </CardContent>
     </Card>
   );

@@ -55,10 +55,7 @@ interface CreatePollFormProps {
 }
 
 const CreatePollForm = ({ user, setPollFormOpen, groupId }: CreatePollFormProps) => {
-  const [inputOpen, setInputOpen] = React.useState(false);
-  const [formData, setFormData] = React.useState({
-    postBody: '',
-  });
+  const router = useRouter();
 
   const form = useForm<PollFormValues>({
     resolver: zodResolver(pollFormSchema),
@@ -94,6 +91,7 @@ const CreatePollForm = ({ user, setPollFormOpen, groupId }: CreatePollFormProps)
           description: 'Your poll has been created successfully.',
         })
         setPollFormOpen(false);
+        router.refresh();
       },
       onError: (error: any) => {
         console.error(error);

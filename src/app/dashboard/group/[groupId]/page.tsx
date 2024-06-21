@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import HorizontalNavbar from '@/components/Navigation/horizontal-navbar';
 import Image from 'next/image';
 import { ExtendedEvent } from '@/types/types';
+import { Payment } from '@prisma/client';
 
 interface PageProps {
   params: {
@@ -72,8 +73,6 @@ const Page = async ({ params }: PageProps) => {
     },
   });
 
-  const groupIds = groups.map((g) => g.id);
-
   const polls = await db.poll.findMany({
     where: {
       groupId: groupId,
@@ -96,6 +95,27 @@ const Page = async ({ params }: PageProps) => {
       author: true,
     },
   });
+  const isCoach = dbUser.groupsAsCoach.some((group) => group.id === groupId);
+  // let payments: Payment[];
+  
+  // if (isCoach) {
+   const payments = await db.payment.findMany({
+      where: {
+        groupId: groupId,
+      },
+    });
+  // }else{
+  //   payments = await db.payment.findMany({
+  //     where: {
+  //       groupId: groupId,
+  //       userId: user.id,
+  //     },
+  //   });
+  // }
+
+  
+
+  console.log(payments);
 
   return (
     <>
@@ -114,6 +134,7 @@ const Page = async ({ params }: PageProps) => {
         groupId={groupId}
         events={dbEvents}
         user={dbUser}
+        payments={payments}
       />
     </>
   );

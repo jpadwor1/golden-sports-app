@@ -7,13 +7,14 @@ import MiniNewsCard from '../Dashboard/MiniNewsCard'
 import { Plus } from 'lucide-react'
 import { ExtendedPoll, ExtendedPolls, ExtendedUser } from '@/types/types'
 import CreatePollForm from './create-payment-form'
+import { Payment } from '@prisma/client'
 
 interface PaymentPageProps {
   user: ExtendedUser;
-  polls: ExtendedPolls;
+  payments: Payment[];
   groupId: string;
 }
-const PaymentPage = ({user, polls, groupId}: PaymentPageProps) => {
+const PaymentPage = ({user, payments, groupId}: PaymentPageProps) => {
   const [paymentFormOpen, setPaymentFormOpen] = React.useState(false)
   const isUserCoachOfGroup = user.role === 'COACH' && user.groupsAsCoach.some(group => group.id === groupId);
   
@@ -36,12 +37,16 @@ const PaymentPage = ({user, polls, groupId}: PaymentPageProps) => {
         </div>
         <div className='flex flex-col min-h-[calc(100vh-20rem)] w-full'>
           {paymentFormOpen && (
-            <CreatePollForm setPollFormOpen={setPaymentFormOpen} user={user} groupId={groupId} />
+            <CreatePollForm setPaymentFormOpen={setPaymentFormOpen} user={user} groupId={groupId} />
           )}
 
-          {polls.map(poll => (
-            <PaymentCard key={poll.id} poll={poll as ExtendedPoll} user={user} />
-          ))}
+          {payments.length > 0 ? payments.map(payment => (
+            <PaymentCard key={payment.id} payment={payment as Payment} user={user} />
+          )): (
+            <div className='flex flex-col items-center justify-center w-full h-full mt-8'>
+              <p className='text-gray-400 text-lg'>No payments yet</p>
+            </div>
+          )}
       </div>
       </div>
 

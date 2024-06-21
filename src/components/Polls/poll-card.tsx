@@ -19,12 +19,15 @@ import { Textarea } from '../ui/textarea';
 import PollCommentFeed from './poll-comment-feed';
 import Image from 'next/image';
 import { formatDate } from '@/lib/actions';
+import { router } from '@/trpc/trpc';
+import { useRouter } from 'next/navigation';
 
 interface PollCardProps {
   user: ExtendedUser;
   poll: ExtendedPoll;
 }
 export default function PollCard({ user, poll }: PollCardProps) {
+  const router = useRouter();
   const [comment, setComment] = React.useState('');
   const [commentsVisible, setCommentsVisible] = React.useState(false);
   const author = poll.author;
@@ -48,11 +51,12 @@ export default function PollCard({ user, poll }: PollCardProps) {
     addVote.mutate(voteData, {
       onSuccess: () => {
         setHasVoted(true);
+        router.refresh()
       },
       onError: (error: any) => {
         console.error(error);
         toast({
-          title: 'Oops, Sometihng went wrong',
+          title: 'Oops, Something went wrong',
           description: 'Please try again later',
         });
       },
