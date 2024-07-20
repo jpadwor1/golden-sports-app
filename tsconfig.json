@@ -23,6 +23,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/events/getEvents", "src/app/api/events/getParticipants", "src/app/api/events/sendInviteeEventReminder", "src/app/api/events/createEventComment", "src/app/api/events/createEvent", "src/app/api/events/addInvitees"],
   "exclude": ["node_modules"]
 }

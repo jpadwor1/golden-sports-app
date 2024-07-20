@@ -25,7 +25,7 @@ model User {
   stripeAccountComplete Boolean        @default(false)
   groupsAsCoach         Group[]        @relation("CoachGroups")
   groupsAsMember        Group[]        @relation("MemberGroups")
-  payments              Payment[]
+  payments              UserPayment[]
   messages              Message[]
   parentId              String?
   Participant           Participant[]
@@ -38,6 +38,7 @@ model User {
   Poll                  Poll[]
   PollComment           PollComment[]
   notifications         Notification[]
+  Payment               Payment[]
 
   @@index([parentId])
 }
@@ -110,7 +111,7 @@ model Participant {
   eventId String
   status  String
 
-  user  User  @relation(fields: [userId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@id([userId, eventId])
@@ -119,8 +120,8 @@ model Participant {
 }
 
 model Payment {
-  id            String    @id @default(uuid())
-  createdAt     DateTime  @default(now())
+  id            String        @id @default(uuid())
+  createdAt     DateTime      @default(now())
   authorId      String
   title         String
   userId        String?
@@ -130,14 +131,27 @@ model Payment {
   description   String?
   dueDate       DateTime
   groupId       String
-
-  user  User?   @relation(fields: [userId], references: [id])
-  event Event? @relation(fields: [eventId], references: [id])
-  group Group  @relation(fields: [groupId], references: [id])
+  users         UserPayment[]
+  user          User?         @relation(fields: [userId], references: [id])
+  event         Event?        @relation(fields: [eventId], references: [id])
+  group         Group         @relation(fields: [groupId], references: [id])
 
   @@index([userId])
   @@index([eventId])
   @@index([groupId])
+}
+
+model UserPayment {
+  id        String @id @default(uuid())
+  userId    String
+  paymentId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment Payment @relation(fields: [paymentId], references: [id])
+
+  @@unique([userId, paymentId])
+  @@index([userId])
+  @@index([paymentId])
 }
 
 model Message {
@@ -229,7 +243,7 @@ model Notification {
   resourceId String
   fromId     String
   type       String
-  User       User     @relation(fields: [userId], references: [id])
+  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

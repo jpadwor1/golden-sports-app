@@ -1,7 +1,9 @@
 import { initTRPC } from '@trpc/server';
 import { TRPCError } from '@trpc/server';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
-const t = initTRPC.create();
+import { OpenApiMeta } from 'trpc-openapi';
+
+const t = initTRPC.meta<OpenApiMeta>().create();
 const middleware = t.middleware;
 
 const isAuth = middleware(async (opts) => {

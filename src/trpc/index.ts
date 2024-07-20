@@ -28,6 +28,7 @@ export const appRouter = router({
       },
     });
 
+
     if (!dbUser) {
       // create user in db
       await db.user.create({
@@ -45,6 +46,10 @@ export const appRouter = router({
         where: {
           email: user.email,
         },
+        include:{
+          groupsAsCoach: true,
+          groupsAsMember: true,
+        }
       });
 
       if (invitedUser) {
@@ -60,7 +65,18 @@ export const appRouter = router({
             lastName: user.family_name ? user.family_name : '',
             imageURL: user.picture,
             phone: '',
-          },
+            groupsAsCoach: {
+              connect: invitedUser.groupsAsCoach.map((group) => ({
+                id: group.id,
+              })),
+            },
+            groupsAsMember: {
+              connect: invitedUser.groupsAsMember.map((group) => ({
+                id: group.id,
+              })),
+            },
+            }
+          
         });
       }
     }
@@ -383,13 +399,14 @@ export const appRouter = router({
               });
             } else {
               try {
-                await addUser(member);
+                const newUserInfo = await addUser(member);
                 const [firstName, lastName] = member.name.split(' ');
                 const fullName = lastName
                   ? `${firstName} ${lastName}`
                   : firstName;
 
-                await db.user.create({
+                if (!newUserInfo) return new Error('Failed to add user');
+                  const newUser = await db.user.create({
                   data: {
                     firstName: firstName,
                     lastName: lastName,
@@ -403,9 +420,27 @@ export const appRouter = router({
                     },
                   },
                 });
+
+                if (!newUser) {
+                  throw new Error('Failed to create user');
+                }
+                await db.user.update({
+                  where: {
+                    id: newUser.id,
+                  },
+                  data: {
+                    groupsAsMember: {
+                      connect: {
+                        id: input.teamId,
+                      },
+                    },
+                  },
+                });
               } catch (error) {
                 console.error('Error in adding user:', error);
               }
+
+              
             }
           })
         );
@@ -1597,7 +1632,6 @@ export const appRouter = router({
       }
 
       try {
-
         const resource =
           input.resourceType === 'comments' ||
           input.resourceType === 'posts' ||
@@ -1743,7 +1777,6 @@ export const appRouter = router({
       }
 
       try {
-
         const files = await Promise.all(
           input.files.map(async (file) => {
             const doesFileExist = await db.file.findFirst({
@@ -1763,7 +1796,6 @@ export const appRouter = router({
                 groupId: input.groupId,
               },
             });
-
           })
         );
 
@@ -1800,7 +1832,7 @@ export const appRouter = router({
                 type: 'file',
               },
             });
-            console.log('notification sent', member.firstName)
+            console.log('notification sent', member.firstName);
           })
         );
 
@@ -1833,33 +1865,31 @@ export const appRouter = router({
         return error;
       }
     }),
-    getUser: privateProcedure
-    .input(z.string())
-    .query(async ({ ctx, input }) => {
-      const { userId, user } = ctx;
+  getUser: privateProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    const { userId, user } = ctx;
 
-      if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+    if (!userId || !user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED' });
+    }
+
+    try {
+      const user = await db.user.findUnique({
+        where: {
+          id: input,
+        },
+      });
+
+      if (!user) {
+        return new TRPCError({ code: 'NOT_FOUND' });
       }
 
-      try {
-        const user = await db.user.findUnique({
-          where: {
-            id: input,
-          },
-        });
-
-        if (!user) {
-          return new TRPCError({ code: 'NOT_FOUND' });
-        }
-
-        return user;
-      } catch (error: any) {
-        console.error(error);
-        return error;
-      }
-    }),
-    deleteTeamFile: privateProcedure
+      return user;
+    } catch (error: any) {
+      console.error(error);
+      return error;
+    }
+  }),
+  deleteTeamFile: privateProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
       const { userId, user } = ctx;
@@ -1869,7 +1899,6 @@ export const appRouter = router({
       }
 
       try {
-
         const file = await db.file.findUnique({
           where: {
             id: input,
@@ -1892,7 +1921,7 @@ export const appRouter = router({
         return error;
       }
     }),
-    getNotifications: privateProcedure
+  getNotifications: privateProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
       const { userId, user } = ctx;
@@ -1917,7 +1946,7 @@ export const appRouter = router({
         return error;
       }
     }),
-    createPayment: privateProcedure
+  createPayment: privateProcedure
     .input(
       z.object({
         title: z.string(),
@@ -1954,54 +1983,52 @@ export const appRouter = router({
       }
 
       try {
-        await Promise.all(
-          input.invitees.map(async (invitee) => {
-            
-            const payment = await db.payment.create({
-              data: {
-                title: input.title,
-                authorId: dbUser.id,
-                amount: input.totalPrice,
-                description: input.description,
-                paymentStatus: 'UNPAID',
-                dueDate: new Date(input.dueDate),
-                group: {
-                  connect: {
-                    id: input.groupId,
-                  },
-                },
-                user: {
-                  connect: {
-                    id: invitee,
-                  },
-                },
+        const payment = await db.payment.create({
+          data: {
+            title: input.title,
+            authorId: dbUser.id,
+            amount: input.totalPrice,
+            description: input.description,
+            paymentStatus: 'UNPAID',
+            dueDate: new Date(input.dueDate),
+            group: {
+              connect: {
+                id: input.groupId,
               },
-            });
-            await db.notification.create({
-              data: {
-                userId: invitee,
-                resourceId: payment.id,
-                message: `You've been invited to a payment.`,
-                read: false,
-                fromId: userId,
-                type: 'payment',
-              },
-            });
-          })
-        );
-        
+            },
+          },
+        });
+
+        const userPaymentsData = input.invitees.map((invitee) => ({
+          userId: invitee,
+          paymentId: payment.id,
+        }));
+
+        await db.userPayment.createMany({
+          data: userPaymentsData,
+        });
+
+        const notificationsData = input.invitees.map((invitee) => ({
+          userId: invitee,
+          resourceId: payment.id,
+          message: `You've been invited to a payment.`,
+          read: false,
+          fromId: userId,
+          type: 'payment',
+        }));
+
+        await db.notification.createMany({
+          data: notificationsData,
+        });
       } catch (error) {
         console.error(error);
         return error;
       }
 
-      
       return { success: true };
     }),
-    deletePayment: privateProcedure
-    .input(
-      z.string()
-    )
+  deletePayment: privateProcedure
+    .input(z.string())
     .mutation(async ({ ctx, input }) => {
       const { userId, user } = ctx;
       if (!userId || !user) {
@@ -2012,7 +2039,7 @@ export const appRouter = router({
         where: {
           id: input,
         },
-      })
+      });
 
       if (!payment) {
         throw new TRPCError({ code: 'NOT_FOUND' });
@@ -2041,13 +2068,11 @@ export const appRouter = router({
             id: input,
           },
         });
-        
       } catch (error) {
         console.error(error);
         return error;
       }
 
-      
       return { success: true };
     }),
 });
