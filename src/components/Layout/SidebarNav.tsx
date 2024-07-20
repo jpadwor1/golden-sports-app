@@ -39,7 +39,7 @@ const SidebarNav = ({ userId }: SidebarNavProps) => {
   const NavItems: SideNavItem[] = [
     {
       title: 'Home',
-      path: '/',
+      path: `/dashboard/group/${groups[0].id}`,
       icon: <Home className='w-6 h-6' />,
     },
     {
@@ -62,8 +62,8 @@ const SidebarNav = ({ userId }: SidebarNavProps) => {
       icon: <Settings className='w-6 h-6' />,
       submenu: true,
       subMenuItems: [
-        { title: 'Account', path: '/settings/account' },
-        { title: 'Privacy', path: '/settings/privacy' },
+        { title: 'Account', path: '/settings' },
+        { title: 'Team', path: '/settings/Team' },
       ],
     },
     {

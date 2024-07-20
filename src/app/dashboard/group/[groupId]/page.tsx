@@ -115,7 +115,6 @@ const Page = async ({ params }: PageProps) => {
 
   
 
-  console.log(payments);
 
   return (
     <>

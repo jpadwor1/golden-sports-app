@@ -23,7 +23,6 @@ const Page = async () => {
         groupsAsMember: true,
       },
     });
-console.log(dbUser)
     if (!dbUser || dbUser === null)
       throw new Error('User not found in database');
   } catch (error) {
