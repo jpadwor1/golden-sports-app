@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -10,45 +10,45 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu';
-import Image from 'next/image';
+} from "@/components/ui/navigation-menu";
+import Image from "next/image";
 
 const components: { title: string; href: string; description: string }[] = [
   {
-    title: 'Overview',
-    href: '/features/overview',
+    title: "Overview",
+    href: "/features",
     description:
       "A comprehensive summary of our platform's features, giving you a bird's-eye view of all functionalities.",
   },
   {
-    title: 'Events',
-    href: '/features/events',
+    title: "Events",
+    href: "/features/events",
     description:
-      'Effortless event creation and management, ensuring your group stays active and engaged.',
+      "Effortless event creation and management, ensuring your group stays active and engaged.",
   },
   {
-    title: 'Invites & Reminders',
-    href: '/features/invites-reminders',
+    title: "Invites & Reminders",
+    href: "/features/invites-reminders",
     description:
-      'Automated invites and reminders to keep your group members informed and punctual for all events.',
+      "Automated invites and reminders to keep your group members informed and punctual for all events.",
   },
   {
-    title: 'File Storage',
-    href: '/features/file-storage',
+    title: "File Storage",
+    href: "/features/file-storage",
     description:
       "Secure and organized cloud storage for all your group's files, easily accessible by members.",
   },
   {
-    title: 'Messaging',
-    href: '/features/messaging',
+    title: "Messaging",
+    href: "/features/messaging",
     description:
-      'Instant messaging capabilities for real-time communication within your group.',
+      "Instant messaging capabilities for real-time communication within your group.",
   },
   {
-    title: 'Payments',
-    href: '/features/payments',
+    title: "Payments",
+    href: "/features/payments",
     description:
-      'Convenient and secure payment processing for group subscriptions, events, and more.',
+      "Convenient and secure payment processing for group subscriptions, events, and more.",
   },
 ];
 
@@ -57,39 +57,40 @@ export default function NavbarMenu() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger className='bg-transparent'>
+          <NavigationMenuTrigger className="bg-transparent">
             What We Do
           </NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className='grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
-              <li className='row-span-3'>
+            <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+              <li className="row-span-3">
                 <NavigationMenuLink asChild>
                   <a
-                    className='flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md'
-                    href='/about'
+                    className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                    href="/about"
                   >
                     <Image
-                      src='/GSlogo.png'
+                      src="/GSlogo.png"
                       width={80}
                       height={80}
-                      alt='Golden Sports'
+                      alt="Golden Sports"
                     />
-                    <div className='mb-2 text-lg font-medium'>
+                    <div className="mb-2 text-lg font-medium">
                       Golden Sports
                     </div>
-                    <p className='text-sm leading-tight text-muted-foreground'>
+                    <p className="text-sm leading-tight text-muted-foreground">
                       Simplify Your Sports Management with Golden Sports
                     </p>
                   </a>
                 </NavigationMenuLink>
               </li>
-              <ListItem href='#' title='Features'>
-              A comprehensive summary of our platform&apos;s features, giving you a bird&apos;s-eye view of all functionalities.
+              <ListItem href="/features" title="Features">
+                A comprehensive summary of our platform&apos;s features, giving
+                you a bird&apos;s-eye view of all functionalities.
               </ListItem>
-              <ListItem href='#' title='Who uses Golden Sports'>
+              <ListItem href="/users" title="Who uses Golden Sports">
                 Be the coach that spends time on what matters most
               </ListItem>
-              <ListItem href='#' title='Our Mission'>
+              <ListItem href="/about" title="Our Mission">
                 We believe these precious social activities ought to be easier.
               </ListItem>
             </ul>
@@ -98,12 +99,12 @@ export default function NavbarMenu() {
         <NavigationMenuItem>
           <NavigationMenuTrigger>What We Offer</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className='grid w-[300px] gap-3 p-4 md:w-[400px] md:grid-cols-2 lg:w-[500px] '>
+            <ul className="grid w-[300px] gap-3 p-4 md:w-[400px] md:grid-cols-2 lg:w-[500px] ">
               {components.map((component) => (
                 <ListItem
                   key={component.title}
                   title={component.title}
-                  href="#"
+                  href={component.href}
                 >
                   {component.description}
                 </ListItem>
@@ -117,8 +118,8 @@ export default function NavbarMenu() {
 }
 
 const ListItem = React.forwardRef<
-  React.ElementRef<'a'>,
-  React.ComponentPropsWithoutRef<'a'>
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
 >(({ className, title, children, ...props }, ref) => {
   return (
     <li>
@@ -126,13 +127,13 @@ const ListItem = React.forwardRef<
         <a
           ref={ref}
           className={cn(
-            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className
           )}
           {...props}
         >
-          <div className='text-sm font-medium leading-none'>{title}</div>
-          <p className='line-clamp-2 text-sm leading-snug text-muted-foreground'>
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
             {children}
           </p>
         </a>
@@ -140,4 +141,4 @@ const ListItem = React.forwardRef<
     </li>
   );
 });
-ListItem.displayName = 'ListItem';
+ListItem.displayName = "ListItem";

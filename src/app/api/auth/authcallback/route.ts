@@ -1,13 +1,11 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
-import { db } from '@/db';
-import { TRPCError } from '@trpc/server';
-import { NextResponse } from 'next/server';
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { db } from "@/db";
+import { TRPCError } from "@trpc/server";
+import { NextResponse } from "next/server";
 
-export async function GET(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return NextResponse.json({ message: 'Bad Request' }, { status: 400 });
-    
+export async function GET(req: Request, res: Response) {
+  if (req.method !== "GET") {
+    return NextResponse.json({ message: "Bad Request" }, { status: 400 });
   }
 
   try {
@@ -15,7 +13,7 @@ export async function GET(req: NextApiRequest, res: NextApiResponse) {
     const user = await getUser();
 
     if (!user?.id || !user?.email) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
+      throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
     // Check if the user is in the database
@@ -31,9 +29,9 @@ export async function GET(req: NextApiRequest, res: NextApiResponse) {
         data: {
           id: user.id,
           email: user.email,
-          firstName: user.given_name ? user.given_name : '',
-          lastName: user.family_name ? user.family_name : '',
-          phone: '',
+          firstName: user.given_name ? user.given_name : "",
+          lastName: user.family_name ? user.family_name : "",
+          phone: "",
           imageURL: user.picture,
         },
       });
@@ -57,10 +55,10 @@ export async function GET(req: NextApiRequest, res: NextApiResponse) {
           data: {
             id: user.id,
             email: user.email,
-            firstName: user.given_name ? user.given_name : '',
-            lastName: user.family_name ? user.family_name : '',
+            firstName: user.given_name ? user.given_name : "",
+            lastName: user.family_name ? user.family_name : "",
             imageURL: user.picture,
-            phone: '',
+            phone: "",
             groupsAsCoach: {
               connect: invitedUser.groupsAsCoach.map((group) => ({
                 id: group.id,
@@ -76,14 +74,15 @@ export async function GET(req: NextApiRequest, res: NextApiResponse) {
       }
     }
 
-      
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {
-    if (error instanceof TRPCError && error.code === 'UNAUTHORIZED') {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    if (error instanceof TRPCError && error.code === "UNAUTHORIZED") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     } else {
-      
-        return NextResponse.json({ message: 'Internal Server Error', error: error }, { status: 500 });
+      return NextResponse.json(
+        { message: "Internal Server Error", error: error },
+        { status: 500 }
+      );
     }
   }
 }

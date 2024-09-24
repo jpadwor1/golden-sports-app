@@ -81,7 +81,7 @@
 
 .header-section-bg {
   background-image: 'url("/flex-ui-assets/elements/pattern-white.svg")';
-  background-position: 'center';
+  background-position: "center";
 }
 
 .scrollbar-w-2::-webkit-scrollbar {
@@ -91,7 +91,7 @@
 
 .scrollbar-track-blue-lighter::-webkit-scrollbar-track {
   --bg-opacity: 0.5;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-radius: 16px;
 }
 
@@ -104,3 +104,56 @@
   border-radius: 7px;
 }
 
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.main-bg-gradient-to-bottom {
+  background: hsla(126, 55%, 39%, 1);
+  background: linear-gradient(
+    -90deg,
+    hsla(126, 55%, 39%, 1) 0%,
+    hsla(181, 100%, 36%, 1) 100%
+  );
+  background: -moz-linear-gradient(
+    -90deg,
+    hsla(126, 55%, 39%, 1) 0%,
+    hsla(181, 100%, 36%, 1) 100%
+  );
+  background: -webkit-linear-gradient(
+    -90deg,
+    hsla(126, 55%, 39%, 1) 0%,
+    hsla(181, 100%, 36%, 1) 100%
+  );
+  filter: progid: DXImageTransform.Microsoft.gradient( startColorstr="#2D9B38", endColorstr="#00B3B6", GradientType=1 );
+}
+
+.embla__slide {
+  transition: opacity 0.2s ease-in-out;
+}
+.embla__slide:not(.is-snapped) {
+  opacity: 0.16;
+}
