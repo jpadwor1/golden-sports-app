@@ -88,7 +88,7 @@ const AboutPage = () => {
           </div>
 
           {/* Mockup Section */}
-          <div className="flex flex-col md:flex-row items-center justify-between mb-16">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-16 md:ml-10">
             <div className="md:w-1/2 mb-8 md:mb-0">
               <h2 className="text-3xl font-bold mb-4 text-gray-800">
                 Experience Golden Sports on the go
@@ -98,7 +98,7 @@ const AboutPage = () => {
                 pocket.
               </p>
             </div>
-            <div className="md:w-1/2 relative">
+            <div className="md:w-1/2 relative md:ml-24">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full filter blur-3xl opacity-30 animate-pulse"></div>
               <div className="relative z-10 overflow-hidden">
                 <Image
@@ -106,7 +106,7 @@ const AboutPage = () => {
                   alt="Golden Sports mobile app mockup"
                   width={300}
                   height={500}
-                  className="mx-auto relative z-10 h-[575px]"
+                  className="relative z-10 h-[575px]"
                 />
                 <div className="absolute top-0 bottom-0 z-0 rounded-[52px] overflow-hidden w-[298px] px-1">
                   <Image

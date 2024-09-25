@@ -22,12 +22,7 @@ interface FeatureCarouselProps {
 
 const FeatureCarousel = ({ features }: FeatureCarouselProps) => {
   return (
-    <Carousel
-      opts={{
-        loop: true,
-      }}
-      className="w-full max-w-xs md:max-w-2xl mx-auto"
-    >
+    <Carousel className="w-full max-w-xs md:max-w-2xl mx-auto">
       <CarouselContent>
         {features.map((feature, index) => (
           <CarouselItem className="md:basis-1/3" key={index}>

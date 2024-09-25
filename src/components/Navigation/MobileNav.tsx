@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button, buttonVariants } from "../ui/button";
+import { motion } from "framer-motion";
 
 interface MobileNavProps {
   isLoggedIn: boolean;
@@ -35,22 +36,30 @@ const MobileNav = ({ isLoggedIn }: MobileNavProps) => {
         className="relative z-40 w-5 h-5 text-zinc-700"
       />
 
-      <div
+      <motion.div
         className={cn(
           "fixed inset-0 z-50 min-h-screen transition-opacity duration-400 ease-in-out",
-          isOpen ? "opacity-100" : "hidden opacity-0 pointer-events-none"
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
+        initial={{ opacity: 0 }}
+        animate={{
+          opacity: isOpen ? 1 : 0,
+          transition: { duration: 0.3, delay: 0.2 },
+        }}
+        exit={{ opacity: 0 }}
       >
-        <div
+        <motion.div
           className={cn(
-            "absolute z-[1000] top-0 right-0 bottom-0 w-full bg-[#162233] transition-transform duration-400 ease-in-out",
-            isOpen ? "translate-x-0" : "translate-x-full"
+            "absolute z-[1000] top-0 right-0 bottom-0 w-full bg-[#162233] transition-transform duration-400 ease-in-out"
           )}
+          initial={{ transform: "translateX(100%)" }}
+          animate={{ transform: "translateX(0)" }}
+          exit={{ transform: "translateX(100%)" }}
         >
-          <div className="flex justify-end p-4">
+          <div className="flex justify-end p-4 mt-4">
             <X
               onClick={toggleOpen}
-              className="w-6 h-6 text-white cursor-pointer"
+              className="w-6 h-6 text-white cursor-pointer mr-2"
             />
           </div>
           <nav className="p-4">
@@ -138,8 +147,8 @@ const MobileNav = ({ isLoggedIn }: MobileNavProps) => {
               )}
             </ul>
           </nav>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
