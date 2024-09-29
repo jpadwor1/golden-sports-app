@@ -4,9 +4,9 @@ import MarginWidthWrapper from "@/components/Layout/margin-width-wrapper";
 import Header from "@/components/Layout/header";
 import HeaderMobile from "@/components/Layout/header-mobile";
 import PageWrapper from "@/components/Layout/page-wrapper";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
+import { currentUser } from "@clerk/nextjs/server";
 
 interface GroupLayoutProps {
   children: React.ReactNode;
@@ -17,8 +17,7 @@ export default async function GroupLayout({ children }: GroupLayoutProps) {
   let dbUser = null;
 
   try {
-    const { getUser } = getKindeServerSession();
-    user = await getUser();
+    const user = await currentUser();
 
     if (!user || !user.id) return new Error("User not found");
 

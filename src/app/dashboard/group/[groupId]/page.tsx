@@ -1,11 +1,10 @@
 import React from 'react';
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { db } from '@/db';
 import { redirect } from 'next/navigation';
 import HorizontalNavbar from '@/components/Navigation/horizontal-navbar';
 import Image from 'next/image';
 import { ExtendedEvent } from '@/types/types';
-import { Payment } from '@prisma/client';
+import { currentUser } from '@clerk/nextjs/server';
 
 interface PageProps {
   params: {
@@ -15,8 +14,7 @@ interface PageProps {
 
 const Page = async ({ params }: PageProps) => {
   const groupId = params.groupId;
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const user = await currentUser();
 
   if (!user || !user.id) redirect('/auth-callback?origin=dashboard');
 

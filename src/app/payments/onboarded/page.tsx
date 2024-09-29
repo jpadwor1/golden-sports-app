@@ -1,13 +1,12 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
 import { absoluteUrl } from '@/lib/utils';
+import { currentUser } from '@clerk/nextjs/server';
 
 const Page = async () => {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const user = await currentUser();
 
   if (!user || !user.id) redirect('/sign-in');
 

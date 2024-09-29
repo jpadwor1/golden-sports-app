@@ -1,9 +1,9 @@
 import React from 'react';
 import { ProfileForm } from './ProfileForm';
 import { Separator } from '@/components/ui/separator';
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { db } from '@/db';
 import { UserRole } from '@prisma/client';
+import { currentUser } from '@clerk/nextjs/server';
 
 export type User =
   | ({
@@ -29,8 +29,7 @@ export type User =
   | null;
 
 const Page = async () => {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const user = await currentUser();
 
   const dbUser: User = await db.user.findFirst({
     where: {

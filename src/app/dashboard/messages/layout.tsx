@@ -4,9 +4,9 @@ import MarginWidthWrapper from '@/components/Layout/margin-width-wrapper';
 import Header from '@/components/Layout/header';
 import HeaderMobile from '@/components/Layout/header-mobile';
 import PageWrapper from '@/components/Layout/page-wrapper';
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
+import { currentUser } from '@clerk/nextjs/server';
 
 interface MessagesLayoutProps {
   children: React.ReactNode;
@@ -15,8 +15,7 @@ interface MessagesLayoutProps {
 export default async function MessagesLayout({
   children,
 }: MessagesLayoutProps) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const user = await currentUser();
 
   if (!user || !user.id) redirect('/auth-callback?origin=dashboard');
 

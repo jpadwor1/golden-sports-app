@@ -1,8 +1,7 @@
 import { Separator } from '@/components/ui/separator';
 import { SidebarNav } from './sidebarNav';
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
-import { db } from '@/db';
 import Navbar from '@/components/Navigation/Navbar';
+import { currentUser } from '@clerk/nextjs/server';
 
 const sidebarNavItems = [
   {
@@ -30,9 +29,7 @@ interface SettingsLayoutProps {
 export default async function SettingsLayout({
   children,
 }: SettingsLayoutProps) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
+  const user = await currentUser();
  
 
   return (

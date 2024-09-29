@@ -2,29 +2,22 @@ import { privateProcedure, publicProcedure, router } from './trpc';
 import { TRPCError } from '@trpc/server';
 import { db } from '@/db';
 import z, { boolean } from 'zod';
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
-import { randomUUID } from 'crypto';
-import { stripe } from '@/lib/stripe';
-import { absoluteUrl } from '@/lib/utils';
 import sgMail from '@sendgrid/mail';
 import { addUser, deleteStorageFile, startFileUpload } from '@/lib/actions';
-import { create } from 'domain';
-import { Event } from '@prisma/client';
-import { IconInputAi } from '@tabler/icons-react';
-import { group } from 'console';
+
+import { currentUser } from '@clerk/nextjs/server';
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
-    const { getUser } = getKindeServerSession();
-    const user = await getUser();
+    const user = await currentUser();
 
-    if (!user?.id || !user?.email)
+    if (!user?.id || !user?.primaryEmailAddressId)
       throw new TRPCError({ code: 'UNAUTHORIZED' });
 
     // check if the user is in the database
     const dbUser = await db.user.findUnique({
       where: {
-        email: user.email,
+        email: user.primaryEmailAddressId!,
       },
     });
 
@@ -34,17 +27,17 @@ export const appRouter = router({
       await db.user.create({
         data: {
           id: user.id,
-          email: user.email,
-          firstName: user.given_name ? user.given_name : '',
-          lastName: user.family_name ? user.family_name : '',
+          email: user.primaryEmailAddressId,
+          firstName: user.firstName? user.firstName : '',
+          lastName: user.lastName ? user.lastName : '',
           phone: '',
-          imageURL: user.picture,
+          imageURL: user.hasImage ? user.imageUrl : '',
         },
       });
     } else {
       const invitedUser = await db.user.findFirst({
         where: {
-          email: user.email,
+          email: user.primaryEmailAddressId,
         },
         include:{
           groupsAsCoach: true,
@@ -56,15 +49,15 @@ export const appRouter = router({
         // update user in db
         await db.user.update({
           where: {
-            email: user.email,
+            email: user.primaryEmailAddressId,
           },
           data: {
             id: user.id,
-            email: user.email,
-            firstName: user.given_name ? user.given_name : '',
-            lastName: user.family_name ? user.family_name : '',
-            imageURL: user.picture,
+            email: user.primaryEmailAddressId!,
+            firstName: user.firstName? user.firstName : '',
+            lastName: user.lastName ? user.lastName : '',
             phone: '',
+            imageURL: user.hasImage ? user.imageUrl : '',
             groupsAsCoach: {
               connect: invitedUser.groupsAsCoach.map((group) => ({
                 id: group.id,

@@ -22,8 +22,43 @@ const UsersPage = () => {
             </p>
           </div>
 
+          {/* Mockup Section */}
+          <div className="flex flex-col md:flex-row items-center justify-between mb-16">
+            <div className="md:w-1/2 mb-8 md:mb-0 md:ml-10 text-center md:text-left">
+              <h2 className="text-3xl font-bold mb-4">
+                Features that will save you hours of valuable time
+              </h2>
+              <p className="text-xl">
+                Experience the power of Golden Sports on your mobile device.
+              </p>
+            </div>
+            <div className="md:w-1/2 relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full filter blur-3xl opacity-30 animate-pulse"></div>
+              <div className="relative z-10 overflow-hidden flex justify-center items-center">
+                <Image
+                  src="/iphone-mockup.png"
+                  alt="Golden Sports mobile app mockup"
+                  width={300}
+                  height={500}
+                  className="mx-auto relative z-10 h-[575px]"
+                />
+                <div className="mx-auto absolute top-0 bottom-0 z-0 md:left-0 md:right-0 rounded-[52px] overflow-hidden w-[298px] px-1">
+                  <Image
+                    src="/mockup-bg.png"
+                    alt="Golden Sports mobile app mockup"
+                    width={300}
+                    height={600}
+                    className="h-full "
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* User Cards */}
-          <h2 className="text-4xl font-bold mb-8">Who Uses Golden Sports?</h2>
+          <h2 className="text-4xl font-bold mb-8 text-center">
+            Who Uses Golden Sports?
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <ExpandableCard
               title="Coaches"
@@ -88,8 +123,10 @@ const UsersPage = () => {
           </div>
 
           {/* Key Feature Outcomes */}
-          <div className="mb-16">
-            <h2 className="text-3xl font-bold mb-8">Key Feature Outcomes</h2>
+          <div className="py-16">
+            <h2 className="text-3xl font-bold mb-8 text-center">
+              Key Feature Outcomes
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <FeatureOutcome
                 title="Seamless Communication"
@@ -109,47 +146,14 @@ const UsersPage = () => {
             </div>
           </div>
 
-          {/* Mockup Section */}
-          <div className="flex flex-col md:flex-row items-center justify-between mb-16">
-            <div className="md:w-1/2 mb-8 md:mb-0">
-              <h2 className="text-3xl font-bold mb-4">
-                Features that will save you hours of valuable time
-              </h2>
-              <p className="text-xl">
-                Experience the power of Golden Sports on your mobile device.
-              </p>
-            </div>
-            <div className="md:w-1/2 relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full filter blur-3xl opacity-30 animate-pulse"></div>
-              <div className="relative z-10 overflow-hidden flex justify-center items-center">
-                <Image
-                  src="/iphone-mockup.png"
-                  alt="Golden Sports mobile app mockup"
-                  width={300}
-                  height={500}
-                  className="mx-auto relative z-10 h-[575px]"
-                />
-                <div className="mx-auto absolute top-0 bottom-0 z-0 md:left-0 md:right-0 rounded-[52px] overflow-hidden w-[298px] px-1">
-                  <Image
-                    src="/mockup-bg.png"
-                    alt="Golden Sports mobile app mockup"
-                    width={300}
-                    height={600}
-                    className="h-full "
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Call to Action */}
-          <div className="text-center">
+          <div className="text-center mt-16">
             <h2 className="text-3xl font-bold mb-4">
               Ready to transform your sports management?
             </h2>
             <Link
               href="/signup"
-              className="inline-block bg-[#00B3B6] hover:bg-[#00B3B6] text-white font-bold py-3 px-8 rounded-full transition duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="inline-block bg-[#DD] hover:bg-[#00B3B6] text-white font-bold py-3 px-8 rounded-full transition duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               Sign Up Now
             </Link>

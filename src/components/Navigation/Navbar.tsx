@@ -2,23 +2,17 @@ import React from "react";
 import Link from "next/link";
 import MaxWidthWrapper from "@/components/Layout/MaxWidthWrapper";
 import { buttonVariants } from "../ui/button";
-import {
-  LoginLink,
-  RegisterLink,
-  getKindeServerSession,
-} from "@kinde-oss/kinde-auth-nextjs/server";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import MobileNav from "./MobileNav";
 import UserAccountNav from "./UserAccountNav";
 import NavbarMenu from "./NavbarMenu";
 import { db } from "@/db";
-import { NotificationBell } from "../notifications/notificationbell";
 import { cn } from "@/lib/utils";
+import { currentUser } from "@clerk/nextjs/server";
 
 const Navbar = async () => {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const user = await currentUser();
   let dbUser;
   if (user) {
     dbUser = await db.user.findUnique({
@@ -51,20 +45,22 @@ const Navbar = async () => {
             <NavbarMenu />
             {!user || !dbUser ? (
               <>
-                <LoginLink
+                <Link
+                  href={`/sign-in`}
                   className={buttonVariants({ variant: "ghost", size: "sm" })}
                 >
                   Login
-                </LoginLink>
+                </Link>
 
-                <RegisterLink
+                <Link
+                  href={`/sign-up`}
                   className={cn(
                     buttonVariants({ size: "sm" }),
                     "bg-gradient-to-r from-[#00B3B6] to-green-600 rounded-full shadow-xl hover:scale-[0.96]"
                   )}
                 >
                   Get Started <ArrowRight className="ml-1.5 h-5 w-5" />
-                </RegisterLink>
+                </Link>
               </>
             ) : (
               <>
@@ -77,7 +73,7 @@ const Navbar = async () => {
                 <UserAccountNav
                   name="Your Account"
                   imageUrl={dbUser?.imageURL ?? ""}
-                  email={user.email ?? ""}
+                  email={user.primaryEmailAddressId ?? ""}
                   role="Customer"
                 />
               </>

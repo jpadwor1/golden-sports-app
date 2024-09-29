@@ -3,7 +3,6 @@ import { AvatarImage, AvatarFallback, Avatar } from '@/components/ui/avatar';
 import { CalendarIcon, DollarSign, Loader2, MapPin, User2 } from 'lucide-react';
 import Image from 'next/image';
 import { db } from '@/db';
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { redirect } from 'next/navigation';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -16,6 +15,7 @@ import EventCommentInput from '@/components/Dashboard/Events/comments/event-comm
 import { getFileIcon } from '@/hooks/getIcon';
 import { ExtendedEvent } from '@/types/types';
 import MaxWidthWrapper from '@/components/Layout/MaxWidthWrapper';
+import { currentUser } from '@clerk/nextjs/server';
 
 interface PageProps {
   params: {
@@ -25,8 +25,7 @@ interface PageProps {
 }
 
 const Page = async ({ params }: PageProps) => {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const user = await currentUser();
 
   if (!user || !user.id) redirect('/auth-callback?origin=dashboard');
 
