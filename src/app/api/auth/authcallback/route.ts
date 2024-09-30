@@ -11,14 +11,14 @@ export async function GET(req: Request, res: Response) {
   try {
     const user = await currentUser();
 
-    if (!user?.id || !user?.primaryEmailAddress) {
+    if (!user?.id || !user?.primaryEmailAddress?.emailAddress) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
     // Check if the user is in the database
     const dbUser = await db.user.findUnique({
       where: {
-        email: user.primaryEmailAddressId!,
+        email: user.primaryEmailAddress?.emailAddress,
       },
     });
 
@@ -27,7 +27,7 @@ export async function GET(req: Request, res: Response) {
       await db.user.create({
         data: {
           id: user.id,
-          email: user.primaryEmailAddressId!,
+          email: user.primaryEmailAddress?.emailAddress,
           firstName: user.firstName ? user.firstName : "",
           lastName: user.lastName ? user.lastName : "",
           phone: "",
@@ -37,7 +37,7 @@ export async function GET(req: Request, res: Response) {
     } else {
       const invitedUser = await db.user.findFirst({
         where: {
-          email: user.primaryEmailAddressId!,
+          email: user.primaryEmailAddress?.emailAddress,
         },
         include: {
           groupsAsCoach: true,
@@ -49,11 +49,11 @@ export async function GET(req: Request, res: Response) {
         // Update user in the database
         await db.user.update({
           where: {
-            email: user.primaryEmailAddressId!,
+            email: user.primaryEmailAddress?.emailAddress,
           },
           data: {
             id: user.id,
-            email: user.primaryEmailAddressId!,
+            email: user.primaryEmailAddress?.emailAddress,
             firstName: user.firstName ? user.firstName : "",
             lastName: user.lastName ? user.lastName : "",
             phone: "",

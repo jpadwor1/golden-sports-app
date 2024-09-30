@@ -10,9 +10,11 @@ import NavbarMenu from "./NavbarMenu";
 import { db } from "@/db";
 import { cn } from "@/lib/utils";
 import { currentUser } from "@clerk/nextjs/server";
+import { SignOutButton } from "@clerk/nextjs";
 
 const Navbar = async () => {
   const user = await currentUser();
+
   let dbUser;
   if (user) {
     dbUser = await db.user.findUnique({
@@ -61,6 +63,7 @@ const Navbar = async () => {
                 >
                   Get Started <ArrowRight className="ml-1.5 h-5 w-5" />
                 </Link>
+                <SignOutButton />
               </>
             ) : (
               <>
@@ -73,7 +76,7 @@ const Navbar = async () => {
                 <UserAccountNav
                   name="Your Account"
                   imageUrl={dbUser?.imageURL ?? ""}
-                  email={user.primaryEmailAddressId ?? ""}
+                  email={user.primaryEmailAddress?.emailAddress ?? ""}
                   role="Customer"
                 />
               </>

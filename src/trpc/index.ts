@@ -1,63 +1,62 @@
-import { privateProcedure, publicProcedure, router } from './trpc';
-import { TRPCError } from '@trpc/server';
-import { db } from '@/db';
-import z, { boolean } from 'zod';
-import sgMail from '@sendgrid/mail';
-import { addUser, deleteStorageFile, startFileUpload } from '@/lib/actions';
+import { privateProcedure, publicProcedure, router } from "./trpc";
+import { TRPCError } from "@trpc/server";
+import { db } from "@/db";
+import z, { boolean } from "zod";
+import sgMail from "@sendgrid/mail";
+import { addUser, deleteStorageFile, startFileUpload } from "@/lib/actions";
 
-import { currentUser } from '@clerk/nextjs/server';
+import { currentUser } from "@clerk/nextjs/server";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
     const user = await currentUser();
 
-    if (!user?.id || !user?.primaryEmailAddressId)
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
+    if (!user?.id || !user?.primaryEmailAddress?.emailAddress)
+      throw new TRPCError({ code: "UNAUTHORIZED" });
 
     // check if the user is in the database
     const dbUser = await db.user.findUnique({
       where: {
-        email: user.primaryEmailAddressId!,
+        email: user.primaryEmailAddress.emailAddress,
       },
     });
-
 
     if (!dbUser) {
       // create user in db
       await db.user.create({
         data: {
           id: user.id,
-          email: user.primaryEmailAddressId,
-          firstName: user.firstName? user.firstName : '',
-          lastName: user.lastName ? user.lastName : '',
-          phone: '',
-          imageURL: user.hasImage ? user.imageUrl : '',
+          email: user.primaryEmailAddress.emailAddress,
+          firstName: user.firstName ? user.firstName : "",
+          lastName: user.lastName ? user.lastName : "",
+          phone: "",
+          imageURL: user.hasImage ? user.imageUrl : "",
         },
       });
     } else {
       const invitedUser = await db.user.findFirst({
         where: {
-          email: user.primaryEmailAddressId,
+          email: user.primaryEmailAddress.emailAddress,
         },
-        include:{
+        include: {
           groupsAsCoach: true,
           groupsAsMember: true,
-        }
+        },
       });
 
       if (invitedUser) {
         // update user in db
         await db.user.update({
           where: {
-            email: user.primaryEmailAddressId,
+            email: user.primaryEmailAddress.emailAddress,
           },
           data: {
             id: user.id,
-            email: user.primaryEmailAddressId!,
-            firstName: user.firstName? user.firstName : '',
-            lastName: user.lastName ? user.lastName : '',
-            phone: '',
-            imageURL: user.hasImage ? user.imageUrl : '',
+            email: user.primaryEmailAddress.emailAddress,
+            firstName: user.firstName ? user.firstName : "",
+            lastName: user.lastName ? user.lastName : "",
+            phone: "",
+            imageURL: user.hasImage ? user.imageUrl : "",
             groupsAsCoach: {
               connect: invitedUser.groupsAsCoach.map((group) => ({
                 id: group.id,
@@ -68,8 +67,7 @@ export const appRouter = router({
                 id: group.id,
               })),
             },
-            }
-          
+          },
         });
       }
     }
@@ -82,7 +80,7 @@ export const appRouter = router({
     .query(async ({ ctx, input }) => {
       const { userId, user } = ctx;
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       const users = await db.user.findMany({
         where: {
@@ -124,7 +122,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const dbUser = await db.user.findFirst({
@@ -161,13 +159,13 @@ export const appRouter = router({
             id: user.id,
           },
           data: {
-            role: 'COACH',
+            role: "COACH",
           },
         });
         return group;
       }
 
-      throw new TRPCError({ code: 'NOT_FOUND' });
+      throw new TRPCError({ code: "NOT_FOUND" });
     }),
 
   deleteTeam: privateProcedure
@@ -176,7 +174,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       try {
         // Use a transaction to ensure atomicity
@@ -246,12 +244,12 @@ export const appRouter = router({
         return { success: true };
       } catch (error: any) {
         // Handle specific error for NOT_FOUND or general errors
-        if (error.message === 'NOT_FOUND') {
-          throw new TRPCError({ code: 'NOT_FOUND' });
+        if (error.message === "NOT_FOUND") {
+          throw new TRPCError({ code: "NOT_FOUND" });
         }
         console.error(error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: error.message,
         });
       }
@@ -284,7 +282,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const dbUser = await db.user.findFirst({
@@ -364,7 +362,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       try {
         const results = await Promise.allSettled(
@@ -374,15 +372,15 @@ export const appRouter = router({
             });
 
             if (dbUser) {
-              const [firstName, lastName]: string[] = member.name.split(' ');
+              const [firstName, lastName]: string[] = member.name.split(" ");
 
               await db.user.update({
                 where: { email: member.email },
                 data: {
                   firstName: firstName,
                   lastName: lastName,
-                  phone: '',
-                  imageURL: '',
+                  phone: "",
+                  imageURL: "",
                   groupsAsMember: {
                     connect: {
                       id: input.teamId,
@@ -393,19 +391,19 @@ export const appRouter = router({
             } else {
               try {
                 const newUserInfo = await addUser(member);
-                const [firstName, lastName] = member.name.split(' ');
+                const [firstName, lastName] = member.name.split(" ");
                 const fullName = lastName
                   ? `${firstName} ${lastName}`
                   : firstName;
 
-                if (!newUserInfo) return new Error('Failed to add user');
-                  const newUser = await db.user.create({
+                if (!newUserInfo) return new Error("Failed to add user");
+                const newUser = await db.user.create({
                   data: {
                     firstName: firstName,
                     lastName: lastName,
                     email: member.email,
-                    phone: '',
-                    imageURL: '',
+                    phone: "",
+                    imageURL: "",
                     groupsAsMember: {
                       connect: {
                         id: input.teamId,
@@ -415,7 +413,7 @@ export const appRouter = router({
                 });
 
                 if (!newUser) {
-                  throw new Error('Failed to create user');
+                  throw new Error("Failed to create user");
                 }
                 await db.user.update({
                   where: {
@@ -430,17 +428,15 @@ export const appRouter = router({
                   },
                 });
               } catch (error) {
-                console.error('Error in adding user:', error);
+                console.error("Error in adding user:", error);
               }
-
-              
             }
           })
         );
 
         results.forEach((result) => {
-          if (result.status === 'rejected') {
-            console.error('Error in adding team member:', result.reason);
+          if (result.status === "rejected") {
+            console.error("Error in adding team member:", result.reason);
             // Handle individual errors or aggregate them as needed
           }
         });
@@ -450,7 +446,7 @@ export const appRouter = router({
         // Handle errors here
         if (Array.isArray(error)) {
           // If multiple errors are thrown, concatenate their messages
-          const errorMessages = error.map((e) => e.message).join(', ');
+          const errorMessages = error.map((e) => e.message).join(", ");
           throw new Error(errorMessages);
         } else {
           console.log(error);
@@ -466,16 +462,16 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY || "");
 
       const sendEmail = async (to: string) => {
         const msg = {
           to: to,
-          from: 'john@johnpadworski.dev',
-          subject: ' ',
-          html: ' ',
-          text: ' ',
-          template_id: 'd-aa89f78d44df4fa9a92e24dcf3fcfbfe',
+          from: "john@johnpadworski.dev",
+          subject: " ",
+          html: " ",
+          text: " ",
+          template_id: "d-aa89f78d44df4fa9a92e24dcf3fcfbfe",
           dynamic_template_data: {
             sender_email: input.email,
             sender_message: input.message,
@@ -485,9 +481,9 @@ export const appRouter = router({
         try {
           await sgMail.send(msg);
         } catch (error) {
-          console.error('Error sending email:', error);
+          console.error("Error sending email:", error);
 
-          throw new Error('Failed to send email');
+          throw new Error("Failed to send email");
         }
       };
 
@@ -509,24 +505,24 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY || "");
 
       try {
         await Promise.all(
           input.member.map(async (member) => {
             const msg = {
               to: member.email,
-              from: 'john@johnpadworski.dev',
-              subject: ' ',
-              html: ' ',
-              text: ' ',
-              template_id: 'd-35cb2c277bd44a599bcda5c1ee29ca0f',
+              from: "john@johnpadworski.dev",
+              subject: " ",
+              html: " ",
+              text: " ",
+              template_id: "d-35cb2c277bd44a599bcda5c1ee29ca0f",
               dynamic_template_data: {
                 name: member.name,
-                login_link: 'http://localhost:3000/api/auth/login?',
+                login_link: "http://localhost:3000/api/auth/login?",
               },
             };
 
@@ -534,9 +530,9 @@ export const appRouter = router({
           })
         );
       } catch (error) {
-        console.error('Error sending email:', error);
+        console.error("Error sending email:", error);
 
-        throw new Error('Failed to send email');
+        throw new Error("Failed to send email");
       }
     }),
 
@@ -546,7 +542,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const file = await db.file.findFirst({
@@ -555,7 +551,7 @@ export const appRouter = router({
         },
       });
 
-      if (!file) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (!file) throw new TRPCError({ code: "NOT_FOUND" });
 
       return file;
     }),
@@ -573,7 +569,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       const doesFileExist = await db.file.findFirst({
         where: {
@@ -593,7 +589,7 @@ export const appRouter = router({
         },
       });
 
-      if (!createdFile) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (!createdFile) throw new TRPCError({ code: "NOT_FOUND" });
 
       return createdFile;
     }),
@@ -616,7 +612,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const dbUser = await db.user.findFirst({
@@ -672,10 +668,10 @@ export const appRouter = router({
               data: {
                 userId: member.id,
                 resourceId: post.id,
-                message: 'You have a new post.',
+                message: "You have a new post.",
                 read: false,
                 fromId: userId,
-                type: 'post',
+                type: "post",
               },
             });
           })
@@ -683,7 +679,7 @@ export const appRouter = router({
         return post;
       }
 
-      throw new TRPCError({ code: 'NOT_FOUND' });
+      throw new TRPCError({ code: "NOT_FOUND" });
     }),
   getComments: privateProcedure
     .input(z.string())
@@ -691,7 +687,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -711,7 +707,7 @@ export const appRouter = router({
             },
           },
           orderBy: {
-            timestamp: 'desc',
+            timestamp: "desc",
           },
         });
         return { comments: comments };
@@ -726,7 +722,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -738,7 +734,7 @@ export const appRouter = router({
             author: true,
           },
           orderBy: {
-            timestamp: 'desc',
+            timestamp: "desc",
           },
         });
 
@@ -762,7 +758,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -799,7 +795,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -837,7 +833,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user || userId !== input.authorId) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const dbUser = await db.user.findFirst({
@@ -847,7 +843,7 @@ export const appRouter = router({
       });
 
       if (!dbUser) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       if (input.commentId) {
@@ -858,7 +854,7 @@ export const appRouter = router({
         });
 
         if (!comment) {
-          return new TRPCError({ code: 'NOT_FOUND' });
+          return new TRPCError({ code: "NOT_FOUND" });
         }
 
         const newLike = await db.like.create({
@@ -923,7 +919,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user || userId !== input.authorId) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const dbUser = await db.user.findFirst({
@@ -933,7 +929,7 @@ export const appRouter = router({
       });
 
       if (!dbUser) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       try {
@@ -1020,7 +1016,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       let feeServiceCharge = 0;
       if (input.feeServiceCharge) {
@@ -1040,7 +1036,7 @@ export const appRouter = router({
             : null,
           reminders: input.reminders,
           repeatFrequency: input.repeatFrequency
-            ? input.repeatFrequency?.join(',')
+            ? input.repeatFrequency?.join(",")
             : null,
           group: {
             connect: {
@@ -1050,7 +1046,7 @@ export const appRouter = router({
         };
 
         if (input.files && input.files.length > 0) {
-          eventData['File'] = {
+          eventData["File"] = {
             create: input.files.map((file: any) => ({
               key: file.key,
               fileName: file.fileName,
@@ -1066,11 +1062,11 @@ export const appRouter = router({
         }
 
         if (input.fee > 0) {
-          eventData['feeAmount'] = input.fee;
-          eventData['totalFeeAmount'] = input.fee + feeServiceCharge;
-          eventData['feeDescription'] = input.feeDescription;
-          eventData['feeServiceCharge'] = feeServiceCharge;
-          eventData['collectFeeServiceCharge'] = input.collectFeeServiceCharge;
+          eventData["feeAmount"] = input.fee;
+          eventData["totalFeeAmount"] = input.fee + feeServiceCharge;
+          eventData["feeDescription"] = input.feeDescription;
+          eventData["feeServiceCharge"] = feeServiceCharge;
+          eventData["collectFeeServiceCharge"] = input.collectFeeServiceCharge;
         }
 
         const event = await db.event.create({
@@ -1083,7 +1079,7 @@ export const appRouter = router({
               data: {
                 userId: invitee,
                 eventId: event.id,
-                status: 'UNANSWERED',
+                status: "UNANSWERED",
               },
             });
 
@@ -1094,7 +1090,7 @@ export const appRouter = router({
                 message: `You've been invited to ${event.title}.`,
                 read: false,
                 fromId: userId,
-                type: 'event',
+                type: "event",
               },
             });
           }
@@ -1103,7 +1099,7 @@ export const appRouter = router({
         return { success: true };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: error.message,
         });
       }
@@ -1129,7 +1125,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       let feeServiceCharge = 0;
@@ -1170,7 +1166,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       try {
         const coach = await db.user.findFirst({
@@ -1183,7 +1179,7 @@ export const appRouter = router({
         });
 
         if (!coach?.groupsAsCoach.some((group) => group.id === input.groupId)) {
-          return new TRPCError({ code: 'NOT_FOUND' });
+          return new TRPCError({ code: "NOT_FOUND" });
         }
 
         const event = await db.event.findFirst({
@@ -1195,7 +1191,7 @@ export const appRouter = router({
           },
         });
 
-        if (!event) return new TRPCError({ code: 'NOT_FOUND' });
+        if (!event) return new TRPCError({ code: "NOT_FOUND" });
         if (event.File.length > 0) {
           try {
             await Promise.all(
@@ -1204,7 +1200,7 @@ export const appRouter = router({
               })
             );
           } catch (error: any) {
-            console.error('Could not delete files', error);
+            console.error("Could not delete files", error);
           }
         }
 
@@ -1217,7 +1213,7 @@ export const appRouter = router({
         return { success: true };
       } catch (error: any) {
         console.error(error);
-        return new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        return new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
   getGroups: privateProcedure
@@ -1226,7 +1222,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -1255,7 +1251,7 @@ export const appRouter = router({
     const { userId, user } = ctx;
 
     if (!userId || !user) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
+      throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
     try {
@@ -1269,7 +1265,7 @@ export const appRouter = router({
       });
 
       if (!group) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       return group;
@@ -1290,7 +1286,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const participant = await db.participant.findFirst({
@@ -1301,7 +1297,7 @@ export const appRouter = router({
       });
 
       if (!participant) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       await db.participant.update({
@@ -1338,7 +1334,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const dbUser = await db.user.findFirst({
@@ -1351,11 +1347,11 @@ export const appRouter = router({
       });
 
       if (!dbUser) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       if (dbUser.groupsAsCoach.every((group) => group.id !== input.groupId)) {
-        return new TRPCError({ code: 'FORBIDDEN' });
+        return new TRPCError({ code: "FORBIDDEN" });
       }
 
       const poll = await db.poll.create({
@@ -1396,7 +1392,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const dbUser = await db.user.findFirst({
@@ -1406,7 +1402,7 @@ export const appRouter = router({
       });
 
       if (!dbUser) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       const poll = await db.poll.findFirst({
@@ -1416,7 +1412,7 @@ export const appRouter = router({
       });
 
       if (!poll) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       const option = await db.pollOption.findFirst({
@@ -1426,7 +1422,7 @@ export const appRouter = router({
       });
 
       if (!option) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       const vote = await db.pollVote.create({
@@ -1462,7 +1458,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const dbUser = await db.user.findFirst({
@@ -1472,7 +1468,7 @@ export const appRouter = router({
       });
 
       if (!dbUser) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       const poll = await db.poll.findFirst({
@@ -1482,7 +1478,7 @@ export const appRouter = router({
       });
 
       if (!poll) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       const comment = await db.pollComment.create({
@@ -1501,7 +1497,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -1513,7 +1509,7 @@ export const appRouter = router({
             author: true,
           },
           orderBy: {
-            timestamp: 'desc',
+            timestamp: "desc",
           },
         });
         return { comments: comments };
@@ -1528,7 +1524,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -1557,7 +1553,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -1566,7 +1562,7 @@ export const appRouter = router({
             data: {
               userId: invitee,
               eventId: input.eventId,
-              status: 'UNANSWERED',
+              status: "UNANSWERED",
             },
           });
 
@@ -1577,7 +1573,7 @@ export const appRouter = router({
               message: `You've been invited to an event.`,
               read: false,
               fromId: userId,
-              type: 'event',
+              type: "event",
             },
           });
         }
@@ -1594,7 +1590,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -1621,38 +1617,38 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
         const resource =
-          input.resourceType === 'comments' ||
-          input.resourceType === 'posts' ||
-          input.resourceType === 'likes'
+          input.resourceType === "comments" ||
+          input.resourceType === "posts" ||
+          input.resourceType === "likes"
             ? await db.post.findFirst({
                 where: {
                   id: input.resourceId,
                 },
               })
-            : input.resourceType === 'events'
+            : input.resourceType === "events"
             ? await db.event.findFirst({
                 where: {
                   id: input.resourceId,
                 },
               })
-            : input.resourceType === 'messages'
+            : input.resourceType === "messages"
             ? await db.message.findFirst({
                 where: {
                   id: input.resourceId,
                 },
               })
-            : input.resourceType === 'polls'
+            : input.resourceType === "polls"
             ? await db.poll.findFirst({
                 where: {
                   id: input.resourceId,
                 },
               })
-            : input.resourceType === 'payments'
+            : input.resourceType === "payments"
             ? await db.payment.findFirst({
                 where: {
                   id: input.resourceId,
@@ -1661,7 +1657,7 @@ export const appRouter = router({
             : undefined;
 
         if (!resource) {
-          return new TRPCError({ code: 'NOT_FOUND' });
+          return new TRPCError({ code: "NOT_FOUND" });
         }
 
         const groupId = resource?.groupId;
@@ -1678,7 +1674,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -1688,7 +1684,7 @@ export const appRouter = router({
           },
         });
 
-        if (!notification) return new TRPCError({ code: 'NOT_FOUND' });
+        if (!notification) return new TRPCError({ code: "NOT_FOUND" });
         if (notification?.read) return { success: true };
 
         await db.notification.update({
@@ -1720,13 +1716,13 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
         await Promise.all(
           input.map(async (invitee) => {
-            if (invitee.status === 'UNANSWERED') {
+            if (invitee.status === "UNANSWERED") {
               await db.notification.create({
                 data: {
                   userId: invitee.userId,
@@ -1734,7 +1730,7 @@ export const appRouter = router({
                   message: `You have an event coming up soon.`,
                   read: false,
                   fromId: userId,
-                  type: 'event',
+                  type: "event",
                 },
               });
             }
@@ -1766,7 +1762,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -1819,13 +1815,13 @@ export const appRouter = router({
               data: {
                 userId: member.id,
                 resourceId: input.groupId,
-                message: 'You have a new file.',
+                message: "You have a new file.",
                 read: false,
                 fromId: userId,
-                type: 'file',
+                type: "file",
               },
             });
-            console.log('notification sent', member.firstName);
+            console.log("notification sent", member.firstName);
           })
         );
 
@@ -1841,7 +1837,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -1862,7 +1858,7 @@ export const appRouter = router({
     const { userId, user } = ctx;
 
     if (!userId || !user) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
+      throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
     try {
@@ -1873,7 +1869,7 @@ export const appRouter = router({
       });
 
       if (!user) {
-        return new TRPCError({ code: 'NOT_FOUND' });
+        return new TRPCError({ code: "NOT_FOUND" });
       }
 
       return user;
@@ -1888,7 +1884,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -1898,7 +1894,7 @@ export const appRouter = router({
           },
         });
 
-        if (!file) return new TRPCError({ code: 'NOT_FOUND' });
+        if (!file) return new TRPCError({ code: "NOT_FOUND" });
 
         await deleteStorageFile(file.fileName);
 
@@ -1920,7 +1916,7 @@ export const appRouter = router({
       const { userId, user } = ctx;
 
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       try {
@@ -1929,7 +1925,7 @@ export const appRouter = router({
             userId: input,
           },
           orderBy: {
-            timestamp: 'desc',
+            timestamp: "desc",
           },
         });
 
@@ -1955,7 +1951,7 @@ export const appRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { userId, user } = ctx;
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const dbUser = await db.user.findFirst({
@@ -1968,11 +1964,11 @@ export const appRouter = router({
       });
 
       if (!dbUser) {
-        throw new TRPCError({ code: 'NOT_FOUND' });
+        throw new TRPCError({ code: "NOT_FOUND" });
       }
 
       if (dbUser.groupsAsCoach.every((group) => group.id !== input.groupId)) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
+        throw new TRPCError({ code: "FORBIDDEN" });
       }
 
       try {
@@ -1982,7 +1978,7 @@ export const appRouter = router({
             authorId: dbUser.id,
             amount: input.totalPrice,
             description: input.description,
-            paymentStatus: 'UNPAID',
+            paymentStatus: "UNPAID",
             dueDate: new Date(input.dueDate),
             group: {
               connect: {
@@ -2007,7 +2003,7 @@ export const appRouter = router({
           message: `You've been invited to a payment.`,
           read: false,
           fromId: userId,
-          type: 'payment',
+          type: "payment",
         }));
 
         await db.notification.createMany({
@@ -2025,7 +2021,7 @@ export const appRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { userId, user } = ctx;
       if (!userId || !user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const payment = await db.payment.findUnique({
@@ -2035,7 +2031,7 @@ export const appRouter = router({
       });
 
       if (!payment) {
-        throw new TRPCError({ code: 'NOT_FOUND' });
+        throw new TRPCError({ code: "NOT_FOUND" });
       }
 
       const dbUser = await db.user.findFirst({
@@ -2048,11 +2044,11 @@ export const appRouter = router({
       });
 
       if (!dbUser) {
-        throw new TRPCError({ code: 'NOT_FOUND' });
+        throw new TRPCError({ code: "NOT_FOUND" });
       }
 
       if (dbUser.groupsAsCoach.every((group) => group.id !== payment.groupId)) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
+        throw new TRPCError({ code: "FORBIDDEN" });
       }
 
       try {
