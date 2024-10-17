@@ -1,23 +1,21 @@
 import {
   Group,
-  Participant,
+  Comment,
   Payment,
   Poll,
-  PollComment,
   PollOption,
   PollVote,
-  User,
+  Member as User,
   Event,
   File,
   Notification,
-  eventComment
-} from '@prisma/client';
+} from "@prisma/client";
 
-export type ExtendedEventComment = eventComment & {
+export type ExtendedEventComment = Comment & {
   author: User;
 };
 
-export type ExtendedPollComment = PollComment & {
+export type ExtendedPollComment = Comment & {
   author: User;
 };
 
@@ -57,10 +55,10 @@ export type ExtendedUser = {
 
 export type UserWithNotifications = User & {
   notifications: Notification[];
-}
+};
 
 export type ExtendedEvent = Event & {
-  invitees: Participant[];
+  invitees: User[];
   group: Group;
   payments: Payment[];
   File: File[];

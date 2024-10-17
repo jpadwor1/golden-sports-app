@@ -21,7 +21,7 @@ export default async function GroupLayout({ children }: GroupLayoutProps) {
 
     if (!user || !user.id) return new Error("User not found");
 
-    dbUser = await db.user.findUnique({
+    dbUser = await db.member.findUnique({
       where: {
         id: user.id,
       },
@@ -40,7 +40,7 @@ export default async function GroupLayout({ children }: GroupLayoutProps) {
 
   return (
     <>
-      <SidebarNav userId={user.id} />
+      <SidebarNav userId={dbUser.id} />
       <main className="flex-1">
         <MarginWidthWrapper>
           <Header user={dbUser} />

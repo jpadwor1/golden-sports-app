@@ -1,6 +1,6 @@
-import React from 'react';
-import { db } from '@/db';
-import TeamDetails from './TeamDetails';
+import React from "react";
+import { db } from "@/db";
+import TeamDetails from "./TeamDetails";
 
 interface PageProps {
   params: {
@@ -18,15 +18,13 @@ const Page = async ({ params }: PageProps) => {
     },
   });
 
-  const coach = await db.user.findFirst({
+  const coach = await db.member.findFirst({
     where: {
-      id: team?.coachId,
+      id: team?.contactPersonId,
     },
   });
 
-  return (
-    <TeamDetails coach={coach} team={team} members={team?.members}/>
-  );
+  return <TeamDetails coach={coach} team={team} members={team?.members} />;
 };
 
 export default Page;

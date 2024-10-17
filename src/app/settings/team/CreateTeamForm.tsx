@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Form,
   FormControl,
@@ -15,11 +15,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { toast } from '@/components/ui/use-toast';
-import UploadDropzone from '@/components/UploadDropzone';
-import { trpc } from '@/app/_trpc/client';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/use-toast";
+import UploadDropzone from "@/components/UploadDropzone";
+import { trpc } from "@/app/_trpc/client";
 
 interface FileData {
   id: string | undefined;
@@ -34,8 +34,8 @@ const user = {
 };
 
 const teamFormSchema = z.object({
-  teamName: z.string().min(1, 'Team name is required.'),
-  description: z.string().min(1, 'Description is required.'),
+  teamName: z.string().min(1, "Team name is required."),
+  description: z.string().min(1, "Description is required."),
 });
 
 type TeamFormValues = z.infer<typeof teamFormSchema>;
@@ -45,13 +45,12 @@ const CreateTeamForm = () => {
   const router = useRouter();
   const form = useForm<TeamFormValues>({
     resolver: zodResolver(teamFormSchema),
-    mode: 'onChange',
+    mode: "onChange",
   });
   const { handleSubmit, control } = form;
   const mutation = trpc.createGroup.useMutation();
 
- //ADD file upload here
-
+  //ADD file upload here
 
   const onSubmit = (data: TeamFormValues) => {
     const formData = {
@@ -65,16 +64,17 @@ const CreateTeamForm = () => {
         {
           ...formData,
           files: {
-            fileName: fileData?.fileName || '',
-            id: fileData?.id || '',
-            fileType: fileData?.fileType || '',
-            downloadURL: fileData?.downloadURL || '',
+            fileName: fileData?.fileName || "",
+            id: fileData?.id || "",
+            fileType: fileData?.fileType || "",
+            downloadURL: fileData?.downloadURL || "",
           },
+          activity: data.description,
         },
         {
           onSuccess: () => {
             toast({
-              title: 'Service Event Created',
+              title: "Service Event Created",
               description: (
                 <>
                   <p>Succesfully created a new team.</p>
@@ -82,11 +82,11 @@ const CreateTeamForm = () => {
                 </>
               ),
             });
-            router.push('/settings/team');
+            router.push("/settings/team");
           },
           onError: (error: any) => {
             toast({
-              title: 'Oops Something went wrong',
+              title: "Oops Something went wrong",
               description: (
                 <>
                   <p>try again later</p>
@@ -94,13 +94,13 @@ const CreateTeamForm = () => {
                 </>
               ),
             });
-            router.push('/settings');
+            router.push("/settings");
           },
         }
       );
     } catch (error: any) {
       toast({
-        title: 'Oops Something went wrong',
+        title: "Oops Something went wrong",
         description: (
           <>
             <p>try again later</p>
@@ -108,7 +108,7 @@ const CreateTeamForm = () => {
           </>
         ),
       });
-      router.push('/settings');
+      router.push("/settings");
     }
   };
 
@@ -121,66 +121,62 @@ const CreateTeamForm = () => {
       ...prevData,
       downloadURL,
       fileName,
-      id: '',
+      id: "",
       fileType,
       uploadDate: new Date(),
     }));
   };
 
   return (
-      
-        <div>
-          <h2 className='text-xl font-bold tracking-tight'>Create a Team</h2>
-          <p className='text-muted-foreground'>
-            Create a team to manage your organization.
-          </p>
-          <Separator className='mt-2 mb-6' />
-          <Form {...form}>
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className='flex flex-col space-y-8'
-            >
-              <FormField
-                control={control}
-                name='teamName'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Team Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Enter your team&apos;s name.
-                    </FormDescription>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={control}
-                name='description'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormDescription>Describe your team.</FormDescription>
-                  </FormItem>
-                )}
-              />
-
-              {/* Dropzone for uploading team logo */}
+    <div>
+      <h2 className="text-xl font-bold tracking-tight">Create a Team</h2>
+      <p className="text-muted-foreground">
+        Create a team to manage your organization.
+      </p>
+      <Separator className="mt-2 mb-6" />
+      <Form {...form}>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col space-y-8"
+        >
+          <FormField
+            control={control}
+            name="teamName"
+            render={({ field }) => (
               <FormItem>
-                <FormLabel>Team Logo</FormLabel>
-                <UploadDropzone onFileUpload={handleFileUpload} />
+                <FormLabel>Team Name</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormDescription>Enter your team&apos;s name.</FormDescription>
               </FormItem>
+            )}
+          />
 
-              <Button className='md:w-1/4'>Create Team</Button>
-            </form>
-          </Form>
-        </div>
-      
+          <FormField
+            control={control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormDescription>Describe your team.</FormDescription>
+              </FormItem>
+            )}
+          />
+
+          {/* Dropzone for uploading team logo */}
+          <FormItem>
+            <FormLabel>Team Logo</FormLabel>
+            <UploadDropzone onFileUpload={handleFileUpload} />
+          </FormItem>
+
+          <Button className="md:w-1/4">Create Team</Button>
+        </form>
+      </Form>
+    </div>
   );
 };
 

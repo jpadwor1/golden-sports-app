@@ -8,8 +8,8 @@ const ContactPage = () => {
         <div>
           <h2 className="text-2xl font-semibold mb-4">Get in Touch</h2>
           <p className="text-lg mb-6">
-            We're here to help! If you have any questions, concerns, or
-            feedback, please don't hesitate to reach out to us.
+            We&apos;re here to help! If you have any questions, concerns, or
+            feedback, please don&apos;t hesitate to reach out to us.
           </p>
           <div className="space-y-4">
             <p>

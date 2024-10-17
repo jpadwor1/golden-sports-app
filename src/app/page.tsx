@@ -201,8 +201,9 @@ export default function Home() {
                 </div>
                 <h3 className="mb-2 text-xl font-bold">Parental Oversight</h3>
                 <p className="font-medium text-gray-500">
-                  Enable parents to manage their children's profiles, respond to
-                  invitations, and oversee activities with peace of mind.
+                  Enable parents to manage their children&apos;s profiles,
+                  respond to invitations, and oversee activities with peace of
+                  mind.
                 </p>
               </div>
               <div className="w-full md:w-1/2  px-4 mb-8 md:mb-0">
@@ -211,8 +212,8 @@ export default function Home() {
                 </div>
                 <h3 className="mb-2 text-xl font-bold">Fundraising Tools</h3>
                 <p className="font-medium text-gray-500">
-                  Boost your club's finances with in-app fundraising features
-                  like Spot the Ball and Golden Sports Superdraw.
+                  Boost your club&apos;s finances with in-app fundraising
+                  features like Spot the Ball and Golden Sports Superdraw.
                 </p>
               </div>
               <div className="w-full md:w-1/2  px-4">

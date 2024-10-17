@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {  Reply } from '@/lib/utils';
-import {  User as UserType, Like } from '@prisma/client';
+import {  Member as UserType, Like } from '@prisma/client';
 import { trpc } from '@/app/_trpc/client';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';

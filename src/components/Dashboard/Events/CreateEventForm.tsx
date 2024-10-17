@@ -1,6 +1,6 @@
-import { trpc } from '@/app/_trpc/client';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { trpc } from "@/app/_trpc/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -9,46 +9,46 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Link2, Plus, Trash } from 'lucide-react';
-import { MultiSelect } from 'react-multi-select-component';
-import { useRouter } from 'next/navigation';
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Checkbox } from '@/components/ui/checkbox';
-import { CheckedState } from '@radix-ui/react-checkbox';
-import PaymentDialog from './PaymentDialog';
-import EventFeeDialog from './EventFeeDialog';
-import { ExtendedUser, FileType } from '@/types/types';
-import { deleteStorageFile, startFileUpload } from '@/lib/actions';
-import { getFileIcon } from '@/hooks/getIcon';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link2, Plus, Trash } from "lucide-react";
+import { MultiSelect } from "react-multi-select-component";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CheckedState } from "@radix-ui/react-checkbox";
+import PaymentDialog from "./PaymentDialog";
+import EventFeeDialog from "./EventFeeDialog";
+import { ExtendedUser, FileType } from "@/types/types";
+import { deleteStorageFile, startFileUpload } from "@/lib/actions";
+import { getFileIcon } from "@/hooks/getIcon";
 
 interface CreateEventFormProps {
   user: ExtendedUser;
   setEventFormOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  groupId: string;
 }
 
 const eventFormSchema = z.object({
-  title: z.string().min(1, { message: 'Title is required' }),
-  description: z.string().min(1, { message: 'Description is required' }),
-  address: z.string().min(1, { message: 'Address is required' }),
-  startDateTime: z.string().min(1, { message: 'Date is required' }),
+  title: z.string().min(1, { message: "Title is required" }),
+  description: z.string().min(1, { message: "Description is required" }),
+  group: z.array(z.string()).optional(),
+  address: z.string().min(1, { message: "Address is required" }),
+  startDateTime: z.string().min(1, { message: "Date is required" }),
   endDateTime: z.string().optional(),
   invitees: z.array(z.string()).optional(),
-  notificationDate: z.string().default('immediately'),
+  notificationDate: z.string().default("immediately"),
   reminders: z.boolean().default(false),
   repeatFrequency: z
     .array(z.object({ label: z.string(), value: z.string() }))
@@ -72,42 +72,42 @@ declare global {
 const initGooglePlaces = (form: any) => {
   // Ensure that the Google Maps API script has loaded
   if (!window.google || !window.google.maps || !window.google.maps.places) {
-    console.error('Google Maps API script not loaded');
+    console.error("Google Maps API script not loaded");
     return;
   }
 
   // Select the input element for the address field
-  const addressInput = document.getElementById('address') as HTMLInputElement;
+  const addressInput = document.getElementById("address") as HTMLInputElement;
   if (!addressInput) {
-    console.error('Address input not found');
+    console.error("Address input not found");
     return;
   }
 
   // Create a new instance of the Google Places Autocomplete
   const autocomplete = new google.maps.places.Autocomplete(addressInput, {
-    types: ['address'],
+    types: ["address"],
   });
 
   // Add a listener for the 'place_changed' event
-  autocomplete.addListener('place_changed', () => {
+  autocomplete.addListener("place_changed", () => {
     const place = autocomplete.getPlace();
     const address = place.formatted_address;
     if (address) {
-      form.setValue('address', address, { shouldValidate: true });
+      form.setValue("address", address, { shouldValidate: true });
     }
   });
 };
 
 const loadGooglePlacesScript = (callback: () => void) => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const isScriptLoaded = document.querySelector(
       "script[src*='maps.googleapis.com/maps/api/js']"
     );
     if (!isScriptLoaded) {
       window.initGooglePlaces = callback;
 
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
+      const script = document.createElement("script");
+      script.type = "text/javascript";
       script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&callback=initGooglePlaces`;
       document.head.appendChild(script);
     } else if (window.google && window.google.maps) {
@@ -119,7 +119,7 @@ const loadGooglePlacesScript = (callback: () => void) => {
 const mergeRefs = (...refs: React.Ref<any>[]) => {
   return (element: HTMLInputElement) => {
     refs.forEach((ref) => {
-      if (typeof ref === 'function') {
+      if (typeof ref === "function") {
         ref(element);
       } else if (ref != null) {
         (ref as React.MutableRefObject<HTMLInputElement>).current = element;
@@ -129,16 +129,12 @@ const mergeRefs = (...refs: React.Ref<any>[]) => {
 };
 
 const repeatFrequencyOptions: Option[] = [
-  { label: 'Daily', value: 'daily' },
-  { label: 'Weekly', value: 'weekly' },
-  { label: 'Monthly', value: 'monthly' },
+  { label: "Daily", value: "daily" },
+  { label: "Weekly", value: "weekly" },
+  { label: "Monthly", value: "monthly" },
 ];
 
-const CreateEventForm = ({
-  user,
-  setEventFormOpen,
-  groupId,
-}: CreateEventFormProps) => {
+const CreateEventForm = ({ user, setEventFormOpen }: CreateEventFormProps) => {
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
   const [inputOpen, setInputOpen] = React.useState(false);
@@ -153,23 +149,26 @@ const CreateEventForm = ({
   const [files, setFiles] = React.useState<File[]>([]);
   const [feeData, setFeeData] = React.useState({
     fee: 0,
-    feeDescription: '',
+    feeDescription: "",
     feeServiceCharge: 0,
     collectFeeServiceCharge: false,
   });
 
-  const [formData, setFormData] = React.useState({
-    postBody: '',
-    groupId: '',
-  });
   const ref = React.useRef<HTMLDivElement>(null);
   const TextAreaRef = React.useRef<HTMLTextAreaElement>(null);
   const userGroups = [...user.groupsAsCoach, ...user.groupsAsMember];
+  const [groupId, setGroupId] = React.useState<string>("");
+
   const group = userGroups.find((group) => group.id === groupId);
   const [recurring, setRecurring] = React.useState<CheckedState>();
+  const groupOptions = userGroups.map((group) => ({
+    label: group.name,
+    value: group.id,
+  }));
+
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
-    mode: 'onChange',
+    mode: "onChange",
   });
   const {
     control,
@@ -190,17 +189,17 @@ const CreateEventForm = ({
       if (
         ref.current &&
         !ref.current.contains(event.target as Node) &&
-        !(event.target as Element).closest('.select-class')
+        !(event.target as Element).closest(".select-class")
       ) {
         setInputOpen(false);
       }
     }
 
     // Bind the event listener
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
       // Unbind the event listener on clean up
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [ref]);
 
@@ -215,7 +214,7 @@ const CreateEventForm = ({
     React.useState<google.maps.places.Autocomplete | null>(null);
   const onAddressInputMount = mergeRefs(
     addressInputRef,
-    form.register('address').ref
+    form.register("address").ref
   );
 
   React.useEffect(() => {
@@ -231,7 +230,7 @@ const CreateEventForm = ({
   React.useEffect(() => {
     if (members) {
       const newMembers: Option[] = members.map((member) => ({
-        label: member.firstName + ' ' + member.lastName,
+        label: member.firstName + " " + member.lastName,
         value: member.id,
       }));
       setTeamMembers(newMembers);
@@ -263,10 +262,10 @@ const CreateEventForm = ({
 
   const handleAccountCreation = async () => {
     setLoading(true);
-    const response = await fetch('/api/create-stripe-account', {
-      method: 'POST',
+    const response = await fetch("/api/create-stripe-account", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ userId: user.id }),
     });
@@ -285,7 +284,7 @@ const CreateEventForm = ({
         files.map(async (file) => {
           const uploadResult = await startFileUpload({ file });
           if (!uploadResult) {
-            throw new Error('Upload failed');
+            throw new Error("Upload failed");
           }
           const { downloadURL } = uploadResult;
           return {
@@ -313,13 +312,13 @@ const CreateEventForm = ({
         router.refresh();
       },
       onError: async (error) => {
-        console.error('Error creating event:', error);
+        console.error("Error creating event:", error);
         if (files && files.length > 0) {
           await Promise.all(
             files.map(async (file) => {
               const deleteResult = await deleteStorageFile(file.name);
               if (!deleteResult) {
-                throw new Error('delete failed');
+                throw new Error("delete failed");
               }
             })
           );
@@ -327,47 +326,57 @@ const CreateEventForm = ({
       },
     });
   };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div
           ref={ref}
-          className='flex flex-col w-full bg-white shadow-sm rounded-md items-center justify-center mb-6'
+          className="flex flex-col w-full bg-white shadow-sm rounded-md items-center justify-center mb-6"
         >
-          <div className='flex flex-row items-start w-full p-4'>
+          <div className="flex flex-row items-start w-full p-4">
             <Avatar>
               <AvatarImage
-                src={user.imageURL ? user.imageURL : ''}
-                alt='profile pic'
+                src={user.imageURL ? user.imageURL : ""}
+                alt="profile pic"
               />
               <AvatarFallback>
                 {user.firstName.charAt(0) + user.lastName.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <div className='flex flex-col items-start ml-4'>
-              <p className='text-lg font-medium'>
+            <div className="flex flex-col items-start ml-4">
+              <p className="text-lg font-medium">
                 {user.firstName} {user.lastName}
               </p>
               {group && (
-                <p className='text-xs'>
-                  Posting to {group.name} {group.description}{' '}
+                <p className="text-xs">
+                  Posting to {group.name} {group.description}{" "}
                 </p>
               )}
             </div>
           </div>
           <div
             className={cn(
-              'flex flex-col w-full px-6 h-30 min-h-fit transition-all duration-100 ease-in-out mb-6'
+              "flex flex-col w-full px-6 h-30 min-h-fit transition-all duration-100 ease-in-out mb-6"
             )}
           >
             <FormField
               control={form.control}
-              name='title'
+              name="group"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>Select the group to post to.</FormLabel>
                   <FormControl>
-                    <Input placeholder='Title of event' {...field} />
+                    <MultiSelect
+                      className="w-full"
+                      options={groupOptions}
+                      value={repeatFrequency}
+                      onChange={setRepeatFrequency}
+                      labelledBy="Select Frequency"
+                      disableSearch={true}
+                      closeOnChangedValue={true}
+                      hasSelectAll={false}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -376,13 +385,27 @@ const CreateEventForm = ({
 
             <FormField
               control={form.control}
-              name='description'
+              name="title"
               render={({ field }) => (
-                <FormItem className='mt-4'>
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Title of event" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="mt-4">
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder='Provide some details about the event.'
+                      placeholder="Provide some details about the event."
                       {...field}
                     />
                   </FormControl>
@@ -393,14 +416,14 @@ const CreateEventForm = ({
 
             <FormField
               control={form.control}
-              name='address'
+              name="address"
               render={({ field }) => (
-                <FormItem className='mt-4'>
+                <FormItem className="mt-4">
                   <FormLabel>Place</FormLabel>
                   <FormControl>
                     <Input
                       ref={onAddressInputMount}
-                      id='address'
+                      id="address"
                       defaultValue={field.value}
                       onChange={field.onChange} // Bind the onChange event
                       onBlur={field.onBlur} // Bind the onBlur event
@@ -412,20 +435,20 @@ const CreateEventForm = ({
               )}
             />
 
-            <div className='flex flex-wrap items-end gap-2 mt-3'>
+            <div className="flex flex-wrap items-end gap-2 mt-3">
               <FormField
                 control={form.control}
-                name='startDateTime'
+                name="startDateTime"
                 render={({ field }) => (
-                  <FormItem className='mt-4'>
+                  <FormItem className="mt-4">
                     <FormLabel>
-                      {endTimeInput ? 'Start Time' : 'Event Time'}
+                      {endTimeInput ? "Start Time" : "Event Time"}
                     </FormLabel>
                     <FormControl>
                       <input
-                        className='flex h-10 w-full rounded-md border border-gray-200 bg-white px-0.5 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300'
-                        type='datetime-local'
-                        placeholder='Title of event'
+                        className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-0.5 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300"
+                        type="datetime-local"
+                        placeholder="Title of event"
                         {...field}
                       />
                     </FormControl>
@@ -437,25 +460,25 @@ const CreateEventForm = ({
               {!endTimeInput && (
                 <div
                   onClick={() => setEndTimeInput(true)}
-                  className='flex flex-row items-center mb-3 ml-2'
+                  className="flex flex-row items-center mb-3 ml-2"
                 >
-                  <Plus className='h-4 w-4 text-green-700' />
-                  <p className='text-xs'>Add end time</p>
+                  <Plus className="h-4 w-4 text-green-700" />
+                  <p className="text-xs">Add end time</p>
                 </div>
               )}
 
               {endTimeInput && (
                 <FormField
                   control={form.control}
-                  name='endDateTime'
+                  name="endDateTime"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>End Time</FormLabel>
                       <FormControl>
                         <input
-                          className='flex h-10 w-full rounded-md border border-gray-200 bg-white px-0.5 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300'
-                          type='datetime-local'
-                          placeholder='Title of event'
+                          className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-0.5 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300"
+                          type="datetime-local"
+                          placeholder="Title of event"
                           {...field}
                         />
                       </FormControl>
@@ -466,9 +489,9 @@ const CreateEventForm = ({
               )}
             </div>
 
-            <div className='flex flex-row items-center space-x-3 space-y-0 mt-6'>
+            <div className="flex flex-row items-center space-x-3 space-y-0 mt-6">
               <Checkbox onCheckedChange={setRecurring} />
-              <div className='space-y-1 leading-none'>
+              <div className="space-y-1 leading-none">
                 <FormLabel>Is this a recurring event?</FormLabel>
                 <FormDescription>
                   Notifications will be sent automatically.
@@ -477,20 +500,20 @@ const CreateEventForm = ({
             </div>
 
             {recurring && (
-              <div className='grid grid-cols-2 gap-4 justify-between'>
+              <div className="grid grid-cols-2 gap-4 justify-between">
                 <FormField
                   control={form.control}
-                  name='repeatFrequency'
+                  name="repeatFrequency"
                   render={({ field }) => (
-                    <FormItem className='mt-4'>
+                    <FormItem className="mt-4">
                       <FormLabel>Repeat</FormLabel>
                       <FormControl>
                         <MultiSelect
-                          className='w-full'
+                          className="w-full"
                           options={repeatFrequencyOptions}
                           value={repeatFrequency}
                           onChange={setRepeatFrequency}
-                          labelledBy='Select Frequency'
+                          labelledBy="Select Frequency"
                           disableSearch={true}
                           closeOnChangedValue={true}
                           hasSelectAll={false}
@@ -503,12 +526,12 @@ const CreateEventForm = ({
 
                 <FormField
                   control={form.control}
-                  name='recurringEndDate'
+                  name="recurringEndDate"
                   render={({ field }) => (
-                    <FormItem className='mt-4'>
+                    <FormItem className="mt-4">
                       <FormLabel>Stop Repeating</FormLabel>
                       <FormControl>
-                        <Input type='date' placeholder='End Date' {...field} />
+                        <Input type="date" placeholder="End Date" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -519,17 +542,17 @@ const CreateEventForm = ({
 
             <FormField
               control={form.control}
-              name='invitees'
+              name="invitees"
               render={({ field }) => (
-                <FormItem className='mt-8'>
+                <FormItem className="mt-8">
                   <FormLabel>Invitees</FormLabel>
                   <FormControl>
                     <MultiSelect
-                      className='w-full'
+                      className="w-full"
                       options={teamMembers}
                       value={invitees}
                       onChange={setInvitees}
-                      labelledBy='Select Members'
+                      labelledBy="Select Members"
                     />
                   </FormControl>
                   <FormDescription>
@@ -543,16 +566,16 @@ const CreateEventForm = ({
 
             <FormField
               control={form.control}
-              name='notificationDate'
+              name="notificationDate"
               render={({ field }) => (
-                <FormItem className='mt-8'>
+                <FormItem className="mt-8">
                   <FormLabel>Send Invite</FormLabel>
                   <FormControl>
                     <input
-                      className='flex h-10 w-full rounded-md border border-gray-200 bg-white px-0.5 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300'
-                      type='datetime-local'
-                      placeholder='Immediately'
-                      defaultValue='immediately'
+                      className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-0.5 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300"
+                      type="datetime-local"
+                      placeholder="Immediately"
+                      defaultValue="immediately"
                       {...field}
                     />
                   </FormControl>
@@ -563,16 +586,16 @@ const CreateEventForm = ({
 
             <FormField
               control={form.control}
-              name='reminders'
+              name="reminders"
               render={({ field }) => (
-                <FormItem className='flex flex-row items-center space-x-3 space-y-0 mt-6'>
+                <FormItem className="flex flex-row items-center space-x-3 space-y-0 mt-6">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <div className='space-y-1 leading-none'>
+                  <div className="space-y-1 leading-none">
                     <FormLabel>
                       Would you like to send automatic reminders?
                     </FormLabel>
@@ -586,16 +609,16 @@ const CreateEventForm = ({
 
             <div
               onClick={handleAttachments}
-              className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-10 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50'
+              className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2 mt-10 hover:cursor-pointer hover:shadow-sm hover:bg-gray-50"
             >
-              <Link2 className='h-6 w-6 text-green-700' />
+              <Link2 className="h-6 w-6 text-green-700" />
               <p>Attachments</p>
               <input
-                type='file'
+                type="file"
                 multiple
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                className='hidden'
+                className="hidden"
               />
             </div>
 
@@ -617,16 +640,16 @@ const CreateEventForm = ({
             />
 
             {files.length > 0 && (
-              <div className='grid grid-cols-1 gap-2'>
+              <div className="grid grid-cols-1 gap-2">
                 {files.map((file, index) => (
                   <div
                     key={index}
-                    className='flex flex-row items-start border rounded-md p-2 my-2'
+                    className="flex flex-row items-start border rounded-md p-2 my-2"
                   >
                     {getFileIcon(file.name)}
-                    <p className='text-sm text-gray-500'>{file.name}</p>
+                    <p className="text-sm text-gray-500">{file.name}</p>
                     <Trash
-                      className='h-4 w-4 text-red-500 ml-auto hover:cursor-pointer self-center'
+                      className="h-4 w-4 text-red-500 ml-auto hover:cursor-pointer self-center"
                       onClick={() => {
                         setFiles((prevFiles) =>
                           prevFiles.filter((_, i) => i !== index)
@@ -638,22 +661,22 @@ const CreateEventForm = ({
               </div>
             )}
 
-            <div className='flex flex-row-reverse justify-between mt-6'>
+            <div className="flex flex-row-reverse justify-between mt-6">
               <Button
-                type='submit'
+                type="submit"
                 disabled={
                   form.formState.isSubmitting || !form.formState.isValid
                 }
-                size='xs'
-                className='rounded-full bg-blue-600 disabled:bg-gray-200 hover:bg-blue-400 disabled:text-gray-600'
+                size="xs"
+                className="rounded-full bg-blue-600 disabled:bg-gray-200 hover:bg-blue-400 disabled:text-gray-600"
               >
                 Post
               </Button>
               <Button
-                variant='outline'
+                variant="outline"
                 onClick={() => setEventFormOpen(false)}
-                size='xs'
-                className='rounded-full  disabled:bg-gray-200'
+                size="xs"
+                className="rounded-full  disabled:bg-gray-200"
               >
                 Cancel
               </Button>

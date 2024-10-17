@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import {  useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useFieldArray, useForm, Controller } from 'react-hook-form';
-import * as z from 'zod';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFieldArray, useForm, Controller } from "react-hook-form";
+import * as z from "zod";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,33 +15,33 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { toast } from '@/components/ui/use-toast';
-import { trpc } from '../_trpc/client';
-import { User } from './page';
-import UploadDropzone from '@/components/UploadDropzone';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/use-toast";
+import { trpc } from "../_trpc/client";
+import UploadDropzone from "@/components/UploadDropzone";
+import { Member, Prisma } from "@prisma/client";
 
 const profileFormSchema = z.object({
   firstName: z
     .string()
     .min(2, {
-      message: 'Name must be at least 2 characters.',
+      message: "Name must be at least 2 characters.",
     })
     .max(30, {
-      message: 'Name must not be longer than 40 characters.',
+      message: "Name must not be longer than 40 characters.",
     }),
   lastName: z
     .string()
     .min(2, {
-      message: 'Name must be at least 2 characters.',
+      message: "Name must be at least 2 characters.",
     })
     .max(30, {
-      message: 'Name must not be longer than 40 characters.',
+      message: "Name must not be longer than 40 characters.",
     }),
   email: z
     .string({
-      required_error: 'Please select an email to display.',
+      required_error: "Please select an email to display.",
     })
     .email(),
   phone: z.string().min(10).max(15),
@@ -49,13 +49,20 @@ const profileFormSchema = z.object({
     .array(
       z.object({
         name: z.string().min(1, "Child's name is required"),
-        age: z.number().min(0, 'Age must be a positive number'),
+        age: z.number().min(0, "Age must be a positive number"),
       })
     )
     .optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
+type User = Prisma.MemberGetPayload<{
+  include: {
+    guardiansOf: true;
+    guardians: true;
+  };
+}>;
 
 interface ProfileFormProps {
   user: User;
@@ -74,22 +81,22 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const defaultValues: Partial<ProfileFormValues> = {
     firstName: user?.firstName,
     lastName: user?.lastName,
-    email: user?.email,
-    phone: user?.phone,
-    children: user?.Children,
+    email: user?.email!,
+    phone: user?.phone!,
+    children: user?.guardiansOf,
   };
   const [fileData, setFileData] = useState<FileData>({
-    id: '',
-    downloadURL: '',
-    fileName: '',
+    id: "",
+    downloadURL: "",
+    fileName: "",
     uploadDate: new Date(),
-    fileType: '',
+    fileType: "",
   });
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
-    mode: 'onChange',
+    mode: "onChange",
   });
   const {
     control,
@@ -99,7 +106,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'children',
+    name: "children",
   });
 
   const mutation = trpc.updateUserProfileSettings.useMutation();
@@ -113,7 +120,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
       ...prevData,
       downloadURL,
       fileName,
-      id: '',
+      id: "",
       fileType,
       uploadDate: new Date(),
     }));
@@ -127,18 +134,18 @@ export function ProfileForm({ user }: ProfileFormProps) {
     mutation.mutate(formData, {
       onSuccess: () => {
         toast({
-          title: 'Updated Successfully',
+          title: "Updated Successfully",
           description: <p>Your profile settings have been updated</p>,
         });
         router.refresh();
       },
       onError: (error) => {
         toast({
-          variant: 'destructive',
-          title: 'Oops, something went wrong!',
+          variant: "destructive",
+          title: "Oops, something went wrong!",
           description: (
             <p>
-              <span className='font-medium'>{error.message}</span>
+              <span className="font-medium">{error.message}</span>
             </p>
           ),
         });
@@ -150,11 +157,11 @@ export function ProfileForm({ user }: ProfileFormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className='flex flex-col space-y-8'
+        className="flex flex-col space-y-8"
       >
         <FormField
           control={form.control}
-          name='firstName'
+          name="firstName"
           render={({ field }) => (
             <FormItem>
               <FormLabel>First Name</FormLabel>
@@ -168,7 +175,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         />
         <FormField
           control={form.control}
-          name='lastName'
+          name="lastName"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Last Name</FormLabel>
@@ -182,24 +189,24 @@ export function ProfileForm({ user }: ProfileFormProps) {
         />
         <FormField
           control={form.control}
-          name='phone'
+          name="phone"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <Input placeholder={user?.phone} {...field} />
+                <Input placeholder={user?.phone!} {...field} />
               </FormControl>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
-          name='email'
+          name="email"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder={user?.email} {...field} />
+                <Input placeholder={user?.email!} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -207,7 +214,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         />
 
         {fields.map((field, index) => (
-          <div key={field.id} className='flex items-center space-x-3'>
+          <div key={field.id} className="flex items-center space-x-3">
             <Input
               placeholder={`Child ${index + 1} Name`}
               {...form.register(`children.${index}.name` as const)}
@@ -217,10 +224,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
               control={control}
               render={({ field }) => (
                 <Input
-                  type='number'
+                  type="number"
                   placeholder={`Child ${index + 1} Age`}
                   {...field}
-                  value={field.value || ''}
+                  value={field.value || ""}
                   onChange={(e) =>
                     field.onChange(
                       e.target.value ? parseInt(e.target.value, 10) : null
@@ -229,31 +236,31 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 />
               )}
             />
-            <button type='button' onClick={() => remove(index)}>
+            <button type="button" onClick={() => remove(index)}>
               Remove
             </button>
             {errors.children && errors.children[index]?.age && (
-              <p className='text-red-500'>
+              <p className="text-red-500">
                 {errors.children[index]?.age?.message}
               </p>
             )}
           </div>
         ))}
         <Button
-          type='button'
-          onClick={() => append({ name: '', age: 0 })}
-          className='my-2 w-[40%] self-center bg-blue-600 hover:bg-blue-400'
+          type="button"
+          onClick={() => append({ name: "", age: 0 })}
+          className="my-2 w-[40%] self-center bg-blue-600 hover:bg-blue-400"
         >
           Add Child
         </Button>
 
         <div>
-          <h2 className='text-lg font-semibold tracking-tight'>
+          <h2 className="text-lg font-semibold tracking-tight">
             Upload a Profile Picture
           </h2>
           <UploadDropzone onFileUpload={handleFileUpload} />
         </div>
-        <Button type='submit'>Update profile</Button>
+        <Button type="submit">Update profile</Button>
       </form>
     </Form>
   );

@@ -7,20 +7,18 @@ import { Loader2 } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
 
 const Page = async () => {
-  let user = null;
   let dbUser = null;
   try {
     const user = await currentUser();
 
     if (!user || !user.id) throw new Error("User not found");
 
-    dbUser = await db.user.findFirst({
+    dbUser = await db.member.findFirst({
       where: {
         id: user.id,
       },
       include: {
-        groupsAsCoach: true,
-        groupsAsMember: true,
+        groups: true,
       },
     });
     if (!dbUser || dbUser === null)
@@ -33,9 +31,11 @@ const Page = async () => {
     redirect("/auth-callback?origin=dashboard/group");
   }
 
-  const groups = [...dbUser.groupsAsCoach, ...dbUser.groupsAsMember];
+  const groups = dbUser.groups;
 
   if (groups.length > 0) redirect(`/dashboard/group/${groups[0].id}`);
+
+  redirect("/dashboard/group/create");
 
   return (
     <div className="w-full mt-24 flex justify-center">

@@ -20,13 +20,12 @@ const Page = async () => {
 
   if (!user || !user.id) redirect("/auth-callback?origin=dashboard");
 
-  const dbUser = await db.user.findFirst({
+  const dbUser = await db.member.findFirst({
     where: {
       id: user.id,
     },
     include: {
-      groupsAsCoach: true,
-      groupsAsMember: true,
+      groups: true,
     },
   });
 
@@ -34,7 +33,7 @@ const Page = async () => {
     redirect("/auth-callback?origin=dashboard");
   }
 
-  const userTeams = [...dbUser.groupsAsCoach, ...dbUser.groupsAsMember];
+  const userTeams = dbUser.groups;
 
   const uniqueTeamIds = new Set();
 
@@ -53,7 +52,7 @@ const Page = async () => {
       description: group.description,
       createdAt: group.createdAt,
       logoURL: group.logoURL,
-      coachId: group.coachId,
+      coachId: group.contactPersonId,
     }));
 
   return (
@@ -61,7 +60,7 @@ const Page = async () => {
       <h1 className="text-2xl tex-gray-900 font-semibold tracking-wide">
         Your Teams
       </h1>
-      {dbUser.groupsAsCoach.length !== 0 ?? (
+      {teams.length !== 0 ?? (
         <h2 className="text-md text-gray-600">
           Select a team to view team details.
         </h2>
@@ -101,7 +100,7 @@ const Page = async () => {
           )
         )}
       </div>
-      {dbUser.groupsAsCoach.length === 0 ? (
+      {teams.length === 0 ? (
         <CreateTeamForm />
       ) : (
         <div className="flex justify-center">

@@ -7,7 +7,7 @@ import {
 import { format } from 'date-fns';
 import { truncateText } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { User } from '@prisma/client';
+import { Member as User } from '@prisma/client';
 import { ExtendedPollComment } from '@/types/types';
 
 interface CommentProps {

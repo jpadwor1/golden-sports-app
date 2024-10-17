@@ -11,72 +11,101 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id                    String         @id @default(uuid())
-  firstName             String         @default("")
-  lastName              String         @default("")
-  email                 String         @unique
-  phone                 String
-  role                  UserRole       @default(PLAYER)
-  createdAt             DateTime       @default(now())
-  isProfileComplete     Boolean        @default(false)
-  imageURL              String?
-  stripeAccountId       String?
-  stripeAccountComplete Boolean        @default(false)
-  groupsAsCoach         Group[]        @relation("CoachGroups")
-  groupsAsMember        Group[]        @relation("MemberGroups")
-  payments              UserPayment[]
-  messages              Message[]
-  parentId              String?
-  Participant           Participant[]
-  Post                  Post[]
-  Comment               Comment[]
-  PollVote              PollVote[]
-  Children              Children[]
-  Like                  Like[]
-  eventComment          eventComment[]
-  Poll                  Poll[]
-  PollComment           PollComment[]
-  notifications         Notification[]
-  Payment               Payment[]
+//Member Model - A player or team member
+model Member {
+  id                     String         @id @default(uuid())
+  firstName              String
+  lastName               String
+  email                  String?
+  phone                  String?
+  roles                  GroupRole[]
+  createdAt              DateTime       @default(now())
+  isProfileComplete      Boolean        @default(false)
+  imageURL               String?
+  stripeAccountId        String?
+  stripeAccountComplete  Boolean        @default(false)
+  groups                 Group[]        @relation("GroupMembers")
+  contactPersonForGroups Group[]        @relation("GroupContactPerson")
+  payments               UserPayment[]
+  messages               Message[]
+  guardians              Member[]       @relation("Guardian")
+  guardianOf             Member[]       @relation("Guardian")
+  events                 Event[]        @relation("EventInvitees")
+  posts                  Post[]         @relation("PostAuthor")
+  comments               Comment[]
+  polls                  Poll[]         @relation("PollAuthor")
+  notifications          Notification[]
+  likes                  Like[]
+  pollVotes              PollVote[]
+  invitedToPosts         Post[]         @relation("PostInvitees")
+  invitedToPolls         Poll[]         @relation("PollInvitees")
 
-  @@index([parentId])
-}
-
-model Children {
-  id        String   @id @default(uuid())
-  name      String
-  age       Int
-  parentId  String
-  createdAt DateTime @default(now())
-
-  parent User @relation(fields: [parentId], references: [id])
-
-  @@index([parentId])
-}
-
-model Group {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  coachId     String
-  createdAt   DateTime  @default(now())
-  logoURL     String?
-  coach       User      @relation("CoachGroups", fields: [coachId], references: [id], onDelete: Cascade)
-  events      Event[]
-  messages    Message[]
-  files       File[]
-
-  members User[]    @relation("MemberGroups")
-  Post    Post[]
-  Poll    Poll[]
+  // Remove duplicate fields and incorrect relations
+  // Remove: Member, Group, Post, Poll fields
+  Group   Group[]
   Payment Payment[]
 
-  @@index([coachId])
+  @@unique([email, id, phone])
+}
+
+//Group Model - A team or group
+model Group {
+  id              String      @id @default(uuid())
+  name            String
+  description     String?
+  createdAt       DateTime    @default(now())
+  logoURL         String?
+  groupCode       String      @unique
+  contactPersonId String
+  contactPerson   Member      @relation("GroupContactPerson", fields: [contactPersonId], references: [id], onDelete: Restrict)
+  subGroups       subGroup[]
+  members         Member[]    @relation("GroupMembers")
+  files           File[]
+  roles           GroupRole[]
+  activity        Activity
+  events          Event[]
+  payments        Payment[]
+  messages        Message[]
+  posts           Post[]
+  polls           Poll[]
+
+  // Remove duplicate fields
+  // Remove: Member, Post fields
+  Member   Member? @relation(fields: [memberId], references: [id])
+  memberId String?
+
+  @@index([contactPersonId])
+  @@index([memberId])
+}
+
+//SubGroup Model - A sub team or group
+model subGroup {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  color     String   @default("#000000")
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id])
+
+  @@index([groupId])
+}
+
+//GroupRole Model - A role within a group
+model GroupRole {
+  id       String  @id @default(uuid())
+  groupId  String
+  group    Group   @relation(fields: [groupId], references: [id])
+  roleName Role
+  Member   Member? @relation(fields: [memberId], references: [id])
+  memberId String?
+
+  @@unique([groupId, id])
+  @@index([groupId])
+  @@index([memberId])
 }
 
 model Event {
-  id                      String         @id @default(uuid())
+  id                      String     @id @default(uuid())
   title                   String
   groupId                 String
   description             String?
@@ -88,34 +117,34 @@ model Event {
   repeatFrequency         String?
   reminders               Boolean
   notificationDate        DateTime?
-  parentEventId           String?
-  parentEvent             Event?         @relation("ChildEvents", fields: [parentEventId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  childEvents             Event[]        @relation("ChildEvents")
-  group                   Group          @relation(fields: [groupId], references: [id])
-  invitees                Participant[]
+  group                   Group      @relation(fields: [groupId], references: [id])
+  invitees                Member[]   @relation("EventInvitees")
   feeAmount               Float?
   totalFeeAmount          Float?
   feeDescription          String?
   feeServiceCharge        Float?
   collectFeeServiceCharge Boolean?
   payments                Payment[]
-  eventComments           eventComment[]
-  File                    File[]
+  comments                Comment[]
+  files                   File[]
+  responses               Responses?
+  responsesId             String     @unique
+
+  // Remove this relation as it's already defined in the invitees field
+  // Remove: Member, memberId
 
   @@index([groupId])
-  @@index([parentEventId])
 }
 
-model Participant {
-  userId  String
-  eventId String
-  status  String
+model Responses {
+  id             String   @id @default(uuid())
+  eventId        String   @unique
+  acceptedIds    String[]
+  declinedIds    String[]
+  unconfirmedIds String[]
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  @@id([userId, eventId])
-  @@index([userId])
   @@index([eventId])
 }
 
@@ -132,7 +161,7 @@ model Payment {
   dueDate       DateTime
   groupId       String
   users         UserPayment[]
-  user          User?         @relation(fields: [userId], references: [id])
+  user          Member?       @relation(fields: [userId], references: [id])
   event         Event?        @relation(fields: [eventId], references: [id])
   group         Group         @relation(fields: [groupId], references: [id])
 
@@ -146,7 +175,7 @@ model UserPayment {
   userId    String
   paymentId String
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    Member  @relation(fields: [userId], references: [id], onDelete: Cascade)
   payment Payment @relation(fields: [paymentId], references: [id])
 
   @@unique([userId, paymentId])
@@ -161,8 +190,8 @@ model Message {
   content      String
   timestamp    DateTime @default(now())
 
-  sender User  @relation(fields: [senderUserId], references: [id])
-  group  Group @relation(fields: [groupId], references: [id])
+  sender Member @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+  group  Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@index([groupId])
   @@index([senderUserId])
@@ -175,11 +204,15 @@ model Post {
   content   String
   timestamp DateTime @default(now())
 
-  author   User      @relation(fields: [authorId], references: [id])
-  group    Group     @relation(fields: [groupId], references: [id])
+  author   Member    @relation(name: "PostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  invitees Member[]  @relation("PostInvitees")
   comments Comment[]
-  Files    File[]
+  files    File[]
   likes    Like[]
+
+  // Remove duplicate fields
+  // Remove: Member, Group fields
 
   @@index([groupId])
   @@index([authorId])
@@ -187,50 +220,54 @@ model Post {
 
 model Comment {
   id        String   @id @default(uuid())
-  postId    String
   authorId  String
   content   String
   timestamp DateTime @default(now())
 
-  post      Post      @relation(fields: [postId], references: [id])
-  author    User      @relation(fields: [authorId], references: [id])
+  author Member @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  entityId   String
+  entityType EntityType
+
   replies   Comment[] @relation("CommentReplies")
   replyTo   Comment?  @relation("CommentReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replyToId String?
-  likes     Like[]
 
-  @@index([postId])
+  likes Like[]
+
+  // Remove these fields and relations as they're redundant with entityId and entityType
+  // Remove: Event, eventId, Post, postId, Poll, pollId
+  Event   Event?  @relation(fields: [eventId], references: [id])
+  eventId String?
+  Post    Post?   @relation(fields: [postId], references: [id])
+  postId  String?
+  Poll    Poll?   @relation(fields: [pollId], references: [id])
+  pollId  String?
+
   @@index([authorId])
+  @@index([entityId])
   @@index([replyToId])
-}
-
-model eventComment {
-  id        String   @id @default(uuid())
-  eventId   String
-  authorId  String
-  content   String
-  timestamp DateTime @default(now())
-
-  event  Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  author User  @relation(fields: [authorId], references: [id])
-
   @@index([eventId])
-  @@index([authorId])
+  @@index([postId])
+  @@index([pollId])
 }
 
 model Like {
   id        String   @id @default(uuid())
-  postId    String
   authorId  String
   timestamp DateTime @default(now())
 
-  post      Post     @relation(fields: [postId], references: [id])
-  author    User     @relation(fields: [authorId], references: [id])
-  Comment   Comment? @relation(fields: [commentId], references: [id])
-  commentId String?
+  author     Member     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  entityId   String // ID of the related entity (Post, Event, Poll, Payment)
+  entityType EntityType // Type of the entity (Post, Event, Poll, Payment)
+  Post       Post?      @relation(fields: [postId], references: [id])
+  postId     String?
+  Comment    Comment?   @relation(fields: [commentId], references: [id])
+  commentId  String?
 
-  @@index([postId])
   @@index([authorId])
+  @@index([entityId])
+  @@index([postId])
   @@index([commentId])
 }
 
@@ -243,27 +280,31 @@ model Notification {
   resourceId String
   fromId     String
   type       String
-  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User       Member   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model Poll {
-  id          String    @id @default(uuid())
-  groupId     String
-  title       String
-  description String?
-  createdAt   DateTime  @default(now())
-  expiresAt   DateTime?
-  authorId    String
+  id            String    @id @default(uuid())
+  groupId       String
+  title         String
+  description   String?
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime?
+  authorId      String
+  hideVotes     Boolean   @default(false)
+  allowComments Boolean   @default(false)
 
-  author        User          @relation(fields: [authorId], references: [id])
-  group         Group         @relation(fields: [groupId], references: [id])
-  options       PollOption[]
-  votes         PollVote[]
-  PollComment   PollComment[]
-  allowComments Boolean       @default(true)
-  hideVotes     Boolean       @default(false)
+  author   Member       @relation("PollAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  group    Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  invitees Member[]     @relation("PollInvitees")
+  options  PollOption[]
+  votes    PollVote[]
+  comments Comment[]
+
+  // Remove duplicate fields
+  // Remove: Member field
 
   @@index([groupId])
   @@index([authorId])
@@ -284,29 +325,15 @@ model PollVote {
   userId   String
   optionId String
 
-  user   User       @relation(fields: [userId], references: [id])
+  user   Member     @relation(fields: [userId], references: [id], onDelete: Cascade)
   option PollOption @relation(fields: [optionId], references: [id])
-  Poll   Poll?      @relation(fields: [pollId], references: [id])
+  Poll   Poll?      @relation(fields: [pollId], references: [id], onDelete: Cascade)
   pollId String?
 
   @@id([userId, optionId])
   @@index([userId])
   @@index([optionId])
   @@index([pollId])
-}
-
-model PollComment {
-  id        String   @id @default(uuid())
-  pollId    String
-  authorId  String
-  content   String
-  timestamp DateTime @default(now())
-
-  poll   Poll @relation(fields: [pollId], references: [id])
-  author User @relation(fields: [authorId], references: [id])
-
-  @@index([pollId])
-  @@index([authorId])
 }
 
 model File {
@@ -319,9 +346,9 @@ model File {
   url     String
   key     String
   group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  Post    Post?   @relation(fields: [postId], references: [id])
+  Post    Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId  String?
-  Event   Event?  @relation(fields: [eventId], references: [id])
+  Event   Event?  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   eventId String?
 
   @@index([groupId])
@@ -336,11 +363,10 @@ enum UploadStatus {
   SUCCESS
 }
 
-enum UserRole {
-  ADMIN
+enum Role {
+  GROUP_MANAGER
   COACH
-  PARENT
-  PLAYER
+  HELPER
 }
 
 enum EventType {
@@ -348,4 +374,22 @@ enum EventType {
   GAME
   MEETING
   OTHER
+}
+
+enum Activity {
+  BASEBALL
+  BASKETBALL
+  FOOTBALL
+  SOCCER
+  VOLLEYBALL
+  OTHER
+}
+
+enum EntityType {
+  POST
+  EVENT
+  POLL
+  PAYMENT
+  COMMENT
+  REPLY
 }

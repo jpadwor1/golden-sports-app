@@ -20,7 +20,7 @@ const Page = () => {
           </div>
           <div className="flex flex-col items-center mt-32 w-full md:h-[600px]">
             <h1 className="text-5xl text-white font-bold mb-10">
-              Here's some valuable tips to remember:
+              Here&apos;s some valuable tips to remember:
             </h1>
             <MockupGrid />
           </div>

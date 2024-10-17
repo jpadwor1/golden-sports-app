@@ -44,7 +44,7 @@ const AboutPage = () => {
               <p className="text-xl text-gray-600 mb-6">
                 We believe these precious social activities ought to be much
                 easier to make happen. But, too often, it falls on one person to
-                organize it. We're here to help.
+                organize it. We&apos;re here to help.
               </p>
             </div>
             <div className="flex flex-col justify-center">
