@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Like, File, Comment, User } from "@prisma/client";
+import { Like, File, Comment, Member as User } from "@prisma/client";
 import { db } from "@/db";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

@@ -39,7 +39,7 @@ const Page = async ({ params }: PageProps) => {
   let allPayments: any[] = [];
 
   for (const group of groups) {
-    const dbEvents= await db.event.findMany({
+    const dbEvents = await db.event.findMany({
       where: {
         invitees: {
           some: {
@@ -122,13 +122,13 @@ const Page = async ({ params }: PageProps) => {
           height={300}
         />
       </div>
-      <HorizontalNavbar
+      {/* <HorizontalNavbar
         polls={allPolls}
         posts={allPosts}
         events={allEvents}
         user={dbUser}
         payments={allPayments}
-      />
+      /> */}
     </>
   );
 };

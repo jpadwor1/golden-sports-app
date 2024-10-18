@@ -18,7 +18,7 @@ interface EventCardProps {
 }
 
 const EventCard = ({ event, user }: EventCardProps) => {
-  const hasAnswered = event.invitees.some((p) => p.userId === user.id);
+  const hasAnswered = event.invitees.some((p) => p.id === user.id);
   const date = new Date(event.startDateTime);
   const months = [
     "January",

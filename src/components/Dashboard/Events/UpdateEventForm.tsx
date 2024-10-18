@@ -152,9 +152,9 @@ const UpdateEventForm = ({
 
   const repeatOptions: Option[] = event.repeatFrequency
     ? event.repeatFrequency.split(" ").map((frequency) => ({
-        label: frequency.charAt(0).toUpperCase() + frequency.slice(1),
-        value: frequency,
-      }))
+      label: frequency.charAt(0).toUpperCase() + frequency.slice(1),
+      value: frequency,
+    }))
     : [];
   const [repeatFrequency, setRepeatFrequency] =
     React.useState<Option[]>(repeatOptions);
@@ -264,11 +264,11 @@ const UpdateEventForm = ({
       }));
       const currentInvitees: Option[] = event.invitees.map((invitee) => ({
         label:
-          members.find((member) => member.id === invitee.userId)?.firstName +
-            " " +
-            members.find((member) => member.id === invitee.userId)?.lastName ||
+          members.find((member) => member.id === invitee.id)?.firstName +
+          " " +
+          members.find((member) => member.id === invitee.id)?.lastName ||
           "",
-        value: invitee.userId,
+        value: invitee.id,
       }));
       setTeamMembers(newMembers);
       setInvitees(currentInvitees);

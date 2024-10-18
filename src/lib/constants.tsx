@@ -9,15 +9,14 @@ export async function getGroups(userId: string) {
       id: userId,
     },
     include: {
-      groupsAsCoach: true,
-      groupsAsMember: true,
+      groups: true
     },
   });
 
   if (!dbUser) {
     return [];
   }
-  const groups = [...dbUser.groupsAsCoach, ...dbUser.groupsAsMember];
+  const groups = dbUser.groups;
 
   const SIDENAV_ITEMS: SideNavItem[] = [
     {

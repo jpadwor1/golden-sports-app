@@ -40,7 +40,9 @@ const Events = ({ user, events }: EventsPageProps) => {
         </div>
         <div className="flex flex-col min-h-[calc(100vh-20rem)] w-full">
           {eventFormOpen && (
-            <CreateEventForm setEventFormOpen={setEventFormOpen} user={user} />
+            // <CreateEventForm setEventFormOpen={setEventFormOpen} user={user} />
+            <div>Event Form</div>
+
           )}
           {events.map((event) => (
             <EventCard key={event.id} event={event} user={user} />

@@ -45,7 +45,7 @@ const Header = ({ user }: HeaderProps) => {
             name='Your Account'
             role='Customer'
             imageUrl={user.imageURL ? user.imageURL : ''}
-            email={user.email}
+            email={user.email!}
           />
           <NotificationBell user={user} />
         </div>

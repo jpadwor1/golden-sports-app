@@ -252,7 +252,7 @@ const Page = async ({ params }: PageProps) => {
               unanswered={unanswered ?? []}
             />
           </div>
-          <EventCommentInput dbUser={dbUser} eventId={event.id} />
+          {/* <EventCommentInput dbUser={dbUser} eventId={event.id} /> */}
         </div>
       </div>
     </MaxWidthWrapper>

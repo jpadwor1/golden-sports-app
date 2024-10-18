@@ -81,7 +81,7 @@ const InviteUserButton = ({ event }: InviteUserButtonProps) => {
   const members = group.members.filter(
     (member) =>
       !event.invitees.some(
-        (invitee: { userId: string }) => invitee.userId === member.id
+        (invitee: { id: string }) => invitee.id === member.id
       )
   );
   return (
@@ -120,13 +120,12 @@ const InviteUserButton = ({ event }: InviteUserButtonProps) => {
                   {members.map((member) => (
                     <li
                       key={member.id}
-                      className={`flex items-center gap-3 p-2 w-full rounded-lg cursor-pointer transition-colors ${
-                        selectedUsers.some(
-                          (selected) => selected.id === member.id
-                        )
-                          ? "bg-blue-50 dark:bg-gray-800"
-                          : "hover:bg-blue-50 dark:hover:bg-gray-800"
-                      }`}
+                      className={`flex items-center gap-3 p-2 w-full rounded-lg cursor-pointer transition-colors ${selectedUsers.some(
+                        (selected) => selected.id === member.id
+                      )
+                        ? "bg-blue-50 dark:bg-gray-800"
+                        : "hover:bg-blue-50 dark:hover:bg-gray-800"
+                        }`}
                       onClick={() => handleUserSelect(member)}
                     >
                       <Avatar className="w-10 h-10">

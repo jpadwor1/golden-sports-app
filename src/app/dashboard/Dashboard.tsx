@@ -48,7 +48,7 @@ const Dashboard = ({ user, posts }: DashboardProps) => {
           )}
         </div>
         <div className="flex flex-col min-h-[calc(100vh-20rem)] w-full">
-          {postFormOpen && <CreatePostForm user={user} />}
+          {/* {postFormOpen && <CreatePostForm user={user} />} */}
           {posts.map((post) => (
             <SocialCard key={post.id} post={post} user={user} />
           ))}

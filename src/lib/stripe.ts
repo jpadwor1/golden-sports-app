@@ -29,9 +29,8 @@ export async function createStripeAccount(userId: string) {
     // Create a Stripe account for this user if one does not exist already
     if (accountId === undefined || accountId === null) {
       const account = await stripe.accounts.create({
-        type: "standard",
         country: "US",
-        email: dbUser.email,
+        email: dbUser.email!,
       });
       accountId = account.id;
 
